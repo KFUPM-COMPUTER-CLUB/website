@@ -1,6 +1,6 @@
 # Contributing
 
-Setup first: [docs/SETUP.md](docs/SETUP.md). New to Git? Watch GitHub's *GitHub for Beginners* playlist linked there. This page is how **we** work.
+Setup first: [docs/SETUP.md](docs/SETUP.md). New to Git? Watch GitHub's *[GitHub for Beginners](https://youtube.com/playlist?list=PL0lo9MOBetEFcp4SCWinBdpml9B2U25-f&si=rFOy_RMie-vc5FBq)* playlist linked there. This page is how **we** work.
 
 ## Rules
 
