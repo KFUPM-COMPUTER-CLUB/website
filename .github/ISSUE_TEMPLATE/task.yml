@@ -1,0 +1,22 @@
+name: Task
+description: A piece of work for the website
+labels: []
+body:
+  - type: textarea
+    id: goal
+    attributes: { label: Goal, description: Why does this matter? One or two sentences. }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: What to do, value: "- [ ] \n- [ ] " }
+    validations: { required: true }
+  - type: textarea
+    id: done
+    attributes: { label: Done when, description: How will we know it's finished? }
+    validations: { required: true }
+  - type: input
+    id: files
+    attributes: { label: Files you will touch }
+  - type: dropdown
+    id: track
+    attributes: { label: Owner role, options: [Adib (project lead), Yogesh (content lead), Lead developer, Designer, Content developer, QA & launch] }
