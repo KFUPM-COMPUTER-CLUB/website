@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 1 — Lead developer** | T05 | who: member-1, type: feature, P1 |
+| **Lead developer** | T05 | role: lead-dev, type: feature, P1 |
 
 ## Steps
 1. `npm install @astrojs/rss` and `npx astro add sitemap` (answer **yes**).
@@ -29,4 +29,4 @@
 - `/sitemap-index.xml` lists all pages
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

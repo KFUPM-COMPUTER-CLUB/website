@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 4 — Quality & launch** | T02, T03 | who: member-4, type: design, P1 |
+| **QA & launch** | T02, T03 | role: qa, type: design, P1 |
 
 ## Steps
 1. `src/scripts/reveal.js`, imported once in `BaseLayout` with `<script>import '../scripts/reveal.js'</script>`:
@@ -18,4 +18,4 @@
 - Smooth on phone; everything is visible with reduced motion on (test in DevTools → Rendering → Emulate prefers-reduced-motion)
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

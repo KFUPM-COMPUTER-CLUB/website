@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 3 — Content pages** | T02, T04 | who: member-3, type: feature, P0 |
+| **Content developer** | T02, T04 | role: content-dev, type: feature, P0 |
 
 File: `src/pages/events.astro`.
 
@@ -19,4 +19,4 @@ File: `src/pages/events.astro`.
 - Works on phone
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 1 — Lead developer** | nothing (do this first, everyone waits for it) | who: member-1, type: feature, P0 |
+| **Lead developer** | nothing (do this first, everyone waits for it) | role: lead-dev, type: feature, P0 |
 
 ## Steps
 1. On your branch `feat/astro-project`, in the repo folder, run:
@@ -14,7 +14,7 @@
    ```js
    import { defineConfig } from 'astro/config';
    export default defineConfig({
-     site: 'https://cckfupm.example', // Manager 1 gives the real domain later
+     site: 'https://cckfupm.example', // Adib gives the real domain later
      trailingSlash: 'ignore',
    });
    ```
@@ -22,7 +22,7 @@
 4. Create `src/layouts/BaseLayout.astro`. It takes props `title` and `description`, and contains:
    - `<html lang="en">`, meta charset/viewport, `<title>{title} · KFUPM Computer Club</title>`, meta description
    - Google Fonts link: `https://fonts.googleapis.com/css2?family=Mona+Sans:wght@300..700&family=Hubot+Sans:wght@400..700&family=Readex+Pro:wght@300..600&display=swap`
-   - `import '../styles/global.css'` (create an empty file; Member 2 fills it in T02)
+   - `import '../styles/global.css'` (create an empty file; the designer fills it in T02)
    - `<Header />`, `<main id="main"><slot /></main>`, `<Footer />`
 5. `src/components/Header.astro`: logo (`/logo.png`, put the white CC logo in `public/logo.png`) + nav links **Home `/` · Events `/events` · News `/news` · Newsletter `/newsletter` · Write `/write` · About `/about`**. The current page link gets `aria-current="page"` (compare with `Astro.url.pathname`). A menu button for phones that toggles a class `nav-open` on `<body>` (small `<script>` in the component).
 6. `src/components/Footer.astro`: club name, email, social links from `site.json`, "Website built by the CC website team" → `/about`.
@@ -59,4 +59,4 @@
 - All 6 pages open from the nav, on phone and laptop, on the Vercel preview
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

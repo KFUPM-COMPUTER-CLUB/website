@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 2 — Designer** | T03, T05, T06, T07, T08 | who: member-2, type: design, P0 |
+| **Designer** | T03, T05, T06, T07, T08 | role: designer, type: design, P0 |
 
 ## Steps
 1. Open every page in Chrome → F12 → phone icon at widths **360, 390, 768, 1280**.
@@ -16,4 +16,4 @@
 - 4 Lighthouse Accessibility scores of 95+ in the PR; no sideways scroll at 360px anywhere
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

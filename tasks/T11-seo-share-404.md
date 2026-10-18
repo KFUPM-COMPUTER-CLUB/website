@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 4 — Quality & launch** | T01, T02 | who: member-4, type: feature, P1 |
+| **QA & launch** | T01, T02 | role: qa, type: feature, P1 |
 
 ## Steps
 1. `BaseLayout.astro`: add props `image` (default `/og.png`) and use them for:
@@ -26,4 +26,4 @@
 - `/does-not-exist` shows the 404 page
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

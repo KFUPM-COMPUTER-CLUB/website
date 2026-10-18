@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 2 — Designer** | T02, T04 | who: member-2, type: feature, P1 |
+| **Designer** | T02, T04 | role: designer, type: feature, P1 |
 
 File: `src/pages/about.astro`.
 
@@ -17,4 +17,4 @@ File: `src/pages/about.astro`.
 - Looks right with the sample team on phone and laptop
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

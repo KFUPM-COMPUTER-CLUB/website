@@ -53,6 +53,6 @@ You don't need to be an expert. Watch or read enough to understand **repo, commi
 | Problem | Fix |
 |---|---|
 | `npm` / `node` not found | Close and reopen the terminal after installing Node. Windows: restart VS Code. |
-| `npm install` errors | Check `node -v` is 20+. Delete `node_modules` and `package-lock.json` only if Member 1 says so. |
+| `npm install` errors | Check `node -v` is 20+. Delete `node_modules` and `package-lock.json` only if the lead developer says so. |
 | Port 4321 in use | Another `npm run dev` is running; stop it, or use the new port Astro prints. |
 | Permission denied on push | Accept the org invite: [github.com/notifications](https://github.com/notifications). |

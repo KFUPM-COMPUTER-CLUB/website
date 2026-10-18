@@ -4,7 +4,7 @@
 |---|---|---|
 | **Whoever finishes early** | the v1.0 launch | who: anyone, type: feature, P2 |
 
-Only start after launch (v1.1). Ask Manager 1 first.
+Only start after launch (v1.1). Ask Adib first.
 
 ## Plan
 - Astro i18n routing: `i18n: { locales: ['en', 'ar'], defaultLocale: 'en' }` in `astro.config.mjs`
@@ -16,4 +16,4 @@ Only start after launch (v1.1). Ask Manager 1 first.
 - Every UI label has Arabic; RTL has no overlaps
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

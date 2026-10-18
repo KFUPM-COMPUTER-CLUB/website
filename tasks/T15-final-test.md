@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 4 — Quality & launch** | all P0 tasks merged | who: member-4, type: bug, P0 |
+| **QA & launch** | all P0 tasks merged | role: qa, type: bug, P0 |
 
 Everyone helps; you lead and keep the list.
 
@@ -22,7 +22,7 @@ iPhone Safari · Android Chrome · Windows Chrome · Edge · Firefox · Mac Safa
 Open an issue with the **Bug** template. Label **P0** if it must be fixed before launch, otherwise P1/P2. Assign it to whoever owns that page.
 
 ## Done when
-- Every checklist item is ticked and no **P0** bug is open. Tell Manager 1 that it's ready to launch.
+- Every checklist item is ticked and no **P0** bug is open. Tell Adib that it's ready to launch.
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

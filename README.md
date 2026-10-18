@@ -26,7 +26,7 @@ The club does a lot, and most of it disappears into Instagram stories and WhatsA
 | 404 | | Page not found |
 | RSS / sitemap | `/rss.xml`, `/sitemap-index.xml` | For feed readers and Google |
 
-## Tech stack (decided, don't change it without asking Manager 1)
+## Tech stack (decided, don't change it without asking Adib)
 
 | Part | Choice | Why |
 |---|---|---|
@@ -92,12 +92,12 @@ Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_P
 
 | Role | Person |
 |---|---|
-| Manager 1: project lead, GitHub, reviews | Noureldin Farhana |
-| Manager 2: content lead | [name] |
-| Member 1: lead developer | [name] |
-| Member 2: designer | [name] |
-| Member 3: content pages | [name] |
-| Member 4: quality & launch | [name] |
+| Project lead: GitHub, reviews, merging | Adib Alqurashi |
+| Content lead: content, posts, announcements | Yogesh Krishna Thakur |
+| Lead developer | [name] |
+| Designer | [name] |
+| Content developer | [name] |
+| QA & launch | [name] |
 
 Everyone who helps: [CONTRIBUTORS.md](CONTRIBUTORS.md).
 

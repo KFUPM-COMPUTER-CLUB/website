@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 1 — Lead developer** | T01, T04 | who: member-1, type: feature, P0 |
+| **Lead developer** | T01, T04 | role: lead-dev, type: feature, P0 |
 
 ## Steps
 1. `src/pages/news/index.astro`:
@@ -36,4 +36,4 @@
 - Headings, lists, images, quotes and code blocks in a post look good (styles from T02 `.prose`)
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

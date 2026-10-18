@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 3 — Content pages** | T01 | who: member-3, type: content, P0 |
+| **Content developer** | T01 | role: content-dev, type: content, P0 |
 
 This decides the shape of all content. Copy it exactly.
 
@@ -89,4 +89,4 @@ Write `docs/CONTENT.md`: one table per collection listing each field, whether it
 - `docs/CONTENT.md` explains every field
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.

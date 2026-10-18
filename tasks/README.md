@@ -4,7 +4,7 @@ Every task has its own guide. Managers have their own task list (private). Click
 
 **Start order:** `T01` first (everyone waits for it) → then `T02`, `T04`, `T10` → then the pages → then `T12`, `T13`, `T09` → `T15` → launch.
 
-## Member 1 — Lead developer
+## Lead developer
 
 | Task | Needs first |
 |---|---|
@@ -12,7 +12,7 @@ Every task has its own guide. Managers have their own task list (private). Click
 | [T05 · News list page and single post page](T05-news-and-post-pages.md) | T01, T04 |
 | [T09 · RSS feed and sitemap](T09-rss-and-sitemap.md) | T05 |
 
-## Member 2 — Designer
+## Designer
 
 | Task | Needs first |
 |---|---|
@@ -21,16 +21,16 @@ Every task has its own guide. Managers have their own task list (private). Click
 | [T08 · About page with team grid](T08-about-page.md) | T02, T04 |
 | [T12 · Mobile and accessibility pass on every page](T12-mobile-and-accessibility.md) | T03, T05, T06, T07, T08 |
 
-## Member 3 — Content pages
+## Content developer
 
 | Task | Needs first |
 |---|---|
 | [T04 · Content collections and sample data](T04-content-collections.md) | T01 |
 | [T06 · Events page with Upcoming / Past filter](T06-events-page.md) | T02, T04 |
 | [T07 · Newsletter page and Write-for-us page](T07-newsletter-and-write-pages.md) | T02, T04 |
-| [T13 · Replace all sample content with real content](T13-real-content.md) | T04 + the content folder from Manager 2 |
+| [T13 · Replace all sample content with real content](T13-real-content.md) | T04 + the content folder from Yogesh |
 
-## Member 4 — Quality & launch
+## QA & launch
 
 | Task | Needs first |
 |---|---|

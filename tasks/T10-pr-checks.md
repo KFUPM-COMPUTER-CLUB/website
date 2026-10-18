@@ -2,7 +2,7 @@
 
 | Owner | Needs first | Labels |
 |---|---|---|
-| **Member 4 — Quality & launch** | T01 | who: member-4, type: chore, P0 |
+| **QA & launch** | T01 | role: qa, type: chore, P0 |
 
 ## Steps
 1. `npm install -D @astrojs/check typescript`
@@ -33,10 +33,10 @@
    ```
 3. Open the PR and make sure the check turns green ✓.
 4. Test it: on a separate test branch, break a post's frontmatter (remove `title`), open a draft PR, confirm the check turns red ✗, then close that PR.
-5. Tell Manager 1 to make `checks` a required check on `main`.
+5. Tell Adib to make `checks` a required check on `main`.
 
 ## Done when
 - Green on a good PR, red on a broken one; `checks` is required on `main`
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Manager 1.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.
