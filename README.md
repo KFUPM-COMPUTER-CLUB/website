@@ -26,7 +26,7 @@ The club does a lot, and most of it disappears into Instagram stories and WhatsA
 | 404 | | Page not found |
 | RSS / sitemap | `/rss.xml`, `/sitemap-index.xml` | For feed readers and Google |
 
-## Tech stack (decided, don't change it without asking Adib)
+## Tech stack 
 
 | Part | Choice | Why |
 |---|---|---|
