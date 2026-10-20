@@ -7,3 +7,4 @@ Everyone who helped build the CC website. Add yourself in your first pull reques
 | Adib Alqurashi | [@adib-alqurashi](https://github.com/adib-alqurashi) | Manager & mentor (Designer, QA & launch) |
 | Yogesh Krishna Thakur | [@YKrishna17](https://github.com/YKrishna17) | Manager & mentor (Lead developer, Content developer) |
 | Ali Abdullah Alobaid | [@NullAliCompiles](https://github.com/NullAliCompiles) | Content Developer |
+| Mohammad Qoqazeh | [@SylvesterM7mD](https://github.com/SylvesterM7mD) | Designer |
