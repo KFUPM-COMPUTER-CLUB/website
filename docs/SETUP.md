@@ -7,7 +7,7 @@ About 20 minutes. Do it before you start your first task.
 | Tool | Get it | Check it works |
 |---|---|---|
 | **Git** | [git-scm.com/downloads](https://git-scm.com/downloads) (Windows: keep the defaults) | `git --version` |
-| **Node.js 20 LTS** | [nodejs.org](https://nodejs.org), the **LTS** button (npm comes with it) | `node -v` → `v20.x` or newer LTS, `npm -v` |
+| **Node.js 24 LTS** | [nodejs.org/en/download](https://nodejs.org/en/download): choose **v24 (LTS)** (npm comes with it) | `node -v` → `v24.x`, `npm -v` |
 | **VS Code** | [code.visualstudio.com](https://code.visualstudio.com) | |
 | VS Code extensions | **Astro** (astro-build.astro-vscode), **Prettier**, **GitLens** (optional) | |
 | **GitHub Desktop** *(optional)* | [desktop.github.com](https://desktop.github.com) if you prefer buttons to the terminal | |
@@ -53,6 +53,6 @@ You don't need to be an expert. Watch or read enough to understand **repo, commi
 | Problem | Fix |
 |---|---|
 | `npm` / `node` not found | Close and reopen the terminal after installing Node. Windows: restart VS Code. |
-| `npm install` errors | Check `node -v` is 20+. Delete `node_modules` and `package-lock.json` only if the lead developer says so. |
+| `npm install` errors | Check `node -v` is **v24** (Astro 7 refuses anything older than 22.22). Delete `node_modules` and `package-lock.json` only if the lead developer says so. |
 | Port 4321 in use | Another `npm run dev` is running; stop it, or use the new port Astro prints. |
-| Permission denied on push | Accept the org invite: [github.com/notifications](https://github.com/notifications). |
+| Permission denied on push | Accept the repository invite: [github.com/notifications](https://github.com/notifications), or the email from GitHub. |

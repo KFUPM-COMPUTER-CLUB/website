@@ -8,8 +8,9 @@ This decides the shape of all content. Copy it exactly.
 
 ## 1. `src/content.config.ts`
 ```ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod'; // Astro 7: z comes from astro/zod, not astro:content
 
 const posts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),

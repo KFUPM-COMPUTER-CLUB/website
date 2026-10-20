@@ -30,7 +30,7 @@ The club does a lot, and most of it disappears into Instagram stories and WhatsA
 
 | Part | Choice | Why |
 |---|---|---|
-| Framework | **[Astro 5](https://astro.build)** | Made for content sites. Posts are plain Markdown files. Outputs plain fast HTML. Easier than React/Next.js for a blog. |
+| Framework | **[Astro 7](https://astro.build)** | Made for content sites. Posts are plain Markdown files. Outputs plain fast HTML. Easier than React/Next.js for a blog. |
 | Language | `.astro` components (HTML + a bit of JavaScript), TypeScript only in `content.config.ts` | Close to plain HTML, so learners can read it |
 | Styling | **Plain CSS**, one file: `src/styles/global.css`, with CSS variables | No Tailwind, no UI library. One place for all styles. |
 | Content | Astro **content collections**: Markdown posts + JSON data, checked by a schema | A typo in a post breaks the build, not the live site |
@@ -39,7 +39,7 @@ The club does a lot, and most of it disappears into Instagram stories and WhatsA
 | Forms | Microsoft Forms (links only) | The site stores no personal data |
 | Hosting | **Vercel**: preview link on every pull request, auto-deploy from `main` | Free, zero setup for Astro |
 | Checks | GitHub Actions: `astro check` + build + internal link check | Catches mistakes before review |
-| Node | **20 LTS** (see `.nvmrc`) | |
+| Node | **24 LTS** (see `.nvmrc`) | Astro 7 needs Node 22.22 or newer; 24 is the current LTS |
 
 Install everything: [docs/SETUP.md](docs/SETUP.md).
 
@@ -94,9 +94,9 @@ Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_P
 |---|---|
 | Project lead: GitHub, reviews, merging | Adib Alqurashi |
 | Content lead: content, posts, announcements | Yogesh Krishna Thakur |
-| Lead developer | [name] |
+| Lead developer | Turki Almutairi |
 | Designer | [name] |
-| Content developer | [name] |
+| Content developer | Ali Abdullah Alobaid |
 | QA & launch | [name] |
 
 Everyone who helps: [CONTRIBUTORS.md](CONTRIBUTORS.md).

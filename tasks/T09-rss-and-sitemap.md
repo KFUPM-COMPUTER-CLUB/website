@@ -12,7 +12,7 @@
    import { getCollection } from 'astro:content';
    export async function GET(context) {
      const posts = (await getCollection('posts', ({ data }) => !data.draft))
-       .sort((a, b) => b.data.date - a.data.date);
+       .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
      return rss({
        title: 'KFUPM Computer Club',
        description: 'News, events and stories from the CC community',

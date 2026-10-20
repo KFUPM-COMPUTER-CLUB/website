@@ -17,10 +17,10 @@
      checks:
        runs-on: ubuntu-latest
        steps:
-         - uses: actions/checkout@v4
-         - uses: actions/setup-node@v4
+         - uses: actions/checkout@v5
+         - uses: actions/setup-node@v5
            with:
-             node-version: 20
+             node-version-file: .nvmrc   # same Node version as everyone's laptop (24)
              cache: npm
          - run: npm ci
          - run: npx astro check
