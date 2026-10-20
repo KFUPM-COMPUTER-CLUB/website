@@ -16,4 +16,4 @@ Only start after launch (v1.1). Ask Adib first.
 - Every UI label has Arabic; RTL has no overlaps
 
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag Adib.
+**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor (see the Team table in the [README](../README.md#team)).
