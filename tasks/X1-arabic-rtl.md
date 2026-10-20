@@ -4,7 +4,7 @@
 |---|---|---|
 | **Whoever finishes early** | the v1.0 launch | who: anyone, type: feature, P2 |
 
-Only start after launch (v1.1). Ask Adib first.
+Only start after launch (v1.1). Ask a manager (Adib or Yogesh) first.
 
 ## Plan
 - Astro i18n routing: `i18n: { locales: ['en', 'ar'], defaultLocale: 'en' }` in `astro.config.mjs`

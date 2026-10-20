@@ -92,8 +92,8 @@ Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_P
 
 | Role | Person | Mentor (tag them when stuck, they review your PRs) |
 |---|---|---|
-| Project lead: GitHub, reviews, merging | Adib Alqurashi | |
-| Content lead: content, posts, announcements | Yogesh Krishna Thakur | |
+| Manager & mentor: project lead, GitHub, mentors the **Designer** and **QA & launch** | Adib Alqurashi | |
+| Manager & mentor: content lead, mentors the **Lead developer** and **Content developer** | Yogesh Krishna Thakur | |
 | Lead developer | Turki Almutairi | Yogesh, @YKrishna17 |
 | Content developer | Ali Abdullah Alobaid | Yogesh, @YKrishna17 |
 | Designer | [name] | Adib, @adib-alqurashi |
