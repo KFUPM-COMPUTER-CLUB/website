@@ -6,7 +6,7 @@ Every task has its own guide. Click it, follow it step by step. **Needs first** 
 
 ## Lead developer
 
-Mentor: **Yogesh** (@YKrishna17)
+Manager & mentor: **Yogesh** (@YKrishna17)
 
 | Task | Needs first |
 |---|---|
@@ -16,7 +16,7 @@ Mentor: **Yogesh** (@YKrishna17)
 
 ## Designer
 
-Mentor: **Adib** (@adib-alqurashi)
+Manager & mentor: **Adib** (@adib-alqurashi)
 
 | Task | Needs first |
 |---|---|
@@ -27,7 +27,7 @@ Mentor: **Adib** (@adib-alqurashi)
 
 ## Content developer
 
-Mentor: **Yogesh** (@YKrishna17)
+Manager & mentor: **Yogesh** (@YKrishna17)
 
 | Task | Needs first |
 |---|---|
@@ -38,7 +38,7 @@ Mentor: **Yogesh** (@YKrishna17)
 
 ## QA & launch
 
-Mentor: **Adib** (@adib-alqurashi)
+Manager & mentor: **Adib** (@adib-alqurashi)
 
 | Task | Needs first |
 |---|---|

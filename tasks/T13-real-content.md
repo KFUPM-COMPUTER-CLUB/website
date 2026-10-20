@@ -4,7 +4,7 @@
 |---|---|---|
 | **Content developer** | T04 + the content folder from Yogesh | role: content-dev, type: content, P0 |
 
-Yogesh shares a OneDrive folder `CC Website Content` with everything below.
+Yogesh (your mentor) shares a OneDrive folder `CC Website Content` with everything below.
 
 ## Steps
 1. **Team**: resize photos to **600×600**, under 150 KB ([squoosh.app](https://squoosh.app)), save as `public/images/team/firstname-lastname.jpg`. Fill `src/data/team.json`.

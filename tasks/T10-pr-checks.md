@@ -33,7 +33,7 @@
    ```
 3. Open the PR and make sure the check turns green ✓.
 4. Test it: on a separate test branch, break a post's frontmatter (remove `title`), open a draft PR, confirm the check turns red ✗, then close that PR.
-5. Tell Adib to make `checks` a required check on `main`.
+5. Tell your mentor Adib to make `checks` a required check on `main`.
 
 ## Done when
 - Green on a good PR, red on a broken one; `checks` is required on `main`
