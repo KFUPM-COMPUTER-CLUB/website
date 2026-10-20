@@ -7,7 +7,7 @@ Setup first: [docs/SETUP.md](docs/SETUP.md). New to Git? Watch GitHub's *[GitHub
 1. Nobody pushes to `main`. Everything goes through a pull request (GitHub blocks direct pushes).
 2. **One task = one branch = one pull request.** Keep PRs small; under ~300 changed lines reviews fast.
 3. Follow the task guide. If you think something in it is wrong, say so in the issue before changing direction.
-4. Stuck for 30 minutes? Comment on the issue and tag Adib. Don't sit on it.
+4. Stuck for 30 minutes? Comment on the issue and tag your mentor: **Yogesh** (@YKrishna17) for the lead developer and content developer, **Adib** (@adib-alqurashi) for the designer and QA. Don't sit on it.
 
 ## The flow
 
@@ -49,7 +49,7 @@ GitHub shows **Compare & pull request**. Fill in the template:
 - Review comments: fix on the **same branch**, push, reply "Done", then **Re-request review**. Don't open a new PR.
 
 ### 6. Merged
-Adib squashes and merges. The site updates in about a minute. Delete your branch, then start your next task from step 2.
+Your mentor squashes and merges. The site updates in about a minute. Delete your branch, then start your next task from step 2.
 
 ## Staying up to date / conflicts
 
@@ -65,7 +65,7 @@ Conflicts are normal when two people edit `global.css`. Ask if unsure.
 ## Code rules
 
 - **Astro pages** in `src/pages/`, shared pieces in `src/components/`, every page uses `BaseLayout`.
-- **CSS** only in `src/styles/global.css`, only with the variables. No new colors, no Tailwind, no libraries without asking Adib.
+- **CSS** only in `src/styles/global.css`, only with the variables. No new colors, no Tailwind, no libraries without asking your mentor.
 - **No text that belongs in content** typed into pages: club info comes from `src/data/site.json`, the rest from collections.
 - **Images:** in `public/images/…`, under 200 KB ([squoosh.app](https://squoosh.app)), always with `alt`.
 - **Never commit** tokens, passwords, or personal phone numbers.

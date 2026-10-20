@@ -90,14 +90,14 @@ Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_P
 
 ## Team
 
-| Role | Person |
-|---|---|
-| Project lead: GitHub, reviews, merging | Adib Alqurashi |
-| Content lead: content, posts, announcements | Yogesh Krishna Thakur |
-| Lead developer | Turki Almutairi |
-| Designer | [name] |
-| Content developer | Ali Abdullah Alobaid |
-| QA & launch | [name] |
+| Role | Person | Mentor (tag them when stuck, they review your PRs) |
+|---|---|---|
+| Project lead: GitHub, reviews, merging | Adib Alqurashi | |
+| Content lead: content, posts, announcements | Yogesh Krishna Thakur | |
+| Lead developer | Turki Almutairi | Yogesh, @YKrishna17 |
+| Content developer | Ali Abdullah Alobaid | Yogesh, @YKrishna17 |
+| Designer | [name] | Adib, @adib-alqurashi |
+| QA & launch | [name] | Adib, @adib-alqurashi |
 
 Everyone who helps: [CONTRIBUTORS.md](CONTRIBUTORS.md).
 

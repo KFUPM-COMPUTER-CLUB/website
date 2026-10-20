@@ -6,6 +6,8 @@ Every task has its own guide. Click it, follow it step by step. **Needs first** 
 
 ## Lead developer
 
+Mentor: **Yogesh** (@YKrishna17)
+
 | Task | Needs first |
 |---|---|
 | [T01 · Create the Astro project, base layout, header and footer](T01-astro-project-and-layout.md) | nothing (do this first, everyone waits for it) |
@@ -13,6 +15,8 @@ Every task has its own guide. Click it, follow it step by step. **Needs first** 
 | [T09 · RSS feed and sitemap](T09-rss-and-sitemap.md) | T05 |
 
 ## Designer
+
+Mentor: **Adib** (@adib-alqurashi)
 
 | Task | Needs first |
 |---|---|
@@ -23,6 +27,8 @@ Every task has its own guide. Click it, follow it step by step. **Needs first** 
 
 ## Content developer
 
+Mentor: **Yogesh** (@YKrishna17)
+
 | Task | Needs first |
 |---|---|
 | [T04 · Content collections and sample data](T04-content-collections.md) | T01 |
@@ -31,6 +37,8 @@ Every task has its own guide. Click it, follow it step by step. **Needs first** 
 | [T13 · Replace all sample content with real content](T13-real-content.md) | T04 + the content folder from Yogesh |
 
 ## QA & launch
+
+Mentor: **Adib** (@adib-alqurashi)
 
 | Task | Needs first |
 |---|---|
