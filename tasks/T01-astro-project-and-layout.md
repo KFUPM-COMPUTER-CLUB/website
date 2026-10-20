@@ -5,11 +5,11 @@
 | **Lead developer** | nothing (do this first, everyone waits for it) | role: lead-dev, type: feature, P0 |
 
 ## Steps
-1. On your branch `feat/astro-project`, in the repo folder, run:
+1. Check `node -v` shows **v24** (see [docs/SETUP.md](../docs/SETUP.md)). On your branch `feat/astro-project`, in the repo folder, run:
    ```bash
    npm create astro@latest -- --template minimal --no-git --install --skip-houston .
    ```
-   (If it asks about the folder not being empty, choose **continue**.) Then: `npm run dev` → open http://localhost:4321.
+   (If it asks about the folder not being empty, choose **continue**.) This installs **Astro 7**. Then: `npm run dev` → open http://localhost:4321.
 2. `astro.config.mjs`:
    ```js
    import { defineConfig } from 'astro/config';
@@ -28,8 +28,12 @@
 6. `src/components/Footer.astro`: club name, email, social links from `site.json`, "Website built by the CC website team" → `/about`.
 7. Create these pages, each using `BaseLayout` with a heading and "Coming soon": `src/pages/index.astro`, `events.astro`, `news/index.astro`, `newsletter.astro`, `write.astro`, `about.astro`.
 8. Empty folders with a `.gitkeep`: `src/components/`, `src/content/posts/`, `public/images/`.
-9. Add `.nvmrc` with `20`. Make sure `.gitignore` has `node_modules/`, `dist/`, `.astro/`.
+9. Add `.nvmrc` containing `24`. In `package.json` add `"engines": { "node": ">=22.22.0" }` (Vercel reads it to pick the Node version). Make sure `.gitignore` has `node_modules/`, `dist/`, `.astro/`.
 10. Open the PR **as soon as the pages load**. Keep it small. Others are waiting.
+
+## Astro 7: two things that surprise people
+- **Close every tag.** The Astro 7 compiler stops the build on an unclosed `<div>`, `<p>` or `<li>` instead of guessing. The error names the file and line.
+- **Spaces between inline elements disappear.** `<a>Home</a>` on one line and `<a>Events</a>` on the next render with no space between them. Use CSS `gap` for nav links, or write `{' '}` where you really need a space.
 
 ## `src/data/site.json`
 ```json

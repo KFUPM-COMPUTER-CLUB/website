@@ -1,6 +1,6 @@
 # All tasks: who does what
 
-Every task has its own guide. Managers have their own task list (private). Click it, follow it step by step. **Needs first** = merge those before you start (or branch from their branch).
+Every task has its own guide. Click it, follow it step by step. **Needs first** = merge those before you start (or branch from their branch).
 
 **Start order:** `T01` first (everyone waits for it) → then `T02`, `T04`, `T10` → then the pages → then `T12`, `T13`, `T09` → `T15` → launch.
 

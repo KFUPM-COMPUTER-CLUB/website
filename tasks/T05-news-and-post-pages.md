@@ -6,7 +6,7 @@
 
 ## Steps
 1. `src/pages/news/index.astro`:
-   - `const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date - a.data.date);`
+   - `const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());` (newest first; `.valueOf()` keeps `astro check` happy)
    - Each post as a row: date (`toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })`), title, author, category, excerpt, "Read →" link to `/news/${post.id}`.
    - Category filter buttons (All + the 7 categories) and a search box. Put `data-category`, `data-search` (title + excerpt + author, lowercase) on each row. A `<script>` hides rows that don't match. No libraries.
    - Read `?author=` and `?tag=` from the URL in the same script and filter by them.
