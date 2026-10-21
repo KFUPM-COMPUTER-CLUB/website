@@ -30,7 +30,7 @@ Log in once: the first `git push` opens a browser window to sign in to GitHub. (
 git clone https://github.com/KFUPM-COMPUTER-CLUB/website.git
 cd website
 code .                 # opens VS Code here
-npm install            # once T01 is merged
+npm install            # once, after cloning
 npm run dev            # → http://localhost:4321
 ```
 

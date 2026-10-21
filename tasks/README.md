@@ -2,7 +2,7 @@
 
 Every task has its own guide. Click it, follow it step by step. **Needs first** = merge those before you start (or branch from their branch).
 
-**Start order:** `T01` first (everyone waits for it) → then `T02`, `T04`, `T10` → then the pages → then `T12`, `T13`, `T09` → `T15` → launch.
+**Start order:** `T01` (done) → then `T02`, `T04`, `T10` → then the pages → then `T12`, `T13`, `T09` → `T15` → launch.
 
 ## Lead developer
 
@@ -10,7 +10,7 @@ Manager & mentor: **Yogesh** (@YKrishna17)
 
 | Task | Needs first |
 |---|---|
-| [T01 · Create the Astro project, base layout, header and footer](T01-astro-project-and-layout.md) | nothing (do this first, everyone waits for it) |
+| [T01 · Create the Astro project, base layout, header and footer](T01-astro-project-and-layout.md) | **Done** (#32, #34) |
 | [T05 · News list page and single post page](T05-news-and-post-pages.md) | T01, T04 |
 | [T09 · RSS feed and sitemap](T09-rss-and-sitemap.md) | T05 |
 
