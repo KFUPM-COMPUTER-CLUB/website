@@ -72,7 +72,7 @@ const isCurrent = (href) =>
     if (e.matches) setOpen(false);
   });
 
-  // body.scrolled lets the header style change once the page scrolls (T02).
+  // body.scrolled lets the header style change once the page scrolls.
   const onScroll = () => body.classList.toggle('scrolled', window.scrollY > 8);
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });

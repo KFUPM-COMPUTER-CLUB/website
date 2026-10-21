@@ -297,7 +297,7 @@ h3, .h3 {
   border: 0;
 }
 
-/* 4. Header, skip link and footer (markup from T01: BaseLayout, Header, Footer) */
+/* 4. Header, skip link and footer (BaseLayout, Header, Footer) */
 .skip-link {
   position: absolute;
   left: -9999px;
