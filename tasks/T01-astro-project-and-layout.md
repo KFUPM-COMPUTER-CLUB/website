@@ -10,7 +10,7 @@ Create the Astro project with the shared layout, header, footer, and one placeho
 
 ## Procedure
 
-1. Confirm `node -v` prints v24 (see [docs/SETUP.md](../docs/SETUP.md)). On the branch `feat/astro-project`, in the repository folder, run:
+1. Confirm `node -v` prints v24. On the branch `feat/astro-project`, in the repository folder, run:
    ```bash
    npm create astro@latest -- --template minimal --no-git --install --skip-houston .
    ```

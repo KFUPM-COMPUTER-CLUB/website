@@ -20,7 +20,7 @@ Build the two pages that direct readers to external actions: subscribing to the 
 1. Hero: eyebrow "Write for us", `.h1` "Your story belongs here.", `.lead` "Any club member can publish on the CC blog."
 2. **What we publish**: four cards: Tutorials, Project stories, Event recaps, Experiences and opinions, one sentence each.
 3. **How it works**: four numbered steps: 1 Choose a topic → 2 Write 300–1,200 words → 3 Submit → 4 We edit with you and publish.
-4. Two buttons: **Submit with the form** (`links.writeForUs`) and **Submit on GitHub** (link to `docs/WRITING_A_POST.md` in the repository).
+4. One button: **Submit with the form** (`links.writeForUs`).
 5. A short list of rules: your own words, your own or permitted photographs, no private information about others.
 
 ## Acceptance criteria
