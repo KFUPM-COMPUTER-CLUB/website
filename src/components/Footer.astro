@@ -2,9 +2,9 @@
 import site from '../data/site.json';
 
 // Placeholder values in site.json contain "REPLACE" until T13; hide them until then.
-const isReal = (value: string) => !value.includes('REPLACE');
+const isReal = (value) => !value.includes('REPLACE');
 
-const socialLabels: Record<string, string> = {
+const socialLabels = {
   instagram: 'Instagram',
   x: 'X',
   linkedin: 'LinkedIn',

@@ -2,7 +2,7 @@
 
 <p align="center">The blog, news, newsletter and events home of the Computer Club at KFUPM.<br>Written by the community. Built by a team of 6 students.</p>
 
-> 🚧 **Being built.** The repo starts empty. This README describes what we are building. The work is split into tasks in [`tasks/`](tasks/README.md).
+> **Being built.** The base site (T01) is live at https://cckfupm-website.vercel.app. This README describes the finished site. The remaining work is split into tasks in [`tasks/`](tasks/README.md).
 
 ## The idea
 
