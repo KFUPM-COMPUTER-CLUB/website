@@ -5,7 +5,8 @@ import Footer from '../components/Footer.astro';
 import site from '../data/site.json';
 
 // Every page passes a title; the description falls back to the club's.
-const { title, description = site.description } = Astro.props;
+// noindex keeps a page out of search results (used by /styleguide).
+const { title, description = site.description, noindex = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -15,6 +16,7 @@ const { title, description = site.description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{`${title} · ${site.name}`}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
