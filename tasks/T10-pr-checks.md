@@ -1,11 +1,16 @@
-# T10 · Automatic checks on every pull request
+# T10 · Automated checks on every pull request
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **QA & launch** | T01 | role: qa, type: chore, P0 |
+| QA and launch | T01 | role: qa, type: chore, P0 |
 
-## Steps
-1. `npm install -D @astrojs/check typescript`
+## Objective
+
+Add a GitHub Actions workflow that validates every pull request: type and content-schema checking, a production build, and an internal link check. Make it a required check on `main`.
+
+## Procedure
+
+1. Install the checker: `npm install -D @astrojs/check typescript`.
 2. Create `.github/workflows/checks.yml`:
    ```yaml
    name: checks
@@ -20,7 +25,7 @@
          - uses: actions/checkout@v5
          - uses: actions/setup-node@v5
            with:
-             node-version-file: .nvmrc   # same Node version as everyone's laptop (24)
+             node-version-file: .nvmrc   # the same Node.js version as the development environment
              cache: npm
          - run: npm ci
          - run: npx astro check
@@ -31,12 +36,15 @@
              args: --offline --no-progress --root-dir dist 'dist/**/*.html'
              fail: true
    ```
-3. Open the PR and make sure the check turns green ✓.
-4. Test it: on a separate test branch, break a post's frontmatter (remove `title`), open a draft PR, confirm the check turns red ✗, then close that PR.
-5. Tell your mentor Adib to make `checks` a required check on `main`.
+3. Open the pull request and confirm the check passes.
+4. Verify that the check detects errors: on a separate test branch, remove the `title` field from a sample article, open a draft pull request, confirm the check fails, then close that pull request.
+5. Ask your mentor to add `checks` as a required status check in the `protect-main` ruleset.
 
-## Done when
-- Green on a good PR, red on a broken one; `checks` is required on `main`
+## Acceptance criteria
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+- The check passes on a valid pull request and fails on an invalid one.
+- `checks` is a required status check on `main`.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

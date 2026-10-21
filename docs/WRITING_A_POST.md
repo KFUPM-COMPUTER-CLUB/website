@@ -1,49 +1,63 @@
-# Write for the CC blog
+# Writing for the website
 
-Any club member can write: event recaps, tutorials, project stories, internship experiences, opinions. A manager reviews every post before it goes live.
+Any club member may publish on the website: event recaps, tutorials, project write-ups, internship and competition experiences, and opinion pieces. Every article is reviewed by a project manager before publication.
 
-**Good post:** one idea · 300–1200 words · your own words and photos (or ones you may use) · nothing private about other people.
+## Editorial guidelines
 
-## Way 1: no GitHub
-Submit through the **Write for us** form at `/write` (Word or Markdown file). The content team publishes it and sends you the link.
+| Requirement | Detail |
+|---|---|
+| Scope | One subject per article |
+| Length | 300 to 1,200 words |
+| Originality | Your own words. Quotations must be attributed. |
+| Images | Your own photographs, or images you have permission to use. Under 200 KB each, with descriptive alternative text. |
+| Privacy | No personal information about other people without their consent |
+| Category | One of: News, Event recap, Tutorial, Project, Experience, Opinion, Announcement |
 
-## Way 2: on GitHub, in the browser
-1. Repo → `src/content/posts/` → **Add file → Create new file**.
-2. Name it like the URL you want: `my-first-discord-bot.md` → becomes `/news/my-first-discord-bot`.
-3. Start the file with this block (the "frontmatter"), then write below it:
+## Submission procedure
+
+### Option A: submission form
+
+Submit the draft (Word or Markdown) through the **Write for us** form linked from `/write`. The content team formats and publishes it and sends you the published link.
+
+### Option B: pull request on GitHub
+
+1. Open the repository and navigate to `src/content/posts/`. Select **Add file → Create new file**.
+2. Name the file after the intended URL. `my-first-discord-bot.md` is published at `/news/my-first-discord-bot`.
+3. Begin the file with the metadata block below (the frontmatter), then write the article in Markdown.
+
+   ~~~markdown
+   ---
+   title: "How I built my first Discord bot"
+   date: 2026-10-28
+   author: "Your Name"
+   category: "Tutorial"
+   tags: ["python", "discord"]
+   excerpt: "One or two sentences that summarise the article."
+   cover: "/images/posts/discord-bot.jpg"
+   ---
+
+   ## Why I started
+   Article text.
+   ~~~
+
+   `cover` is optional. `excerpt` is limited to 200 characters. `category` must be one of the values listed above.
+4. Upload images to `public/images/posts/` (**Add file → Upload files**) and reference them as `![Description](/images/posts/file-name.jpg)`.
+5. Select **Commit changes → Create a new branch**, name it `post/<file-name>`, and open the pull request. Contributors without write access are offered a fork automatically; continue through the same steps.
+6. The automated checks validate the frontmatter and the preview deployment shows the rendered article. A project manager reviews and merges.
+
+## Markdown reference
 
 ~~~markdown
----
-title: "How I built my first Discord bot"
-date: 2026-10-28
-author: "Your Name"
-category: "Tutorial"
-tags: ["python", "discord"]
-excerpt: "One or two sentences that make people want to read it."
-cover: "/images/posts/discord-bot.jpg"
----
-
-## Why I started
-Your text…
-~~~
-
-   `category` must be one of: `News` · `Event recap` · `Tutorial` · `Project` · `Experience` · `Opinion` · `Announcement`. `cover` is optional. `excerpt` max 200 characters.
-4. Images: upload to `public/images/posts/` (Add file → Upload files), under 200 KB. In the post: `![What the image shows](/images/posts/my-photo.jpg)`.
-5. **Commit changes → Create a new branch** (`post/my-first-discord-bot`) → **Propose changes** → **Create pull request**. Not on the website team? GitHub makes a fork for you automatically; just continue.
-6. The checks tell you if the frontmatter is wrong. The Vercel link shows your post. A manager reviews and merges.
-
-## Markdown you'll use
-
-~~~markdown
-## Heading            ### Smaller heading
-**bold**  *italic*  `code`  [link](https://example.com)
-- list item
-1. numbered item
-> quote
-![alt text](/images/posts/photo.jpg)
+## Section heading
+### Subsection heading
+**bold**, *italic*, `inline code`, [link text](https://example.com)
+- unordered list item
+1. ordered list item
+> quotation
+![alternative text](/images/posts/photo.jpg)
 ```python
 print("code block")
 ```
 ~~~
 
-Full guide: [markdownguide.org/basic-syntax](https://www.markdownguide.org/basic-syntax/).
+Full reference: [markdownguide.org/basic-syntax](https://www.markdownguide.org/basic-syntax/).

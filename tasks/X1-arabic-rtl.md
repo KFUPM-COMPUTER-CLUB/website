@@ -1,19 +1,25 @@
-# X1 · STRETCH (after launch): Arabic / RTL
+# X1 · Arabic and right-to-left support (post-launch)
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Whoever finishes early** | the v1.0 launch | who: anyone, type: feature, P2 |
+| Any member with capacity | The v1.0 launch | who: anyone, type: feature, P2 |
 
-Only start after launch (v1.1). Ask a manager (Adib or Yogesh) first.
+## Objective
+
+Provide an Arabic version of the user interface with right-to-left layout. This task begins only after launch and with the agreement of a project manager.
 
 ## Plan
-- Astro i18n routing: `i18n: { locales: ['en', 'ar'], defaultLocale: 'en' }` in `astro.config.mjs`
-- `src/i18n/ui.ts` with English and Arabic labels; pages under `src/pages/ar/`
-- `<html lang="ar" dir="rtl">` and `font-family: var(--font-ar)` for Arabic; a language switch in the header
-- Posts stay in the language they were written in
 
-## Done when
-- Every UI label has Arabic; RTL has no overlaps
+- Enable Astro's internationalised routing in `astro.config.mjs`: `i18n: { locales: ['en', 'ar'], defaultLocale: 'en' }`.
+- Create `src/i18n/ui.ts` with English and Arabic labels, and Arabic pages under `src/pages/ar/`.
+- Set `<html lang="ar" dir="rtl">` and `font-family: var(--font-ar)` for Arabic pages, and add a language switch to the header.
+- Articles remain in the language in which they were written.
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor (see the Team table in the [README](../README.md#team)).
+## Acceptance criteria
+
+- Every interface label has an Arabic translation.
+- The right-to-left layout has no overlapping or clipped elements.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor (see the [team table](../README.md#team)).

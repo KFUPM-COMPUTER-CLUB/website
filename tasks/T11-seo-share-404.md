@@ -1,11 +1,16 @@
-# T11 · SEO, share previews, favicon and 404 page
+# T11 · SEO, share previews, favicons and 404 page
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **QA & launch** | T01, T02 | role: qa, type: feature, P1 |
+| QA and launch | T01, T02 | role: qa, type: feature, P1 |
 
-## Steps
-1. `BaseLayout.astro`: add props `image` (default `/og.png`) and use them for:
+## Objective
+
+Make every page describe itself correctly to search engines and messaging apps, replace the default favicon with the club's, and add a not-found page.
+
+## Procedure
+
+1. In `BaseLayout.astro`, add an `image` prop (default `/og.png`) and render:
    ```html
    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
    <meta property="og:type" content="website" />
@@ -15,15 +20,17 @@
    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
    <meta name="twitter:card" content="summary_large_image" />
    ```
-2. Make sure every page passes its own `title` and `description` (≤ 155 characters).
-3. `public/og.png`: **1200×630**, navy background, white CC logo, tagline (make it in Figma or Canva).
-4. Favicons from the logo: `public/favicon.png` (32×32), `public/apple-touch-icon.png` (180×180) + the `<link>` tags.
-5. `src/pages/404.astro`: uses `BaseLayout`, `.h-display` "404", "This page doesn't exist.", buttons Home and News.
-6. `src/pages/styleguide.astro` gets `<meta name="robots" content="noindex">` (add a `noindex` prop to the layout).
+2. Confirm that every page passes its own `title` and a `description` of at most 155 characters.
+3. Create `public/og.png` at 1200 × 630 pixels: navy background, the white club logo, and the tagline.
+4. Add `public/apple-touch-icon.png` (180 × 180) and the corresponding `<link>` tags. A 32 × 32 `favicon.png` and an SVG favicon already exist; replace them only if the logo changes.
+5. Create `src/pages/404.astro` using `BaseLayout`: `.h-display` "404", the text "This page does not exist.", and buttons to Home and News.
+6. Confirm `/styleguide` passes `noindex` to the layout so that it is excluded from search results.
 
-## Done when
-- Pasting the preview link in WhatsApp shows the image and title
-- `/does-not-exist` shows the 404 page
+## Acceptance criteria
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+- Pasting a preview link into WhatsApp shows the image and title.
+- `/does-not-exist` renders the 404 page.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

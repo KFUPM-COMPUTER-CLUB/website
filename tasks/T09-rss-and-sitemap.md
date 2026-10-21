@@ -1,12 +1,17 @@
 # T09 · RSS feed and sitemap
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Lead developer** | T05 | role: lead-dev, type: feature, P1 |
+| Lead developer | T05 | role: lead-dev, type: feature, P1 |
 
-## Steps
-1. `npm install @astrojs/rss` and `npx astro add sitemap` (answer **yes**).
-2. `src/pages/rss.xml.js`:
+## Objective
+
+Publish an RSS feed of the articles and an XML sitemap of all pages, for feed readers and search engines.
+
+## Procedure
+
+1. Install the packages: `npm install @astrojs/rss` and `npx astro add sitemap` (answer **yes** to the prompts).
+2. Create `src/pages/rss.xml.js`:
    ```js
    import rss from '@astrojs/rss';
    import { getCollection } from 'astro:content';
@@ -21,12 +26,14 @@
      });
    }
    ```
-3. In `BaseLayout.astro` `<head>`: `<link rel="alternate" type="application/rss+xml" title="CC News" href="/rss.xml">` and `<link rel="sitemap" href="/sitemap-index.xml">`.
-4. Add an "RSS" link in the footer.
+3. In the `<head>` of `BaseLayout.astro`, add `<link rel="alternate" type="application/rss+xml" title="CC News" href="/rss.xml">` and `<link rel="sitemap" href="/sitemap-index.xml">`.
+4. Add an "RSS" link to the footer.
 
-## Done when
-- `/rss.xml` on the preview passes [validator.w3.org/feed](https://validator.w3.org/feed/)
-- `/sitemap-index.xml` lists all pages
+## Acceptance criteria
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@YKrishna17** (Yogesh).
+- `/rss.xml` on the preview deployment passes [validator.w3.org/feed](https://validator.w3.org/feed/).
+- `/sitemap-index.xml` lists every page.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@YKrishna17** (Yogesh).

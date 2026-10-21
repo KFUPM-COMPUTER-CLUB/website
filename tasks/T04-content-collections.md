@@ -1,16 +1,21 @@
 # T04 · Content collections and sample data
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Content developer** | T01 | role: content-dev, type: content, P0 |
+| Content developer | T01 | role: content-dev, type: content, P0 |
 
-This decides the shape of all content. Copy it exactly.
+## Objective
 
-## 1. `src/content.config.ts`
+Define the schema of every content type and provide sample data so that the page tasks (T03, T05–T08) can be built and tested before real content is available. The schema is authoritative: copy it exactly.
+
+## Procedure
+
+### 1. Create `src/content.config.ts`
+
 ```ts
 import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
-import { z } from 'astro/zod'; // Astro 7: z comes from astro/zod, not astro:content
+import { z } from 'astro/zod'; // Astro 7 exports z from astro/zod, not astro:content
 
 const posts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
@@ -22,7 +27,7 @@ const posts = defineCollection({
     tags: z.array(z.string()).default([]),
     excerpt: z.string().max(200),
     cover: z.string().optional(),       // e.g. /images/posts/my-photo.jpg
-    draft: z.boolean().default(false),  // true = not shown on the site
+    draft: z.boolean().default(false),  // true = excluded from the site
   }),
 });
 
@@ -62,11 +67,14 @@ const newsletter = defineCollection({
 export const collections = { posts, events, team, newsletter };
 ```
 
-## 2. Sample data (every title starts with `SAMPLE:` so it's easy to delete in T13)
-- `src/data/events.json`: 6 events, 3 in the past and 3 in the future, one `featured: true`
-- `src/data/team.json`: 6 people, photos `/images/team/placeholder.jpg` (any 600×600 grey square in `public/images/team/`)
-- `src/data/newsletter.json`: 3 issues
-- `src/content/posts/`: 3 posts, e.g. `welcome-to-the-new-site.md`:
+### 2. Create sample data
+
+Prefix every sample title with `SAMPLE:` so that the entries are easy to find and remove in T13.
+
+- `src/data/events.json`: six events, three past and three future, one with `featured: true`.
+- `src/data/team.json`: six people, all using `/images/team/placeholder.jpg` (a 600 × 600 neutral image in `public/images/team/`).
+- `src/data/newsletter.json`: three issues.
+- `src/content/posts/`: three articles. Example, `welcome-to-the-new-site.md`:
   ```markdown
   ---
   title: "SAMPLE: Welcome to the new CC website"
@@ -78,16 +86,19 @@ export const collections = { posts, events, team, newsletter };
   ---
 
   ## Why a new website
-  Text here…
+  Article text.
   ```
   The file name becomes the URL: `/news/welcome-to-the-new-site`.
 
-## 3. Document it
-Write `docs/CONTENT.md`: one table per collection listing each field, whether it's required, and an example.
+### 3. Document the schema
 
-## Done when
-- `npm run build` works (Astro checks every field against the schema)
-- `docs/CONTENT.md` explains every field
+Create `docs/CONTENT.md` with one table per collection listing each field, whether it is required, its type, and an example value.
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@YKrishna17** (Yogesh).
+## Acceptance criteria
+
+- `npm run build` completes; Astro validates every entry against its schema.
+- `docs/CONTENT.md` documents every field.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@YKrishna17** (Yogesh).

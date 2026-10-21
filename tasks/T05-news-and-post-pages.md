@@ -1,39 +1,55 @@
-# T05 · News list page and single post page
+# T05 · News list page and article page
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Lead developer** | T01, T04 | role: lead-dev, type: feature, P0 |
+| Lead developer | T01, T04 | role: lead-dev, type: feature, P0 |
 
-## Steps
-1. `src/pages/news/index.astro`:
-   - `const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());` (newest first; `.valueOf()` keeps `astro check` happy)
-   - Each post as a row: date (`toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })`), title, author, category, excerpt, "Read →" link to `/news/${post.id}`.
-   - Category filter buttons (All + the 7 categories) and a search box. Put `data-category`, `data-search` (title + excerpt + author, lowercase) on each row. A `<script>` hides rows that don't match. No libraries.
-   - Read `?author=` and `?tag=` from the URL in the same script and filter by them.
-2. `src/pages/news/[slug].astro`:
-   ```astro
-   ---
-   import { getCollection, render } from 'astro:content';
-   import BaseLayout from '../../layouts/BaseLayout.astro';
-   export async function getStaticPaths() {
-     const posts = await getCollection('posts', ({ data }) => !data.draft);
-     return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
-   }
-   const { post } = Astro.props;
-   const { Content } = await render(post);
-   const minutes = Math.max(1, Math.round(post.body.split(/\s+/).length / 200));
-   ---
-   ```
-   - Show: category, title, `author` (link to `/news?author=…`), date, "{minutes} min read", cover image if present, then `<article class="prose"><Content /></article>`.
-   - Tags as links to `/news?tag=…`.
-   - Share links (plain `<a>`): X `https://twitter.com/intent/tweet?url=…&text=…`, LinkedIn `https://www.linkedin.com/sharing/share-offsite/?url=…`, WhatsApp `https://wa.me/?text=…`, plus a "Copy link" button (`navigator.clipboard.writeText`).
-   - Previous / next post links at the bottom.
-   - `BaseLayout` title = post title, description = excerpt.
+## Objective
 
-## Done when
-- Both sample posts open at `/news/<file-name>` and look right on phone
-- Search, category, author and tag filters work
-- Headings, lists, images, quotes and code blocks in a post look good (styles from T02 `.prose`)
+Build the article index at `/news` with client-side filtering, and the article page at `/news/<slug>` with metadata, sharing links, and navigation between articles.
 
+## Procedure
+
+### 1. `src/pages/news/index.astro`
+
+- Load the posts, excluding drafts, newest first:
+  ```ts
+  const posts = (await getCollection('posts', ({ data }) => !data.draft))
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  ```
+  Use `.valueOf()` so that `astro check` passes.
+- Render each post as a row: date (`toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })`), title, author, category, excerpt, and a "Read →" link to `/news/${post.id}`.
+- Add category filter buttons (All plus the seven categories) and a search box. Give each row `data-category` and `data-search` (title, excerpt, and author in lower case). A `<script>` hides rows that do not match. No libraries.
+- In the same script, read `?author=` and `?tag=` from the URL and apply them as filters.
+
+### 2. `src/pages/news/[slug].astro`
+
+```astro
 ---
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@YKrishna17** (Yogesh).
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const minutes = Math.max(1, Math.round(post.body.split(/\s+/).length / 200));
+---
+```
+
+- Display the category, title, author (linked to `/news?author=…`), date, reading time, and the cover image when present, followed by `<article class="prose"><Content /></article>`.
+- Render tags as links to `/news?tag=…`.
+- Sharing links as plain anchors: X (`https://twitter.com/intent/tweet?url=…&text=…`), LinkedIn (`https://www.linkedin.com/sharing/share-offsite/?url=…`), WhatsApp (`https://wa.me/?text=…`), and a "Copy link" button using `navigator.clipboard.writeText`.
+- Previous and next article links at the end.
+- Pass the post title and excerpt to `BaseLayout` as `title` and `description`.
+
+## Acceptance criteria
+
+- Every sample article opens at `/news/<file-name>` and renders correctly on a phone.
+- Search, category, author, and tag filters work.
+- Headings, lists, images, quotations, and code blocks inside an article render with the `.prose` styles.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@YKrishna17** (Yogesh).

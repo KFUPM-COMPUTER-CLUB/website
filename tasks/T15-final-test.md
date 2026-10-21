@@ -1,28 +1,36 @@
-# T15 · Final test on real phones and browsers
+# T15 · Final test on real devices and browsers
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **QA & launch** | all P0 tasks merged | role: qa, type: bug, P0 |
+| QA and launch | All P0 tasks merged | role: qa, type: bug, P0 |
 
-Everyone helps; you lead and keep the list.
+## Objective
 
-## Test on
-iPhone Safari · Android Chrome · Windows Chrome · Edge · Firefox · Mac Safari (if anyone has one)
+Verify the complete site on real devices and browsers before launch, record every defect as an issue, and confirm that no launch-blocking defect remains. The whole team participates; the QA owner leads and maintains the list.
 
-## Checklist for every page (Home, Events, News, a post, Newsletter, Write, About, 404)
-- [ ] Loads in under 3 seconds on phone data
-- [ ] No sideways scroll; phone menu opens/closes
-- [ ] Every button and link goes to the right place (click each one)
-- [ ] No `SAMPLE`, `REPLACE` or placeholder text
-- [ ] Sharing the link in WhatsApp shows image + title
+## Test matrix
+
+iPhone Safari · Android Chrome · Windows Chrome · Edge · Firefox · macOS Safari (where available)
+
+## Checklist, for every page (Home, Events, News, one article, Newsletter, Write, About, 404)
+
+- [ ] Loads in under 3 seconds on a mobile connection
+- [ ] No horizontal scrolling; the mobile menu opens and closes
+- [ ] Every button and link leads to the correct destination (test each one)
+- [ ] No `SAMPLE`, `REPLACE`, or placeholder text
+- [ ] Sharing the link in WhatsApp shows the image and title
 - [ ] `/rss.xml` and `/sitemap-index.xml` open
-- [ ] Lighthouse mobile: Performance 90+, Accessibility 95+, SEO 95+ on `/`, `/news`, a post
+- [ ] Lighthouse (mobile): Performance 90+, Accessibility 95+, SEO 95+ on `/`, `/news`, and one article
 
-## For every problem
-Open an issue with the **Bug** template. Label **P0** if it must be fixed before launch, otherwise P1/P2. Assign it to whoever owns that page.
+## Recording defects
 
-## Done when
-- Every checklist item is ticked and no **P0** bug is open. Tell your mentor Adib that it's ready to launch.
+Open one issue per defect using the **Bug** template. Label it **P0** if it must be fixed before launch, otherwise P1 or P2, and assign it to the owner of the affected page.
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+## Acceptance criteria
+
+- Every checklist item is confirmed for every page.
+- No P0 issue is open. Inform your mentor that the site is ready to launch.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

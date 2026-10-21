@@ -1,106 +1,151 @@
-<h1 align="center">KFUPM Computer Club — Community Website</h1>
+# KFUPM Computer Club — Community Website
 
-<p align="center">The blog, news, newsletter and events home of the Computer Club at KFUPM.<br>Written by the community. Built by a team of 6 students.</p>
+The public website of the Computer Club at King Fahd University of Petroleum and Minerals (KFUPM). It publishes club news, event recaps, tutorials, the newsletter, and the events calendar, and it is written and maintained by club members.
 
-> **Being built.** The base site (T01) is live at https://cckfupm-website.vercel.app. This README describes the finished site. The remaining work is split into tasks in [`tasks/`](tasks/README.md).
+| | |
+|---|---|
+| Live site | https://cckfupm-website.vercel.app |
+| Status | In development. Tasks T01 and T02 are complete; see [Project status](#project-status). |
+| Framework | [Astro 7](https://astro.build) on Node.js 24 LTS |
+| Hosting | Vercel, deployed from GitHub Actions |
+| License | MIT (code). Articles remain the property of their authors. |
 
-## The idea
+## Contents
 
-The club does a lot, and most of it disappears into Instagram stories and WhatsApp chats. This site is **the one place that documents everything**: news, event recaps, tutorials, the newsletter, upcoming events. **Any club member can write for it.**
+1. [Purpose](#purpose)
+2. [Project status](#project-status)
+3. [Site map](#site-map)
+4. [Technical overview](#technical-overview)
+5. [Repository layout](#repository-layout)
+6. [Getting started](#getting-started)
+7. [Development process](#development-process)
+8. [Team](#team)
+9. [Documentation index](#documentation-index)
 
-- **No database, no server, no logins.** It's a static site.
-- **Content is files.** A blog post is one Markdown file. An event is one entry in a JSON file.
-- **Every button is a link.** Join, register, subscribe and write-for-us open a Microsoft Form or a community group.
+## Purpose
 
-## Pages
+The club runs workshops, talks, hackathons, and competitions throughout the academic year. Records of these activities are scattered across social media and chat groups and are lost within weeks. This website is the permanent, searchable record of the club's work, and it is open to contributions from any member.
 
-| Page | URL | Shows |
+The project is also a training exercise. Each contributor owns a defined set of tasks, works through the standard GitHub workflow (branch, pull request, review, merge), and is mentored by a project manager. The documentation in this repository is written to support that learning objective.
+
+Design principles:
+
+- **Static site.** There is no database, no server-side code, and no authentication. Every page is generated at build time and served as HTML.
+- **Content as files.** An article is one Markdown file. An event, a team member, or a newsletter issue is one entry in a JSON file. Content is validated against a schema during the build.
+- **External actions.** Membership registration, event registration, newsletter subscription, and article submission are handled by external forms and community platforms. The site links to them and stores no personal data.
+
+## Project status
+
+| Task | Description | Owner | Status |
+|---|---|---|---|
+| T01 | Astro project, base layout, header, footer | Lead developer | Complete ([#32](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/32), [#34](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/34)) |
+| T02 | Design system (`global.css`) and style guide | Designer | Complete ([#36](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/36)) |
+| T03–T15 | Pages, content, checks, SEO, accessibility, launch | See [tasks/README.md](tasks/README.md) | Open |
+
+The full task list, dependencies, and ownership are in [tasks/README.md](tasks/README.md).
+
+## Site map
+
+| Page | Route | Content |
 |---|---|---|
-| Home | `/` | Tagline, numbers, next featured event, 3 upcoming events, 3 latest posts, newsletter, join |
-| Events | `/events` | All events, filter Upcoming / Past / All, Register links |
-| News | `/news` | All posts, category filter, search, author and tag filters |
-| Post | `/news/<slug>` | One article: author, date, reading time, share links, previous/next |
-| Newsletter | `/newsletter` | Subscribe + archive of issues |
-| Write for us | `/write` | What we publish, how to submit |
-| About | `/about` | The club, the team, all links, website credits |
-| 404 | | Page not found |
-| RSS / sitemap | `/rss.xml`, `/sitemap-index.xml` | For feed readers and Google |
+| Home | `/` | Introduction, key figures, featured event, upcoming events, latest articles, newsletter, membership |
+| Events | `/events` | All events with an Upcoming / Past / All filter and registration links |
+| News | `/news` | All articles with category, author, and tag filters and a search box |
+| Article | `/news/<slug>` | One article: author, date, reading time, sharing links, previous and next |
+| Newsletter | `/newsletter` | Subscription link and archive of past issues |
+| Write for us | `/write` | Editorial scope and submission procedure |
+| About | `/about` | The club, the team, contact links, website credits |
+| Style guide | `/styleguide` | Every design-system class, for the team (not indexed) |
+| Not found | `/404` | Error page |
+| Feeds | `/rss.xml`, `/sitemap-index.xml` | For feed readers and search engines |
 
-## Tech stack 
+## Technical overview
 
-| Part | Choice | Why |
+| Area | Decision | Rationale |
 |---|---|---|
-| Framework | **[Astro 7](https://astro.build)** | Made for content sites. Posts are plain Markdown files. Outputs plain fast HTML. Easier than React/Next.js for a blog. |
-| Language | `.astro` components (HTML + a bit of JavaScript), TypeScript only in `content.config.ts` | Close to plain HTML, so learners can read it |
-| Styling | **Plain CSS**, one file: `src/styles/global.css`, with CSS variables | No Tailwind, no UI library. One place for all styles. |
-| Content | Astro **content collections**: Markdown posts + JSON data, checked by a schema | A typo in a post breaks the build, not the live site |
-| Client JS | Small `<script>` tags only (filters, menu, animations) | No React, no jQuery |
-| Fonts | Mona Sans (headings), Hubot Sans (text), Readex Pro (Arabic) via Google Fonts | Club identity |
-| Forms | Microsoft Forms (links only) | The site stores no personal data |
-| Hosting | **Vercel**: preview link on every pull request, auto-deploy from `main` | Free, zero setup for Astro |
-| Checks | GitHub Actions: `astro check` + build + internal link check | Catches mistakes before review |
-| Node | **24 LTS** (see `.nvmrc`) | Astro 7 needs Node 22.22 or newer; 24 is the current LTS |
+| Framework | Astro 7 | Built for content sites. Markdown in, static HTML out. No client-side framework is required. |
+| Components | `.astro` files (HTML with a small frontmatter script). TypeScript is used only in `src/content.config.ts`. | Readable by contributors who know HTML and basic JavaScript. |
+| Styling | One plain CSS file, `src/styles/global.css`, built on CSS custom properties | A single source of truth for colour, type, and spacing. No utility framework or component library. |
+| Content | Astro content collections: Markdown articles and JSON data validated by a Zod schema | A malformed entry fails the build rather than reaching the live site. |
+| Client scripts | Small inline `<script>` blocks for filters, the mobile menu, and motion | No runtime dependencies. |
+| Typography | Mona Sans (headings), Hubot Sans (body), Readex Pro (Arabic), served by Google Fonts | Consistent with the club's visual identity. |
+| Forms | External forms, linked only | No personal data is stored by the site. |
+| Hosting | Vercel. A preview deployment for every pull request; production on every merge to `main`. | Reviewers see the real result before approving. |
+| Quality gates | GitHub Actions: `astro check`, production build, internal link check (T10) | Errors are caught before review. |
+| Runtime | Node.js 24 LTS (`.nvmrc`); Astro 7 requires 22.22 or later | Current long-term-support release. |
 
-Install everything: [docs/SETUP.md](docs/SETUP.md).
+The design system is documented in [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md). The architecture and data flow are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Design
-
-Look reference: the design sample the managers share. Dark navy and white, calm, editorial.
-
-- **Colors:** `--navy #0B1A33` · `--navy-2 #0F2142` · `--ink #081226` · `--white #FFFFFF` · `--paper #F3F5F9` · `--accent #2563EB` · `--accent-2 #4F86FF` · `--muted #9FB0C8`
-- **Type:** big light headings (Mona Sans 300), 17px body (Hubot Sans), small uppercase "eyebrow" labels.
-- **Layout:** 1240px container; sections switch between navy, white and light grey; grids with thin 1px lines.
-- **Motion:** blurred header on scroll, fade-up on scroll, a moving word strip. All of it off with reduced motion.
-- **Rule:** only use the variables and classes from `global.css`. Full class list in [T02](tasks/T02-design-system.md).
-
-## Folder structure
+## Repository layout
 
 ```
-src/
-  pages/            one file = one URL (index.astro, events.astro, news/index.astro, news/[slug].astro …)
-  layouts/          BaseLayout.astro: <head>, header, footer for every page
-  components/       Header.astro, Footer.astro, cards …
-  styles/global.css ALL styles
-  scripts/          small browser scripts (reveal.js)
-  content/posts/    blog posts, one .md file each
-  data/             site.json, events.json, team.json, newsletter.json
-  content.config.ts the shape of all content
-public/             logo, favicons, og.png, images/ (team, events, posts)
-docs/               setup guide, writing guide
-tasks/              one guide per task
-.github/            issue + PR templates, workflows
+.
+├── src/
+│   ├── pages/            One file per route (index.astro, events.astro, news/index.astro, …)
+│   ├── layouts/          BaseLayout.astro: document head, header, footer
+│   ├── components/       Header.astro, Footer.astro, and shared UI components
+│   ├── styles/           global.css — the complete design system
+│   ├── scripts/          Small browser scripts (added in T14)
+│   ├── content/posts/    Articles, one Markdown file each (schema in T04)
+│   ├── data/             site.json, events.json, team.json, newsletter.json
+│   └── content.config.ts Content collection schemas (added in T04)
+├── public/               Static files served as-is: logo, favicons, images
+├── docs/                 Setup, architecture, design system, writing guide
+├── tasks/                One specification per task, plus the task index
+├── .github/              Issue and pull request templates, workflows, CODEOWNERS
+├── astro.config.mjs      Astro configuration
+├── vercel.json           Build settings for Vercel
+└── package.json          Scripts and dependencies
 ```
 
-## Commands
+## Getting started
+
+Prerequisites: Git, Node.js 24 LTS, and a code editor. The complete installation procedure is in [docs/SETUP.md](docs/SETUP.md).
 
 ```bash
-npm install        # once, after cloning
-npm run dev        # local site at http://localhost:4321 (live reload)
-npm run build      # build to dist/ (what Vercel does)
-npm run preview    # open the built site
-npx astro check    # find type and content errors
+git clone https://github.com/KFUPM-COMPUTER-CLUB/website.git
+cd website
+npm install
+npm run dev        # http://localhost:4321
 ```
 
-## How we work
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the development server with live reload |
+| `npm run build` | Produce the production build in `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npx astro check` | Report type and content-schema errors |
 
-1. Read [tasks/README.md](tasks/README.md). Your tasks are the ones under your role.
-2. Branch → commit → pull request with `Closes #N` → a manager reviews → merged → live in a minute.
+## Development process
 
-Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_POST.md](docs/WRITING_A_POST.md).
+1. Each contributor is assigned tasks by role. Tasks and their prerequisites are listed in [tasks/README.md](tasks/README.md).
+2. Work happens on a branch, one branch per task. Direct pushes to `main` are rejected by the repository rules.
+3. A pull request references its issue (`Closes #N`), receives an automated preview deployment, and is reviewed by the task owner's mentor.
+4. Pull requests are squash-merged. Production deploys automatically.
+
+The complete procedure, naming conventions, and code rules are in [CONTRIBUTING.md](CONTRIBUTING.md). The procedure for submitting an article is in [docs/WRITING_A_POST.md](docs/WRITING_A_POST.md).
 
 ## Team
 
-| Role | Person | Mentor (tag them when stuck, they review your PRs) |
+| Role | Member | Mentor |
 |---|---|---|
-| Manager & mentor: project lead, GitHub, mentors the **Designer** and **QA & launch** | Adib Alqurashi | |
-| Manager & mentor: content lead, mentors the **Lead developer** and **Content developer** | Yogesh Krishna Thakur | |
-| Lead developer | Turki Almutairi | Yogesh, @YKrishna17 |
-| Content developer | Ali Abdullah Alobaid | Yogesh, @YKrishna17 |
-| Designer | Mohammad Qoqazeh | Adib, @adib-alqurashi |
-| QA & launch | [name] | Adib, @adib-alqurashi |
+| Project manager and mentor (project lead, repository administration) | Adib Alqurashi — [@adib-alqurashi](https://github.com/adib-alqurashi) | — |
+| Project manager and mentor (content lead) | Yogesh Krishna Thakur — [@YKrishna17](https://github.com/YKrishna17) | — |
+| Lead developer | Turki Almutairi — [@TruuV9](https://github.com/TruuV9) | Yogesh |
+| Content developer | Ali Abdullah Alobaid — [@NullAliCompiles](https://github.com/NullAliCompiles) | Yogesh |
+| Designer | Mohammad Qoqazeh — [@SylvesterM7mD](https://github.com/SylvesterM7mD) | Adib |
+| QA and launch | To be assigned | Adib |
 
-Everyone who helps: [CONTRIBUTORS.md](CONTRIBUTORS.md).
+All contributors are listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
-## License
+## Documentation index
 
-Code: MIT. Blog posts belong to their writers and are published with their permission.
+| Document | Audience | Content |
+|---|---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | All contributors | Workflow, branch naming, commit format, review process, code rules |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | All contributors | Expected conduct in this repository |
+| [docs/SETUP.md](docs/SETUP.md) | New contributors | Installing the toolchain and running the project |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Developers | How the site is built, where content lives, how deployment works |
+| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Developers and designers | Tokens, type scale, layout classes, components |
+| [docs/WRITING_A_POST.md](docs/WRITING_A_POST.md) | Authors | Editorial guidelines and the submission procedure |
+| [tasks/README.md](tasks/README.md) | All contributors | Task index, ownership, dependencies, start order |

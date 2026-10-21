@@ -1,9 +1,9 @@
-# Deploys the site to Vercel from GitHub Actions.
-#   - Every pull request  -> a preview deployment, and a comment on the PR with the link
-#   - Every merge to main -> the live (production) deployment
+# Deployment to Vercel from GitHub Actions.
+#   Pull request  -> preview deployment, with the URL posted as a comment on the pull request
+#   Push to main  -> production deployment
 #
-# Needs one repository secret: VERCEL_TOKEN (Settings -> Secrets and variables -> Actions).
-# Until the Astro project exists (T01) or the secret is added, the job skips itself instead of failing.
+# Requires one repository secret: VERCEL_TOKEN (Settings -> Secrets and variables -> Actions).
+# If package.json or the secret is missing, the job skips with a notice instead of failing.
 
 name: deploy
 
@@ -36,10 +36,10 @@ jobs:
         run: |
           if [ ! -f package.json ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No package.json yet (the Astro project arrives with T01). Skipping deploy."
+            echo "::notice::No package.json found. Skipping deploy."
           elif [ -z "$VERCEL_TOKEN" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::The VERCEL_TOKEN secret is missing. Ask a manager to add it. Skipping deploy."
+            echo "::warning::The VERCEL_TOKEN secret is missing. A project manager must add it. Skipping deploy."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
@@ -94,7 +94,7 @@ jobs:
           script: |
             const marker = '<!-- vercel-preview -->';
             const sha = context.payload.pull_request.head.sha.slice(0, 7);
-            const body = `${marker}\n🔍 **Preview:** ${process.env.PREVIEW_URL}\n\nBuilt from commit \`${sha}\`. Open it on your phone and laptop before approving.`;
+            const body = `${marker}\n**Preview deployment:** ${process.env.PREVIEW_URL}\n\nBuilt from commit \`${sha}\`. Verify the change on a phone and a laptop before approving.`;
             const { data: comments } = await github.rest.issues.listComments({
               ...context.repo, issue_number: context.issue.number, per_page: 100,
             });
