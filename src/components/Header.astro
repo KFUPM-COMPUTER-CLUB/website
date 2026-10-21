@@ -1,15 +1,80 @@
 ---
+import site from '../data/site.json';
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/events', label: 'Events' },
+  { href: '/news', label: 'News' },
+  { href: '/newsletter', label: 'Newsletter' },
+  { href: '/write', label: 'Write' },
+  { href: '/about', label: 'About' },
+];
+
+// trailingSlash is 'ignore', so "/news" and "/news/" are the same page.
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
 
-<header>
-        <!-- Logo -->
-    <a href="/"><img src=""></a> 
-    <nav>
-        <a href="/">Home</a>
-        <a href="/events">Events</a>
-        <a href="/news">News</a>
-        <a href="/newsletter">Newsletter</a>
-        <a href="/write">Write</a>
-        <a href="/about">About</a>
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-logo" href="/" aria-label={`${site.name} home`}>
+      <!-- Swap for the white CC logo once public/logo.png is added:
+           <img src="/logo.png" alt="" width="120" height="40" /> -->
+      <span class="site-logo__text">{site.short}</span>
+    </a>
+
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-controls="site-nav"
+      aria-expanded="false"
+      aria-label="Open menu"
+    >
+      Menu
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      {
+        links.map((link) => (
+          <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+            {link.label}
+          </a>
+        ))
+      }
     </nav>
+  </div>
 </header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const nav = document.getElementById('site-nav');
+  const body = document.body;
+
+  const setOpen = (open: boolean) => {
+    body.classList.toggle('nav-open', open);
+    toggle?.setAttribute('aria-expanded', String(open));
+    toggle?.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  };
+
+  toggle?.addEventListener('click', () => setOpen(!body.classList.contains('nav-open')));
+
+  // Escape closes the phone menu and returns focus to the button.
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && body.classList.contains('nav-open')) {
+      setOpen(false);
+      toggle?.focus();
+    }
+  });
+
+  // Close after choosing a link, and when the screen grows past the phone layout.
+  nav?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  window.matchMedia('(min-width: 900px)').addEventListener('change', (e) => {
+    if (e.matches) setOpen(false);
+  });
+
+  // body.scrolled lets the header style change once the page scrolls (T02).
+  const onScroll = () => body.classList.toggle('scrolled', window.scrollY > 8);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+</script>

@@ -1,3 +1,54 @@
 ---
 import site from '../data/site.json';
+
+// Placeholder values in site.json contain "REPLACE" until T13; hide them until then.
+const isReal = (value: string) => !value.includes('REPLACE');
+
+const socialLabels: Record<string, string> = {
+  instagram: 'Instagram',
+  x: 'X',
+  linkedin: 'LinkedIn',
+  github: 'GitHub',
+  discord: 'Discord',
+  whatsapp: 'WhatsApp',
+};
+
+const socials = Object.entries(site.links)
+  .filter(([key, url]) => key in socialLabels && isReal(url))
+  .map(([key, url]) => ({ label: socialLabels[key], url }));
+
+const year = new Date().getFullYear();
 ---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p class="site-footer__name">{site.name}</p>
+
+    {
+      isReal(site.email) && (
+        <p class="site-footer__email">
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+      )
+    }
+
+    {
+      socials.length > 0 && (
+        <ul class="site-footer__social" aria-label="Social links">
+          {socials.map((s) => (
+            <li>
+              <a href={s.url} rel="me noopener">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="site-footer__credit">
+      <a href="/about">Website built by the CC website team</a>
+    </p>
+    <p class="site-footer__copy">© {year} {site.short}</p>
+  </div>
+</footer>
