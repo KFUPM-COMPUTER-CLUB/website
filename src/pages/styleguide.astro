@@ -1,0 +1,187 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Styleguide" description="Every class in global.css, for the website team." noindex>
+  <!-- Intro -->
+  <section class="section section--navy">
+    <div class="container">
+      <span class="eyebrow">Design System</span>
+      <h1 class="h-display">Components & Styles</h1>
+      <p class="lead">Every class defined in global.css. Each block is labelled with the classes it uses. For the team only: this page is not indexed.</p>
+    </div>
+  </section>
+
+  <!-- Typography -->
+  <section class="section section--white">
+    <div class="container">
+      <span class="eyebrow">Typography · .section--white</span>
+      <h2 class="h2">Type scale</h2>
+      <div class="grid">
+        <div class="card">
+          <p><span class="tag">.h-display</span></p>
+          <p class="h-display">Build with us</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">h1 / .h1</span></p>
+          <p class="h1">What's happening</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">h2 / .h2</span></p>
+          <p class="h2">Latest posts</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">h3 / .h3</span></p>
+          <p class="h3">Intro to Git workshop</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">.lead</span></p>
+          <p class="lead">A short description under a heading, a little bigger and softer than body text.</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">body text · a</span></p>
+          <p>Body text is 17px Hubot Sans. Links look <a href="#">like this</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Buttons -->
+  <section class="section section--navy">
+    <div class="container">
+      <span class="eyebrow">Buttons · .section--navy</span>
+      <h2 class="h2">Buttons</h2>
+      <div class="grid grid--3">
+        <div class="card">
+          <p><span class="tag">.btn</span></p>
+          <a class="btn" href="#">Join the club <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="card">
+          <p><span class="tag">.btn .btn--ghost</span></p>
+          <a class="btn btn--ghost" href="#">Read the blog <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="card">
+          <p><span class="tag">:focus-visible</span></p>
+          <p>Press Tab to move through the page. The focused item gets a blue outline.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grids and cards -->
+  <section class="section section--paper">
+    <div class="container">
+      <span class="eyebrow">Layout · .section--paper</span>
+      <h2 class="h2">Grids and cards</h2>
+      <p class="lead">1px lines between cells, one column under 720px. Cards lift a little on hover.</p>
+
+      <p><span class="tag">.grid .grid--2</span></p>
+      <div class="grid grid--2">
+        <div class="card">
+          <h3 class="h3">.card</h3>
+          <p>32px padding. The cell takes the color of its section.</p>
+        </div>
+        <div class="card">
+          <h3 class="h3">.card</h3>
+          <p>The lines between cells use the section's line color.</p>
+        </div>
+      </div>
+
+      <p><span class="tag">.grid .grid--3</span></p>
+      <div class="grid grid--3">
+        <div class="card">
+          <p><span class="tag">Workshop</span></p>
+          <h3 class="h3">Intro to Git</h3>
+          <p>Wed, 4 Nov 2026 · 7:00 PM</p>
+          <a class="btn btn--ghost" href="#">Details <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="card">
+          <p><span class="tag">Talk</span></p>
+          <h3 class="h3">Careers in tech</h3>
+          <p>Wed, 11 Nov 2026 · 7:00 PM</p>
+          <a class="btn btn--ghost" href="#">Details <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="card">
+          <p><span class="tag">Hackathon</span></p>
+          <h3 class="h3">Weekend build</h3>
+          <p>Thu, 19 Nov 2026 · All day</p>
+          <a class="btn btn--ghost" href="#">Details <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <p><span class="tag">.grid .grid--4</span></p>
+      <div class="grid grid--4">
+        <div class="card"><p class="h2">120</p><p>Members</p></div>
+        <div class="card"><p class="h2">24</p><p>Events</p></div>
+        <div class="card"><p class="h2">8</p><p>Projects</p></div>
+        <div class="card"><p class="h2">4</p><p>Teams</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Article text -->
+  <section class="section section--white">
+    <div class="container">
+      <span class="eyebrow">Articles · .section--white</span>
+      <h2 class="h2">.prose</h2>
+      <article class="prose">
+        <p>Post text stays under 70 characters per line so it is easy to read. Here is some <code>inline code</code> and <a href="#">a link</a>.</p>
+        <h2>A heading inside a post</h2>
+        <p>Paragraphs, lists, quotes, code, images and tables all get spacing and styles from <code>.prose</code>.</p>
+        <h3>A smaller heading</h3>
+        <ul>
+          <li>First point</li>
+          <li>Second point</li>
+          <li>Third point</li>
+        </ul>
+        <ol>
+          <li>Install Node 24</li>
+          <li>Run <code>npm install</code></li>
+          <li>Run <code>npm run dev</code></li>
+        </ol>
+        <blockquote>
+          <p>A quote from someone, set apart from the text around it.</p>
+        </blockquote>
+        <pre><code>git checkout -b design/t02-design-system
+npm run dev</code></pre>
+        <img src="/favicon.ico" alt="Sample image" width="96" height="96" />
+        <table>
+          <thead>
+            <tr><th>Event</th><th>Date</th><th>Type</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Intro to Git</td><td>4 Nov</td><td>Workshop</td></tr>
+            <tr><td>Careers in tech</td><td>11 Nov</td><td>Talk</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <!-- Header, footer and utilities -->
+  <section class="section section--navy">
+    <div class="container">
+      <span class="eyebrow">Header · utilities</span>
+      <h2 class="h2">Header states</h2>
+      <p class="lead">The header and footer on this page are the real ones from T01. Try these on the header above.</p>
+      <div class="grid grid--2">
+        <div class="card">
+          <p><span class="tag">.site-header · body.scrolled</span></p>
+          <p>Fixed at the top. Scroll the page and it gets a blurred navy background.</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">.nav-toggle · body.nav-open</span></p>
+          <p>Make the window narrower than 900px: the links hide and Menu appears. Menu opens a full-screen navy menu; Escape closes it.</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">.skip-link</span></p>
+          <p>Reload the page and press Tab once: "Skip to content" appears in the top-left corner.</p>
+        </div>
+        <div class="card">
+          <p><span class="tag">.visually-hidden</span></p>
+          <p>Between the arrows is a label only screen readers hear: →<span class="visually-hidden">Hidden label</span>←</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

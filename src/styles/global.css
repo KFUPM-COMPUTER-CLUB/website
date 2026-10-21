@@ -1,35 +1,398 @@
-/*
-  Temporary layout rules from T01 so the header, phone menu and footer work.
-  The designer replaces this whole file in T02 (design system).
-*/
+:root {
+  --navy: #0B1A33; --navy-2: #0F2142; --navy-3: #16305C; --ink: #081226;
+  --white: #FFFFFF; --paper: #F3F5F9; --paper-2: #E6EAF2;
+  --accent: #2563EB; --accent-2: #4F86FF; --muted: #9FB0C8; --muted-dark: #5B6B85;
+  --line-dark: rgba(255,255,255,.14); --line-light: rgba(11,26,51,.14);
+  --font-head: 'Mona Sans', system-ui, sans-serif;
+  --font-body: 'Hubot Sans', system-ui, sans-serif;
+  --font-ar: 'Readex Pro', sans-serif;
+  --container: 1240px; --gutter: clamp(16px, 4vw, 32px);
+  --radius: 14px;
+}
+/* 2. Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
+body {
+  /* Colors of the current section; the .section--* classes change them */
+  --section-bg: var(--navy);
+  --section-line: var(--line-dark);
+  --section-muted: var(--muted);
+  background: var(--navy);
+  color: var(--white);
+  font: 17px/1.6 var(--font-body);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6, .h-display, .h1, .h2, .h3 {
+  font-family: var(--font-head);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+}
+h3, h4, h5, h6, .h3 {
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--accent-2);
+  text-underline-offset: 0.2em;
+}
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 3. Utility & Layout Classes */
+.container {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding: 96px 0;
+}
+@media (max-width: 768px) {
+  .section {
+    padding: 56px 0;
+  }
+  /* Keeps the first section's content clear of the 72px fixed header */
+  main > .section:first-child {
+    padding-top: 104px;
+  }
+}
+
+.section--navy {
+  --section-bg: var(--navy);
+  --section-line: var(--line-dark);
+  --section-muted: var(--muted);
+  background: var(--section-bg);
+  color: var(--white);
+}
+.section--white {
+  --section-bg: var(--white);
+  --section-line: var(--line-light);
+  --section-muted: var(--muted-dark);
+  background: var(--section-bg);
+  color: var(--ink);
+}
+.section--paper {
+  --section-bg: var(--paper);
+  --section-line: var(--line-light);
+  --section-muted: var(--muted-dark);
+  background: var(--section-bg);
+  color: var(--ink);
+}
+
+.eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
+  padding-left: calc(24px + 12px); /* space for line */
+}
+.eyebrow::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+}
+
+.h-display {
+  font-size: clamp(44px, 8vw, 112px);
+  line-height: 1;
+  font-weight: 300;
+}
+
+h1, .h1 {
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1;
+}
+h2, .h2 {
+  font-size: clamp(28px, 3.5vw, 40px);
+}
+h3, .h3 {
+  font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.3;
+}
+
+.lead {
+  font-size: 20px;
+  color: var(--section-muted);
+}
+
+.btn {
+  background: var(--accent);
+  color: var(--white);
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 15px/1 var(--font-body);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--accent-2);
+}
+/* The arrow (a <span> or <svg> inside the button) nudges right on hover */
+.btn span, .btn svg {
+  transition: transform 0.2s;
+}
+.btn:hover span, .btn:hover svg {
+  transform: translateX(4px);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: currentColor;
+  color: inherit;
+}
+.btn--ghost:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+/* Grid systems: the 1px gaps show the line color, cells take the section color */
+.grid, .grid--2, .grid--3, .grid--4 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  background: var(--section-line);
+}
+.grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 719px) {
+  .grid--2, .grid--3, .grid--4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.grid > *, .grid--2 > *, .grid--3 > *, .grid--4 > * {
+  background: var(--section-bg);
+}
+
+.card {
+  padding: 32px;
+  transition: transform 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--navy-3);
+  color: var(--white);
+}
+
+.prose {
+  max-width: 70ch;
+}
+.prose h2, .prose h3 {
+  margin: 2em 0 0.6em;
+}
+.prose h2 { font-size: clamp(26px, 3vw, 32px); }
+.prose h3 { font-size: clamp(20px, 2vw, 24px); }
+.prose p, .prose ul, .prose ol, .prose blockquote, .prose pre, .prose img, .prose table {
+  margin: 0 0 1.2em;
+}
+.prose ul, .prose ol {
+  padding-left: 1.4em;
+}
+.prose li + li {
+  margin-top: 0.4em;
+}
+.prose blockquote {
+  margin-inline: 0;
+  padding-left: 20px;
+  border-left: 2px solid var(--accent);
+  color: var(--section-muted);
+  font-style: italic;
+}
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: var(--section-line);
+}
+.prose pre {
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--white);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.prose pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.prose img {
+  display: block;
+  border-radius: var(--radius);
+}
+.prose table {
+  display: block; /* lets a wide table scroll instead of widening the page */
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.prose th, .prose td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--section-line);
+  text-align: left;
+}
+.prose th {
+  font-weight: 600;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 4. Header, skip link and footer (markup from T01: BaseLayout, Header, Footer) */
 .skip-link {
   position: absolute;
   left: -9999px;
 }
-
 .skip-link:focus {
-  left: 1rem;
-  top: 1rem;
-  z-index: 100;
+  left: 16px;
+  top: 16px;
+  z-index: 200; /* above the fixed header */
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink);
 }
 
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  color: var(--white);
+  transition: background 0.3s;
+}
 .site-header__inner {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 24px;
+  height: 72px;
 }
-
+.site-logo {
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.site-logo img {
+  display: block;
+  height: 36px;
+  width: auto;
+}
 .site-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  gap: 32px;
+  font-size: 15px;
+}
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.site-nav a:hover, .site-nav a[aria-current="page"] {
+  color: var(--white);
+}
+
+/* body.scrolled is set by the scroll script in Header */
+body.scrolled .site-header {
+  background: color-mix(in srgb, var(--navy) 80%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .nav-toggle {
   display: none;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line-dark);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+@media (max-width: 899px) {
+  .site-nav { display: none; }
+  .nav-toggle { display: inline-flex; }
+
+  /* body.nav-open: full-screen navy menu under the logo and the Menu button */
+  body.nav-open { overflow: hidden; }
+  body.nav-open .site-header {
+    background: var(--navy);
+    backdrop-filter: none; /* a backdrop-filter would trap the fixed menu inside the header bar */
+  }
+  body.nav-open .site-nav {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding: 96px var(--gutter);
+    background: var(--navy);
+    font: 300 32px/1.2 var(--font-head);
+    overflow-y: auto;
+  }
+  body.nav-open .site-nav a {
+    color: var(--white);
+  }
 }
 
 .site-footer__social {
@@ -40,18 +403,8 @@
   list-style: none;
 }
 
-@media (max-width: 899px) {
-  .nav-toggle {
-    display: inline-flex;
-  }
-
-  .site-nav {
-    display: none;
-    flex-basis: 100%;
-    flex-direction: column;
-  }
-
-  body.nav-open .site-nav {
-    display: flex;
-  }
+/* 5. Focus styles */
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
 }
