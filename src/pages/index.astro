@@ -1,6 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../data/site.json';
 ---
-<BaseLayout>
-  <!--  -->
+
+<BaseLayout title="Home">
+  <section class="section">
+    <div class="container">
+      <h1 class="h-display">{site.name}</h1>
+      <p class="lead">{site.tagline}</p>
+      <p>Coming soon.</p>
+    </div>
+  </section>
 </BaseLayout>
