@@ -1,5 +1,5 @@
-name: Blog post idea
-description: Pitch a post you want to write for the CC blog
+name: Article proposal
+description: Propose an article for the website
 labels: ["type: post", "needs approval"]
 body:
   - type: input
@@ -7,15 +7,20 @@ body:
     attributes: { label: Working title }
     validations: { required: true }
   - type: dropdown
-    id: cat
-    attributes: { label: Category, options: [News, Event recap, Tutorial, Project, Experience, Opinion, Announcement] }
+    id: category
+    attributes:
+      label: Category
+      options: [News, Event recap, Tutorial, Project, Experience, Opinion, Announcement]
     validations: { required: true }
   - type: textarea
-    id: pitch
-    attributes: { label: What is it about?, description: 2-3 sentences. Who is it for? }
+    id: summary
+    attributes:
+      label: Summary
+      description: Two or three sentences. State the subject and the intended audience.
     validations: { required: true }
   - type: input
-    id: when
-    attributes: { label: When can you send the draft? }
+    id: date
+    attributes: { label: Expected date for the draft }
   - type: markdown
-    attributes: { value: "How to write and submit it: [docs/WRITING_A_POST.md](https://github.com/KFUPM-COMPUTER-CLUB/website/blob/main/docs/WRITING_A_POST.md)" }
+    attributes:
+      value: "Editorial guidelines and the submission procedure: [docs/WRITING_A_POST.md](https://github.com/KFUPM-COMPUTER-CLUB/website/blob/main/docs/WRITING_A_POST.md)"

@@ -1,13 +1,16 @@
-# T02 · Design system: global.css
+# T02 · Design system: global.css and style guide
 
-| Owner | Needs first | Labels |
-|---|---|---|
-| **Designer** | T01 | role: designer, type: design, P0 |
+| Owner | Prerequisites | Labels | Status |
+|---|---|---|---|
+| Designer | T01 | role: designer, type: design, P0 | Complete ([#36](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/36)) |
 
-All styles live in **one file**: `src/styles/global.css`. Plain CSS, no Tailwind, no other libraries. Look reference: the design sample.
+## Objective
 
-## Steps
-1. Variables (copy exactly):
+Implement the complete visual system in one stylesheet, `src/styles/global.css`, and a style guide page that demonstrates every class. All later pages are built from these classes only. The reference document is [docs/DESIGN_SYSTEM.md](../docs/DESIGN_SYSTEM.md).
+
+## Procedure
+
+1. Define the tokens exactly as follows:
    ```css
    :root {
      --navy: #0B1A33; --navy-2: #0F2142; --navy-3: #16305C; --ink: #081226;
@@ -21,31 +24,34 @@ All styles live in **one file**: `src/styles/global.css`. Plain CSS, no Tailwind
      --radius: 14px;
    }
    ```
-2. Base: `body { background: var(--navy); color: var(--white); font: 17px/1.6 var(--font-body); }`, headings in `--font-head` weight 300–400 with `letter-spacing: -0.02em`, links, images `max-width: 100%`.
-3. Classes (exact names, others will use them):
-   | Class | What |
+2. Base styles: `body { background: var(--navy); color: var(--white); font: 17px/1.6 var(--font-body); }`; headings in `--font-head` at weight 300–400 with `letter-spacing: -0.02em`; link styles; `img { max-width: 100%; }`.
+3. Implement the following classes with these exact names, as other tasks depend on them:
+
+   | Class | Specification |
    |---|---|
-   | `.container` | max-width `--container`, side padding `--gutter`, centered |
-   | `.section` | padding 96px top/bottom (56px on phone) |
-   | `.section--navy` `.section--white` `.section--paper` | background + text color for each |
-   | `.eyebrow` | 12px uppercase, letter-spacing .22em, short line before it (`::before`, 24px × 1px) |
+   | `.container` | `max-width: var(--container)`, side padding `--gutter`, centred |
+   | `.section` | 96px vertical padding (56px on phones) |
+   | `.section--navy`, `.section--white`, `.section--paper` | Background and text colour for each surface |
+   | `.eyebrow` | 12px uppercase, letter-spacing 0.22em, preceded by a 24px × 1px rule (`::before`) |
    | `.h-display` | `font-size: clamp(44px, 8vw, 112px)`, line-height 1, weight 300 |
-   | `.h1` `.h2` `.h3` | clamp sizes 56/40/24px max |
-   | `.lead` | 20px, `--muted` |
-   | `.btn` | accent background, white text, 48px tall, radius 999px, arrow nudges right on hover |
-   | `.btn--ghost` | transparent, 1px border |
-   | `.grid` `.grid--2` `.grid--3` `.grid--4` | CSS grid with **1px gaps showing the line color** (background = line color, cells = section color); 1 column under 720px |
-   | `.card` | cell padding 32px; hover lifts slightly |
-   | `.tag` | small pill for categories |
-   | `.prose` | article text: max-width 70ch, styles for h2/h3/p/ul/ol/blockquote/code/pre/img/table |
-   | `.visually-hidden` | screen-reader only |
-4. Header styles: fixed at top; when scrolled (`body.scrolled`, set by a tiny script in Header) background becomes `rgba(11,26,51,.8)` with `backdrop-filter: blur(12px)`. Under 900px: hide links, show the menu button; `body.nav-open` shows a full-screen navy menu.
-5. Focus styles: `:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }`
-6. Create `src/pages/styleguide.astro` showing every class above (for the team; it's noindex).
+   | `.h1`, `.h2`, `.h3` | Fluid sizes with maxima of 56px, 40px, 24px |
+   | `.lead` | 20px in the muted colour |
+   | `.btn` | Accent background, white text, 48px tall, fully rounded; the arrow moves right on hover |
+   | `.btn--ghost` | Transparent with a 1px border |
+   | `.grid`, `.grid--2`, `.grid--3`, `.grid--4` | CSS grid with 1px gaps showing the line colour (grid background = line colour, cells = section colour); one column below 720px |
+   | `.card` | 32px cell padding; lifts slightly on hover |
+   | `.tag` | Small rounded label for categories |
+   | `.prose` | Article text: 70ch measure; styles for h2, h3, p, ul, ol, blockquote, code, pre, img, table |
+   | `.visually-hidden` | Screen-reader-only content |
+4. Header styles: fixed at the top. When scrolled (`body.scrolled`, set by the header script) the background becomes `rgba(11,26,51,.8)` with `backdrop-filter: blur(12px)`. Below 900px the links are hidden and the menu button is shown; `body.nav-open` shows a full-screen navy menu.
+5. Focus styles: `:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }`.
+6. Create `src/pages/styleguide.astro` demonstrating every class above. The page is for the team and is excluded from search indexing.
 
-## Done when
-- `/styleguide` shows every class, correct on phone and laptop
-- No other CSS file exists; no colors are written outside the variables
+## Acceptance criteria
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+- `/styleguide` demonstrates every class and renders correctly on a phone and a laptop.
+- No other CSS file exists, and no colour value is written outside the token definitions.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

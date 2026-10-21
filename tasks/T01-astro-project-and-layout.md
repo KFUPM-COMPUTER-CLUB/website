@@ -1,41 +1,48 @@
-# T01 · Create the Astro project, base layout, header and footer
+# T01 · Astro project, base layout, header and footer
 
-| Owner | Needs first | Labels |
-|---|---|---|
-| **Lead developer** | nothing (do this first, everyone waits for it) | role: lead-dev, type: feature, P0 |
+| Owner | Prerequisites | Labels | Status |
+|---|---|---|---|
+| Lead developer | — (all other tasks depend on this one) | role: lead-dev, type: feature, P0 | Complete ([#32](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/32), [#34](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/34)) |
 
-## Steps
-1. Check `node -v` shows **v24** (see [docs/SETUP.md](../docs/SETUP.md)). On your branch `feat/astro-project`, in the repo folder, run:
+## Objective
+
+Create the Astro project with the shared layout, header, footer, and one placeholder page per route, so that every later task has a working base to build on.
+
+## Procedure
+
+1. Confirm `node -v` prints v24 (see [docs/SETUP.md](../docs/SETUP.md)). On the branch `feat/astro-project`, in the repository folder, run:
    ```bash
    npm create astro@latest -- --template minimal --no-git --install --skip-houston .
    ```
-   (If it asks about the folder not being empty, choose **continue**.) This installs **Astro 7**. Then: `npm run dev` → open http://localhost:4321.
-2. `astro.config.mjs`:
+   If prompted that the folder is not empty, choose **continue**. This installs Astro 7. Run `npm run dev` and open http://localhost:4321.
+2. Configure `astro.config.mjs`:
    ```js
    import { defineConfig } from 'astro/config';
    export default defineConfig({
-     site: 'https://cckfupm.example', // Adib gives the real domain later
+     site: 'https://cckfupm.example', // replaced with the production domain before launch
      trailingSlash: 'ignore',
    });
    ```
-3. Copy `src/data/site.json` from the block at the bottom of this file.
-4. Create `src/layouts/BaseLayout.astro`. It takes props `title` and `description`, and contains:
-   - `<html lang="en">`, meta charset/viewport, `<title>{title} · KFUPM Computer Club</title>`, meta description
-   - Google Fonts link: `https://fonts.googleapis.com/css2?family=Mona+Sans:wght@300..700&family=Hubot+Sans:wght@400..700&family=Readex+Pro:wght@300..600&display=swap`
-   - `import '../styles/global.css'` (create an empty file; the designer fills it in T02)
-   - `<Header />`, `<main id="main"><slot /></main>`, `<Footer />`
-5. `src/components/Header.astro`: logo (`/logo.png`, put the white CC logo in `public/logo.png`) + nav links **Home `/` · Events `/events` · News `/news` · Newsletter `/newsletter` · Write `/write` · About `/about`**. The current page link gets `aria-current="page"` (compare with `Astro.url.pathname`). A menu button for phones that toggles a class `nav-open` on `<body>` (small `<script>` in the component).
-6. `src/components/Footer.astro`: club name, email, social links from `site.json`, "Website built by the CC website team" → `/about`.
-7. Create these pages, each using `BaseLayout` with a heading and "Coming soon": `src/pages/index.astro`, `events.astro`, `news/index.astro`, `newsletter.astro`, `write.astro`, `about.astro`.
-8. Empty folders with a `.gitkeep`: `src/components/`, `src/content/posts/`, `public/images/`.
-9. Add `.nvmrc` containing `24`. In `package.json` add `"engines": { "node": ">=22.22.0" }` (Vercel reads it to pick the Node version). Make sure `.gitignore` has `node_modules/`, `dist/`, `.astro/`.
-10. Open the PR **as soon as the pages load**. Keep it small. Others are waiting.
+3. Create `src/data/site.json` from the block at the end of this document.
+4. Create `src/layouts/BaseLayout.astro`. It accepts the props `title` and `description` and renders:
+   - `<html lang="en">`, charset and viewport meta tags, `<title>{title} · KFUPM Computer Club</title>`, and the meta description;
+   - the Google Fonts stylesheet: `https://fonts.googleapis.com/css2?family=Mona+Sans:wght@300..700&family=Hubot+Sans:wght@400..700&family=Readex+Pro:wght@300..600&display=swap`;
+   - `import '../styles/global.css'` (create the file empty; the designer completes it in T02);
+   - `<Header />`, `<main id="main"><slot /></main>`, `<Footer />`.
+5. Create `src/components/Header.astro`: the club logo (`public/logo.png`) and the navigation links **Home `/` · Events `/events` · News `/news` · Newsletter `/newsletter` · Write `/write` · About `/about`**. The current page's link receives `aria-current="page"` (compare with `Astro.url.pathname`). A menu button for small screens toggles the class `nav-open` on `<body>` through a small `<script>` in the component.
+6. Create `src/components/Footer.astro`: club name, contact email, and social links from `site.json`, and a credit line linking to `/about`.
+7. Create one placeholder page per route, each using `BaseLayout` with a heading and the text "Coming soon": `src/pages/index.astro`, `events.astro`, `news/index.astro`, `newsletter.astro`, `write.astro`, `about.astro`.
+8. Create the empty folders `src/content/posts/` and `public/images/`, each containing a `.gitkeep` file.
+9. Add `.nvmrc` containing `24`. In `package.json`, add `"engines": { "node": ">=22.22.0" }`. Confirm `.gitignore` lists `node_modules/`, `dist/`, and `.astro/`.
+10. Open the pull request as soon as the pages load. Keep it small; other tasks depend on it.
 
-## Astro 7: two things that surprise people
-- **Close every tag.** The Astro 7 compiler stops the build on an unclosed `<div>`, `<p>` or `<li>` instead of guessing. The error names the file and line.
-- **Spaces between inline elements disappear.** `<a>Home</a>` on one line and `<a>Events</a>` on the next render with no space between them. Use CSS `gap` for nav links, or write `{' '}` where you really need a space.
+## Notes on Astro 7
+
+- **Every element must be closed.** The compiler reports an unclosed `<div>`, `<p>`, or `<li>` as a build error and names the file and line.
+- **Whitespace between inline elements is removed.** Two links on consecutive lines render without a space between them. Use CSS `gap` for navigation, or `{' '}` where a literal space is required.
 
 ## `src/data/site.json`
+
 ```json
 {
   "name": "KFUPM Computer Club",
@@ -58,9 +65,11 @@
 }
 ```
 
-## Done when
-- `npm run build` works with no errors
-- All 6 pages open from the nav, on phone and laptop, on the Vercel preview
+## Acceptance criteria
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@YKrishna17** (Yogesh).
+- `npm run build` completes without errors.
+- All six pages open from the navigation on a phone and a laptop, on the Vercel preview.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@YKrishna17** (Yogesh).

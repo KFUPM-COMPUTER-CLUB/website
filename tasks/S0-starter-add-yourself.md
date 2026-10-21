@@ -1,20 +1,26 @@
 # S0 · Starter task: add yourself to CONTRIBUTORS.md
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Every member (one copy each)** | nothing | who: everyone, type: docs, good first issue, P0 |
+| Every member (one issue each) | — | who: everyone, type: docs, good first issue, P0 |
 
-Practice the full GitHub flow once on something that can't break.
+## Objective
 
-## Steps
-1. Do Parts 1 and 2 of [CONTRIBUTING.md](../CONTRIBUTING.md).
-2. Make a branch named `docs/add-<yourname>`.
-3. Open `CONTRIBUTORS.md` and add one row: `| Your Name | @your-github | Member X — role | 2026-10 |`
-4. Commit: `docs: add <yourname> to contributors`
-5. Push and open a pull request. Write `Closes #<this issue number>` in it.
+Complete the full GitHub workflow once (branch, commit, push, pull request, review, merge) on a change that cannot break the site.
 
-## Done when
-- Your PR is merged
+## Procedure
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor (see the Team table in the [README](../README.md#team)).
+1. Complete sections 1 and 2 of [CONTRIBUTING.md](../CONTRIBUTING.md) and [docs/SETUP.md](../docs/SETUP.md).
+2. Create a branch named `docs/add-<your-name>`.
+3. In `CONTRIBUTORS.md`, add one row to the table: `| Your Name | [@your-github](https://github.com/your-github) | Role |`.
+4. Commit with the message `docs: add <your-name> to contributors`.
+5. Push the branch and open a pull request. Include `Closes #<this issue number>` in the description.
+
+## Acceptance criteria
+
+- The pull request is reviewed and merged.
+- Your row appears in `CONTRIBUTORS.md` on `main`.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor (see the [team table](../README.md#team)).

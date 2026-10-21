@@ -1,21 +1,27 @@
-# T13 · Replace all sample content with real content
+# T13 · Replace sample content with real content
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Content developer** | T04 + the content folder from Yogesh | role: content-dev, type: content, P0 |
+| Content developer | T04, and the content folder provided by Yogesh | role: content-dev, type: content, P0 |
 
-Yogesh (your mentor) shares a OneDrive folder `CC Website Content` with everything below.
+## Objective
 
-## Steps
-1. **Team**: resize photos to **600×600**, under 150 KB ([squoosh.app](https://squoosh.app)), save as `public/images/team/firstname-lastname.jpg`. Fill `src/data/team.json`.
-2. **Events**: fill `src/data/events.json` from `events.xlsx`. Photos → `public/images/events/`, under 200 KB, 1200px wide. One upcoming event `featured: true`.
-3. **Newsletter**: fill `src/data/newsletter.json`.
-4. **site.json**: real `email`, `stats`, all `links` (the forms and community links from Yogesh).
-5. Delete all `SAMPLE:` posts, events, team members and the placeholder photo.
-6. In VS Code press **Ctrl+Shift+F** (Mac: Cmd+Shift+F), search `SAMPLE` and then `REPLACE`. Both must find **nothing** in `src/`.
+Replace every sample entry and placeholder value with the club's real content before launch. The source material is in the shared folder `CC Website Content` provided by your mentor.
 
-## Done when
-- No sample or placeholder content anywhere; `npm run build` works
+## Procedure
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@YKrishna17** (Yogesh).
+1. **Team.** Resize photographs to 600 × 600 pixels and under 150 KB ([squoosh.app](https://squoosh.app)). Save them as `public/images/team/firstname-lastname.jpg` and complete `src/data/team.json`.
+2. **Events.** Complete `src/data/events.json` from `events.xlsx`. Save photographs to `public/images/events/` at 1200 px wide and under 200 KB. Mark one upcoming event `featured: true`.
+3. **Newsletter.** Complete `src/data/newsletter.json`.
+4. **Site.** In `site.json`, enter the real `email`, `stats`, and every entry in `links` (forms and community links from your mentor).
+5. Delete every `SAMPLE:` article, event, and team member, and the placeholder photograph.
+6. Search the `src/` folder for `SAMPLE` and then `REPLACE` (VS Code: Ctrl+Shift+F, or Cmd+Shift+F on macOS). Both searches must return no results.
+
+## Acceptance criteria
+
+- No sample or placeholder content remains anywhere in `src/`.
+- `npm run build` completes without errors.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@YKrishna17** (Yogesh).

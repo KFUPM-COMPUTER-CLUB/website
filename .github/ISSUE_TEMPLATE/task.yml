@@ -1,22 +1,30 @@
 name: Task
-description: A piece of work for the website
+description: A unit of work for the website
 labels: []
 body:
   - type: textarea
-    id: goal
-    attributes: { label: Goal, description: Why does this matter? One or two sentences. }
+    id: objective
+    attributes:
+      label: Objective
+      description: What this task delivers and why it is needed. One or two sentences.
     validations: { required: true }
   - type: textarea
-    id: steps
-    attributes: { label: What to do, value: "- [ ] \n- [ ] " }
+    id: procedure
+    attributes:
+      label: Procedure
+      value: "1. \n2. "
     validations: { required: true }
   - type: textarea
-    id: done
-    attributes: { label: Done when, description: How will we know it's finished? }
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: The observable conditions that confirm the task is complete.
     validations: { required: true }
   - type: input
     id: files
-    attributes: { label: Files you will touch }
+    attributes: { label: Files affected }
   - type: dropdown
-    id: track
-    attributes: { label: Owner role, options: [Adib (project lead), Yogesh (content lead), Lead developer, Designer, Content developer, QA & launch] }
+    id: role
+    attributes:
+      label: Owner role
+      options: [Project manager (Adib), Project manager (Yogesh), Lead developer, Designer, Content developer, QA and launch]

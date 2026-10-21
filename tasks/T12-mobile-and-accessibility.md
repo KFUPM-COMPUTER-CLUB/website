@@ -1,19 +1,27 @@
-# T12 · Mobile and accessibility pass on every page
+# T12 · Mobile and accessibility review
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **Designer** | T03, T05, T06, T07, T08 | role: designer, type: design, P0 |
+| Designer | T03, T05, T06, T07, T08 | role: designer, type: design, P0 |
 
-## Steps
-1. Open every page in Chrome → F12 → phone icon at widths **360, 390, 768, 1280**.
-2. Fix: no sideways scrolling, nothing cut off, all buttons/links at least **44px** tall, text at least 16px.
-3. Add a "Skip to content" link as the first thing in `BaseLayout` (`.visually-hidden` until focused → `#main`).
-4. Tab through every page with the keyboard. Everything must be reachable with a visible focus outline. The phone menu opens and closes with Enter and Escape.
-5. Every `<img>` has a real `alt` (or `alt=""` if decoration).
-6. Run Lighthouse (F12 → Lighthouse → Mobile) on `/`, `/events`, `/news`, one post. Accessibility must be **95+**. Paste the 4 scores in the PR.
+## Objective
 
-## Done when
-- 4 Lighthouse Accessibility scores of 95+ in the PR; no sideways scroll at 360px anywhere
+Verify and correct every page for small screens, keyboard use, and assistive technology, measured with Lighthouse.
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+## Procedure
+
+1. Open every page in Chrome DevTools device mode at widths of **360, 390, 768, and 1280** pixels.
+2. Correct any horizontal scrolling, clipped content, interactive elements shorter than **44 px**, or text smaller than 16 px.
+3. Confirm that the "Skip to content" link in `BaseLayout` is the first focusable element and moves focus to `#main`.
+4. Navigate every page with the keyboard only. Every interactive element must be reachable and show a visible focus outline. The mobile menu must open with Enter and close with Escape.
+5. Confirm that every `<img>` has a meaningful `alt` attribute, or `alt=""` when decorative.
+6. Run Lighthouse (DevTools → Lighthouse → Mobile) on `/`, `/events`, `/news`, and one article. The Accessibility score must be **95 or higher**. Record the four scores in the pull request.
+
+## Acceptance criteria
+
+- Four Lighthouse Accessibility scores of 95 or higher are recorded in the pull request.
+- No page scrolls horizontally at 360 px.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

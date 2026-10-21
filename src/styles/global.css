@@ -8,6 +8,7 @@
   --font-ar: 'Readex Pro', sans-serif;
   --container: 1240px; --gutter: clamp(16px, 4vw, 32px);
   --radius: 14px;
+  --header-h: 72px;
 }
 /* 2. Base Styles */
 *, *::before, *::after {
@@ -61,13 +62,16 @@ img {
 .section {
   padding: 96px 0;
 }
+/* The header is fixed, so the first section of every page starts below it */
+main > .section:first-child {
+  padding-top: calc(var(--header-h) + 96px);
+}
 @media (max-width: 768px) {
   .section {
     padding: 56px 0;
   }
-  /* Keeps the first section's content clear of the 72px fixed header */
   main > .section:first-child {
-    padding-top: 104px;
+    padding-top: calc(var(--header-h) + 40px);
   }
 }
 
@@ -320,19 +324,26 @@ h3, .h3 {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  height: 72px;
+  height: var(--header-h);
 }
 .site-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--font-head);
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   text-decoration: none;
 }
 .site-logo img {
   display: block;
   height: 36px;
   width: auto;
+}
+@media (max-width: 480px) {
+  .site-logo__text { display: none; }
 }
 .site-nav {
   display: flex;
@@ -395,12 +406,48 @@ body.scrolled .site-header {
   }
 }
 
+.site-footer {
+  background: var(--ink);
+  color: var(--muted);
+  border-top: 1px solid var(--line-dark);
+  padding: 56px 0 32px;
+  font-size: 15px;
+}
+.site-footer__inner {
+  display: grid;
+  gap: 16px;
+}
+.site-footer__name {
+  margin: 0;
+  color: var(--white);
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 400;
+}
+.site-footer__email,
+.site-footer__credit,
+.site-footer__copy {
+  margin: 0;
+}
+.site-footer a {
+  color: var(--white);
+  text-decoration-color: var(--line-dark);
+}
+.site-footer a:hover {
+  text-decoration-color: var(--accent-2);
+}
 .site-footer__social {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 8px 24px;
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+.site-footer__copy {
+  padding-top: 24px;
+  border-top: 1px solid var(--line-dark);
+  font-size: 13px;
 }
 
 /* 5. Focus styles */

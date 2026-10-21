@@ -1,21 +1,29 @@
 # T14 · Motion: scroll reveal, header blur, hover effects
 
-| Owner | Needs first | Labels |
+| Owner | Prerequisites | Labels |
 |---|---|---|
-| **QA & launch** | T02, T03 | role: qa, type: design, P1 |
+| QA and launch | T02, T03 | role: qa, type: design, P1 |
 
-## Steps
-1. `src/scripts/reveal.js`, imported once in `BaseLayout` with `<script>import '../scripts/reveal.js'</script>`:
-   - IntersectionObserver adds `.is-visible` to every `.reveal` element when 15% is on screen (then unobserve).
-   - On scroll, toggle `body.scrolled` when `scrollY > 20`.
-2. In `global.css`: `.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }` and `.reveal.is-visible { opacity: 1; transform: none; }`
-3. Add `class="reveal"` to section headings and cards on Home, Events, News, About.
-4. Hover: links get an underline that slides in from the left; `.btn` arrow moves 4px right.
-5. **Reduced motion:** `@media (prefers-reduced-motion: reduce)` turns off all transitions, the marquee and the reveal (elements just show).
-6. Lighthouse Performance must not drop: paste before/after on `/`.
+## Objective
 
-## Done when
-- Smooth on phone; everything is visible with reduced motion on (test in DevTools → Rendering → Emulate prefers-reduced-motion)
+Add restrained motion to the site without affecting performance, and ensure it is fully disabled for users who prefer reduced motion.
 
----
-**How to submit:** branch → commit → pull request with `Closes #<issue number>` (full steps in [CONTRIBUTING.md](../CONTRIBUTING.md)). Stuck for 30 minutes? Comment on the issue and tag your mentor **@adib-alqurashi** (Adib).
+## Procedure
+
+1. Create `src/scripts/reveal.js` and import it once in `BaseLayout` with `<script>import '../scripts/reveal.js'</script>`. The script:
+   - uses an `IntersectionObserver` to add `.is-visible` to each `.reveal` element when 15 % of it is visible, then stops observing it;
+   - toggles `body.scrolled` when `scrollY` exceeds 20 px.
+2. In `global.css`: `.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }` and `.reveal.is-visible { opacity: 1; transform: none; }`.
+3. Add `class="reveal"` to section headings and cards on the Home, Events, News, and About pages.
+4. Hover effects: links gain an underline that slides in from the left; the `.btn` arrow moves 4 px to the right.
+5. Under `@media (prefers-reduced-motion: reduce)`, disable all transitions, the marquee, and the reveal so that every element is immediately visible.
+6. Confirm that the Lighthouse Performance score on `/` does not decrease. Record the before and after scores in the pull request.
+
+## Acceptance criteria
+
+- Motion is smooth on a phone.
+- With reduced motion emulated (DevTools → Rendering → Emulate CSS media feature prefers-reduced-motion), every element is visible without animation.
+
+## Submission
+
+Branch, commit, and open a pull request containing `Closes #<issue number>`. The full procedure is in [CONTRIBUTING.md](../CONTRIBUTING.md). If you are blocked for more than 30 minutes, comment on the issue and mention your mentor, **@adib-alqurashi** (Adib).

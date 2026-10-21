@@ -1,76 +1,98 @@
 # Contributing
 
-Setup first: [docs/SETUP.md](docs/SETUP.md). New to Git? Watch GitHub's *[GitHub for Beginners](https://youtube.com/playlist?list=PL0lo9MOBetEFcp4SCWinBdpml9B2U25-f&si=rFOy_RMie-vc5FBq)* playlist linked there. This page is how **we** work.
+This document defines how changes are made to this repository. It applies to every contributor, including the project managers. Read [docs/SETUP.md](docs/SETUP.md) first if the project is not yet running on your machine.
 
-## Rules
+## 1. Rules
 
-1. Nobody pushes to `main`. Everything goes through a pull request (GitHub blocks direct pushes).
-2. **One task = one branch = one pull request.** Keep PRs small; under ~300 changed lines reviews fast.
-3. Follow the task guide. If you think something in it is wrong, say so in the issue before changing direction.
-4. Stuck for 30 minutes? Comment on the issue and tag your mentor: **Yogesh** (@YKrishna17) for the lead developer and content developer, **Adib** (@adib-alqurashi) for the designer and QA. Don't sit on it.
+1. **No direct pushes to `main`.** Every change is made on a branch and merged through a pull request. The repository rules enforce this.
+2. **One task, one branch, one pull request.** Keep each pull request focused on its task and, where possible, under 300 changed lines.
+3. **Follow the task specification.** If you believe a specification is wrong or incomplete, raise it in the task's issue before deviating from it.
+4. **Ask within 30 minutes.** If you are blocked for more than 30 minutes, comment on the issue and mention your mentor. Mentors are listed in the [README](README.md#team).
+5. **Never commit secrets or personal data.** No tokens, passwords, private phone numbers, or unpublished personal information.
 
-## The flow
+## 2. Workflow
 
-### 1. Pick your task
-- Read [tasks/README.md](tasks/README.md). Your role (the 4 roles) came from the form; the tasks under your role are yours, already assigned to you on GitHub.
-- Start in order. Check **Needs first** at the top of the task: those must be merged, or branch from their branch.
-- On the **Projects** board, move your card to **In progress**.
-- Finished everything? Take any unassigned task: comment "I'll take this" and assign yourself.
+### 2.1 Select a task
 
-### 2. Branch
+- Your tasks are assigned to you on GitHub and listed by role in [tasks/README.md](tasks/README.md).
+- Complete tasks in the listed order. Check the **Prerequisites** row of each task: those tasks must be merged first. If a prerequisite is still in review, branch from its branch.
+- Move the task's card to **In progress** on the project board.
+- When your assigned tasks are complete, you may take any unassigned task: comment "Taking this task" on the issue and assign yourself.
+
+### 2.2 Create a branch
+
 ```bash
 git checkout main
 git pull
 git checkout -b feat/t06-events-page
 ```
-Names: `feat/…` new feature · `fix/…` bug · `content/…` content · `design/…` styles · `docs/…` docs.
 
-### 3. Work, then commit
+Branch names use a type prefix and a short description:
+
+| Prefix | Use |
+|---|---|
+| `feat/` | New page or feature |
+| `fix/` | Bug fix |
+| `design/` | Styling and design-system changes |
+| `content/` | Articles and data |
+| `docs/` | Documentation |
+| `chore/` | Tooling, configuration, maintenance |
+
+### 2.3 Commit
+
 ```bash
-npm run dev                      # check your change in the browser, phone size too (F12 → phone icon)
+npm run dev            # verify the change in the browser, including at phone width
 git add .
-git commit -m "feat: events page with upcoming/past filter (#12)"
+git commit -m "feat: events page with upcoming/past filter (#11)"
 ```
-Commit message = type + what changed, with the issue number. Commit as often as you like.
 
-### 4. Push and open a pull request
+Commit messages follow the pattern `type: summary (#issue)`. Use the same types as the branch prefixes. Commit as often as is useful; the pull request is squashed on merge.
+
+### 2.4 Open a pull request
+
 ```bash
 git push -u origin feat/t06-events-page
 ```
-GitHub shows **Compare & pull request**. Fill in the template:
-- Title like the commit message
-- `Closes #12` in the description: this links and auto-closes the issue
-- Screenshots for anything visual (phone + laptop)
-- Reviewers are added automatically (the managers, via `CODEOWNERS`). Move your card to **In review**.
 
-### 5. Checks, preview, review
-- **checks** must be green ✓. Red ✗ → click *Details*, fix, push again. The PR updates by itself.
-- **Vercel** comments a preview link. Open it on your phone.
-- Review comments: fix on the **same branch**, push, reply "Done", then **Re-request review**. Don't open a new PR.
+Open the pull request from the link GitHub prints, and complete the template:
 
-### 6. Merged
-Your mentor squashes and merges. The site updates in about a minute. Delete your branch, then start your next task from step 2.
+- Title in the same format as the commit message.
+- `Closes #<issue>` in the description, so the issue closes automatically on merge.
+- Screenshots at phone and laptop width for any visual change.
+- Reviewers are assigned automatically through `CODEOWNERS`. Move the card to **In review**.
 
-## Staying up to date / conflicts
+### 2.5 Checks, preview, and review
+
+- The **checks** workflow must pass. If it fails, open the run, read the error, fix it, and push again. The pull request updates automatically.
+- The **deploy** workflow posts a preview link. Verify your change on the preview, including on a phone.
+- Respond to review comments by pushing further commits to the same branch, replying on each comment, and then selecting **Re-request review**. Do not open a second pull request for the same task.
+
+### 2.6 Merge
+
+Your mentor squash-merges the pull request. Production deploys within about a minute. Delete the branch and begin the next task from step 2.2.
+
+## 3. Keeping a branch up to date
 
 ```bash
 git checkout main && git pull
-git checkout your-branch
-git merge main          # fix conflicts in VS Code (Accept Current / Incoming / Both), then:
+git checkout <your-branch>
+git merge main
+# resolve any conflicts in the editor, then:
 git add . && git commit
 git push
 ```
-Conflicts are normal when two people edit `global.css`. Ask if unsure.
 
-## Code rules
+Conflicts are expected when several people edit `global.css` at the same time. Resolve them carefully and ask your mentor if the correct resolution is unclear.
 
-- **Astro pages** in `src/pages/`, shared pieces in `src/components/`, every page uses `BaseLayout`.
-- **CSS** only in `src/styles/global.css`, only with the variables. No new colors, no Tailwind, no libraries without asking your mentor.
-- **No text that belongs in content** typed into pages: club info comes from `src/data/site.json`, the rest from collections.
-- **Images:** in `public/images/…`, under 200 KB ([squoosh.app](https://squoosh.app)), always with `alt`.
-- **Never commit** tokens, passwords, or personal phone numbers.
-- Run `npm run build` before you push. If it fails locally, it fails in checks.
+## 4. Code rules
 
-## Reviewing others
+- Pages live in `src/pages/`, shared components in `src/components/`, and every page uses `BaseLayout`.
+- All CSS lives in `src/styles/global.css` and uses the custom properties defined there. Do not introduce new colours, a second stylesheet, or a styling library. See [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
+- Do not hard-code club information in pages. Site-wide values come from `src/data/site.json`; everything else comes from the content collections.
+- Images are stored under `public/images/`, compressed to under 200 KB ([squoosh.app](https://squoosh.app)), and always have an `alt` attribute.
+- Run `npm run build` before pushing. A build that fails locally will fail in the checks.
+- Close every HTML element. The Astro 7 compiler treats an unclosed element as a build error.
 
-Anyone can review. Open the preview, try it on your phone, comment on lines in **Files changed**. Be specific and kind: talk about the code, not the person.
+## 5. Reviewing
+
+Any contributor may review a pull request. Open the preview, test the change on a phone and a laptop, and comment on specific lines under **Files changed**. Comments should describe the problem and, where possible, the expected result. Keep feedback factual and specific to the code.
