@@ -1,0 +1,19 @@
+{
+  "name": "KFUPM Computer Club",
+  "short": "CCKFUPM",
+  "tagline": "Where curious minds build the future.",
+  "description": "The student-run tech community at KFUPM. We build, we write, we host, and we grow together.",
+  "email": "REPLACE@kfupm.edu.sa",
+  "stats": [
+    { "value": "REPLACE", "label": "Members" },
+    { "value": "REPLACE", "label": "Events a year" },
+    { "value": "REPLACE", "label": "Founded" }
+  ],
+  "links": {
+    "join": "REPLACE", "newsletterSubscribe": "REPLACE", "writeForUs": "REPLACE",
+    "discord": "REPLACE", "whatsapp": "REPLACE",
+    "instagram": "https://instagram.com/kfupm_cc", "x": "https://twitter.com/kfupm_cc",
+    "linkedin": "https://linkedin.com/company/kfupmcclub", "github": "https://github.com/KFUPM-COMPUTER-CLUB/website"
+  },
+  "marquee": ["Workshops", "Hackathons", "Talks", "Student writers", "Newsletter", "AI & ML", "Web", "Cybersecurity", "Open source"]
+}
