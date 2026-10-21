@@ -96,7 +96,7 @@ Full flow: [CONTRIBUTING.md](CONTRIBUTING.md). Writing a post: [docs/WRITING_A_P
 | Manager & mentor: content lead, mentors the **Lead developer** and **Content developer** | Yogesh Krishna Thakur | |
 | Lead developer | Turki Almutairi | Yogesh, @YKrishna17 |
 | Content developer | Ali Abdullah Alobaid | Yogesh, @YKrishna17 |
-| Designer | [name] | Adib, @adib-alqurashi |
+| Designer | Mohammad Qoqazeh | Adib, @adib-alqurashi |
 | QA & launch | [name] | Adib, @adib-alqurashi |
 
 Everyone who helps: [CONTRIBUTORS.md](CONTRIBUTORS.md).
