@@ -10,7 +10,7 @@ Complete the full GitHub workflow once (branch, commit, push, pull request, revi
 
 ## Procedure
 
-1. Complete sections 1 and 2 of [CONTRIBUTING.md](../CONTRIBUTING.md) and [docs/SETUP.md](../docs/SETUP.md).
+1. Read [CONTRIBUTING.md](../CONTRIBUTING.md) and run the project with the Quick start in the [README](../README.md).
 2. Create a branch named `docs/add-<your-name>`.
 3. In `CONTRIBUTORS.md`, add one row to the table: `| Your Name | [@your-github](https://github.com/your-github) | Role |`.
 4. Commit with the message `docs: add <your-name> to contributors`.
