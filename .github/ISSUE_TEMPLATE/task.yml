@@ -6,7 +6,7 @@ body:
     id: objective
     attributes:
       label: Objective
-      description: What this task delivers and why it is needed. One or two sentences.
+      description: What this delivers and why it is needed.
     validations: { required: true }
   - type: textarea
     id: procedure
@@ -23,8 +23,3 @@ body:
   - type: input
     id: files
     attributes: { label: Files affected }
-  - type: dropdown
-    id: role
-    attributes:
-      label: Owner role
-      options: [Project manager (Adib), Project manager (Yogesh), Lead developer, Designer, Content developer, QA and launch]

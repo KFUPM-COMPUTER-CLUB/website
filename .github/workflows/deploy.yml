@@ -39,7 +39,7 @@ jobs:
             echo "::notice::No package.json found. Skipping deploy."
           elif [ -z "$VERCEL_TOKEN" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::The VERCEL_TOKEN secret is missing. A project manager must add it. Skipping deploy."
+            echo "::warning::The VERCEL_TOKEN secret is missing. A maintainer must add it. Skipping deploy."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi

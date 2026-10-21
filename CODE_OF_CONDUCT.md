@@ -13,8 +13,8 @@ This repository is a shared learning environment for members of the KFUPM Comput
 
 ## Reporting
 
-Concerns about conduct should be raised privately with a project manager: Adib Alqurashi ([@adib-alqurashi](https://github.com/adib-alqurashi)) or Yogesh Krishna Thakur ([@YKrishna17](https://github.com/YKrishna17)). Reports are handled confidentially.
+Concerns about conduct should be raised privately with a maintainer: Adib Alqurashi ([@adib-alqurashi](https://github.com/adib-alqurashi)) or Yogesh Krishna Thakur ([@YKrishna17](https://github.com/YKrishna17)). Reports are handled confidentially.
 
 ## Enforcement
 
-Project managers may edit or remove content that violates these expectations and may restrict a contributor's access to the repository. The club's own regulations apply in addition to this document.
+Maintainers may edit or remove content that violates these expectations and may restrict a contributor's access to the repository. The club's own regulations apply in addition to this document.
