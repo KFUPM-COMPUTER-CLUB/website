@@ -1,8 +1,8 @@
 # T04 · Content collections and sample data
 
-| Owner | Prerequisites | Labels |
-|---|---|---|
-| Content developer | T01 | role: content-dev, type: content, P0 |
+| Owner | Prerequisites | Labels | Status |
+|---|---|---|---|
+| Content developer | T01 | role: content-dev, type: content, P0 | Complete |
 
 ## Objective
 
@@ -69,15 +69,15 @@ export const collections = { posts, events, team, newsletter };
 
 ### 2. Create sample data
 
-Prefix every sample title with `SAMPLE:` so that the entries are easy to find and remove in T13.
+Prefix every sample `id` and file name with `sample-` so that the entries are easy to find and remove in T13.
 
 - `src/data/events.json`: six events, three past and three future, one with `featured: true`.
 - `src/data/team.json`: six people, all using `/images/team/placeholder.jpg` (a 600 × 600 neutral image in `public/images/team/`).
 - `src/data/newsletter.json`: three issues.
-- `src/content/posts/`: three articles. Example, `welcome-to-the-new-site.md`:
+- `src/content/posts/`: three articles. Example, `sample-welcome-to-the-new-site.md`:
   ```markdown
   ---
-  title: "SAMPLE: Welcome to the new CC website"
+  title: "Welcome to the new CC website"
   date: 2026-10-20
   author: "CC Team"
   category: "Announcement"
@@ -88,16 +88,16 @@ Prefix every sample title with `SAMPLE:` so that the entries are easy to find an
   ## Why a new website
   Article text.
   ```
-  The file name becomes the URL: `/news/welcome-to-the-new-site`.
+  The file name becomes the URL: `/news/sample-welcome-to-the-new-site`.
 
 ### 3. Document the schema
 
-Create `docs/CONTENT.md` with one table per collection listing each field, whether it is required, its type, and an example value.
+List each collection and its fields in the Content section of `docs/ARCHITECTURE.md`.
 
 ## Acceptance criteria
 
 - `npm run build` completes; Astro validates every entry against its schema.
-- `docs/CONTENT.md` documents every field.
+- `docs/ARCHITECTURE.md` documents every collection.
 
 ## Submission
 

@@ -1,8 +1,8 @@
 # T03 · Home page
 
-| Owner | Prerequisites | Labels |
-|---|---|---|
-| Designer | T02, T04 | role: designer, type: feature, P0 |
+| Owner | Prerequisites | Labels | Status |
+|---|---|---|---|
+| Designer | T02, T04 | role: designer, type: feature, P0 | Complete |
 
 ## Objective
 

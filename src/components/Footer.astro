@@ -2,53 +2,69 @@
 import site from '../data/site.json';
 
 // Values in site.json that still contain "REPLACE" are hidden until real content is entered.
-const isReal = (value) => !value.includes('REPLACE');
+const isReal = (value) => typeof value === 'string' && !value.includes('REPLACE');
+
+const explore = [
+  { href: '/events', label: 'Events' },
+  { href: '/news', label: 'News' },
+  { href: '/newsletter', label: 'Newsletter' },
+  { href: '/write', label: 'Write for us' },
+  { href: '/about', label: 'About' },
+];
+
+const takePart = [
+  { href: isReal(site.links.join) ? site.links.join : '/about', label: 'Become a member' },
+  { href: isReal(site.links.newsletterSubscribe) ? site.links.newsletterSubscribe : '/newsletter', label: 'Subscribe to the newsletter' },
+  { href: isReal(site.links.writeForUs) ? site.links.writeForUs : '/write', label: 'Write an article' },
+];
 
 const socialLabels = {
   instagram: 'Instagram',
   x: 'X',
   linkedin: 'LinkedIn',
-  github: 'GitHub',
   discord: 'Discord',
   whatsapp: 'WhatsApp',
+  github: 'GitHub',
 };
+const follow = Object.entries(socialLabels)
+  .filter(([key]) => isReal(site.links[key]))
+  .map(([key, label]) => ({ href: site.links[key], label }));
 
-const socials = Object.entries(site.links)
-  .filter(([key, url]) => key in socialLabels && isReal(url))
-  .map(([key, url]) => ({ label: socialLabels[key], url }));
-
+const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container site-footer__inner">
-    <p class="site-footer__name">{site.name}</p>
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a class="site-logo" href="/" aria-label={`${site.name} home`}>
+          <img src="/logo.png" alt="" width="68" height="36" />
+          <span class="site-logo__text">{site.short}</span>
+        </a>
+        <p>{site.description}</p>
+        {isReal(site.email) && <p><a href={`mailto:${site.email}`}>{site.email}</a></p>}
+      </div>
 
-    {
-      isReal(site.email) && (
-        <p class="site-footer__email">
-          <a href={`mailto:${site.email}`}>{site.email}</a>
-        </p>
-      )
-    }
+      <div>
+        <h4>Explore</h4>
+        <ul>{explore.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+      </div>
 
-    {
-      socials.length > 0 && (
-        <ul class="site-footer__social" aria-label="Social links">
-          {socials.map((s) => (
-            <li>
-              <a href={s.url} rel="me noopener">
-                {s.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )
-    }
+      <div>
+        <h4>Take part</h4>
+        <ul>{takePart.map((l) => <li><a href={l.href} {...ext(l.href)}>{l.label}</a></li>)}</ul>
+      </div>
 
-    <p class="site-footer__credit">
-      <a href="/about">Website built by the CC website team</a>
-    </p>
-    <p class="site-footer__copy">© {year} {site.short}</p>
+      <div>
+        <h4>Follow</h4>
+        <ul>{follow.map((l) => <li><a href={l.href} {...ext(l.href)}>{l.label}</a></li>)}</ul>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>© {year} {site.name}. A student club.</p>
+      <p><a href="/about">Built by the CC website team</a></p>
+    </div>
   </div>
 </footer>

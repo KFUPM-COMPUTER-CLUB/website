@@ -1,0 +1,61 @@
+[
+  {
+    "id": "sample-ai-build-night",
+    "title": "AI Build Night",
+    "type": "Hackathon",
+    "date": "2026-11-12",
+    "time": "5:00 PM – 11:00 PM",
+    "location": "Building 22, Lab 118",
+    "summary": "Six hours, small teams, one working demo. Build something with a language model and ship it before midnight. Mentors on the floor all night.",
+    "registerUrl": "https://forms.office.com/REPLACE",
+    "featured": true
+  },
+  {
+    "id": "sample-intro-to-git",
+    "title": "Intro to Git and GitHub",
+    "type": "Workshop",
+    "date": "2026-11-04",
+    "time": "7:00 PM – 9:00 PM",
+    "location": "Building 24, Room 128",
+    "summary": "Branches, pull requests, and how to stop fearing merge conflicts. Bring a laptop; leave with your first open-source contribution.",
+    "registerUrl": "https://forms.office.com/REPLACE"
+  },
+  {
+    "id": "sample-cp-ladder-week-4",
+    "title": "Competitive Programming Ladder, Week 4",
+    "type": "Competition",
+    "date": "2026-10-28",
+    "time": "8:00 PM – 10:00 PM",
+    "location": "Online",
+    "summary": "Weekly ladder. Three problems, two hours, editorial afterwards. Open to all levels.",
+    "registerUrl": "https://codeforces.com/REPLACE"
+  },
+  {
+    "id": "sample-fireside-alumni",
+    "title": "Fireside: From KFUPM to Big Tech",
+    "type": "Talk",
+    "date": "2026-11-19",
+    "time": "6:30 PM – 8:00 PM",
+    "location": "Building 5, Auditorium",
+    "summary": "Three alumni, one hour of honest answers about internships, interviews, and what they wish they had done in second year.",
+    "registerUrl": "https://forms.office.com/REPLACE"
+  },
+  {
+    "id": "sample-welcome-week",
+    "title": "Welcome Week Open House",
+    "type": "Social",
+    "date": "2026-09-10",
+    "time": "4:00 PM – 7:00 PM",
+    "location": "Student Center",
+    "summary": "Meet the committees, see last year's projects, and sign up for the term."
+  },
+  {
+    "id": "sample-web-bootcamp",
+    "title": "Web Development Bootcamp",
+    "type": "Workshop",
+    "date": "2026-09-24",
+    "time": "5:00 PM – 8:00 PM",
+    "location": "Building 22, Lab 118",
+    "summary": "Three evenings from a blank folder to a deployed site. HTML, CSS, and just enough JavaScript."
+  }
+]
