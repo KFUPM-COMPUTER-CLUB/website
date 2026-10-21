@@ -17,7 +17,7 @@ iPhone Safari · Android Chrome · Windows Chrome · Edge · Firefox · macOS Sa
 - [ ] Loads in under 3 seconds on a mobile connection
 - [ ] No horizontal scrolling; the mobile menu opens and closes
 - [ ] Every button and link leads to the correct destination (test each one)
-- [ ] No `SAMPLE`, `REPLACE`, or placeholder text
+- [ ] No `sample-` entries, `REPLACE` values, or placeholder text
 - [ ] Sharing the link in WhatsApp shows the image and title
 - [ ] `/rss.xml` and `/sitemap-index.xml` open
 - [ ] Lighthouse (mobile): Performance 90+, Accessibility 95+, SEO 95+ on `/`, `/news`, and one article

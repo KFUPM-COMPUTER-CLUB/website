@@ -13,7 +13,7 @@ Build `src/pages/events.astro`: a list of all events with a filter that remains 
 1. Hero: eyebrow "Events", `.h1` "What's happening", and a one-sentence `.lead`.
 2. Load and sort the events: `const events = (await getCollection('events')).sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());`
 3. Filter buttons: **Upcoming** (default), **Past**, **All**.
-4. Render each event as a `.card` in a `.grid--3`: image (if present), type as a `.tag`, title, date in the form `Wed, 4 Nov 2026`, time, location, summary, a **Register** button (`registerUrl`, `target="_blank" rel="noopener"`, hidden when the URL is empty or the event is past), and a **Details** link when `detailsUrl` is set.
+4. Render each event with the `.card .event` component from the style guide in a `.grid--3`: image (if present), type as a `.tag`, title, date in the form `Wed, 4 Nov 2026`, time, location, summary, a **Register** button (`registerUrl`, `target="_blank" rel="noopener"`, hidden when the URL is empty or the event is past), and a **Details** link when `detailsUrl` is set.
 5. Add `data-date="YYYY-MM-DD"` to each card. A `<script>` compares it with the current date in the browser to apply the Upcoming / Past filter. Past events are listed newest first.
 6. Empty state for each filter, for example "No upcoming events are scheduled. Follow us on Instagram." with the link from `site.json`.
 

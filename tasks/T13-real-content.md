@@ -14,8 +14,8 @@ Replace every sample entry and placeholder value with the club's real content be
 2. **Events.** Complete `src/data/events.json` from `events.xlsx`. Save photographs to `public/images/events/` at 1200 px wide and under 200 KB. Mark one upcoming event `featured: true`.
 3. **Newsletter.** Complete `src/data/newsletter.json`.
 4. **Site.** In `site.json`, enter the real `email`, `stats`, and every entry in `links` (forms and community links from your mentor).
-5. Delete every `SAMPLE:` article, event, and team member, and the placeholder photograph.
-6. Search the `src/` folder for `SAMPLE` and then `REPLACE` (VS Code: Ctrl+Shift+F, or Cmd+Shift+F on macOS). Both searches must return no results.
+5. Delete every sample entry: articles, events, team members and newsletter issues whose `id` or file name starts with `sample-`, and the placeholder photograph.
+6. Search the `src/` folder for `sample-` and then `REPLACE` (VS Code: Ctrl+Shift+F, or Cmd+Shift+F on macOS). Both searches must return no results.
 
 ## Acceptance criteria
 

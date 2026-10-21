@@ -2,7 +2,7 @@
 
 Each task has a specification in this folder and a corresponding issue on GitHub. Work on tasks in the order listed for your role. The **Prerequisites** column lists tasks that must be merged before you begin; if a prerequisite is still in review, branch from its branch.
 
-**Overall sequence:** T01 and T02 (complete) → T04, T10 → T03, T05, T06, T07, T08 → T09, T11, T12, T13, T14 → T15 → launch.
+**Overall sequence:** T01–T04 (complete) → T10 → T05, T06, T07, T08 → T09, T11, T12, T13, T14 → T15 → launch.
 
 ## Lead developer
 
@@ -21,7 +21,7 @@ Mentor: Adib Alqurashi ([@adib-alqurashi](https://github.com/adib-alqurashi))
 | Task | Prerequisites | Status |
 |---|---|---|
 | [T02 · Design system: global.css and style guide](T02-design-system.md) | T01 | Complete ([#36](https://github.com/KFUPM-COMPUTER-CLUB/website/pull/36)) |
-| [T03 · Home page](T03-home-page.md) | T02, T04 | Open |
+| [T03 · Home page](T03-home-page.md) | T02, T04 | Complete |
 | [T08 · About page with team grid](T08-about-page.md) | T02, T04 | Open |
 | [T12 · Mobile and accessibility review](T12-mobile-and-accessibility.md) | T03, T05, T06, T07, T08 | Open |
 
@@ -31,7 +31,7 @@ Mentor: Yogesh Krishna Thakur ([@YKrishna17](https://github.com/YKrishna17))
 
 | Task | Prerequisites | Status |
 |---|---|---|
-| [T04 · Content collections and sample data](T04-content-collections.md) | T01 | Open |
+| [T04 · Content collections and sample data](T04-content-collections.md) | T01 | Complete |
 | [T06 · Events page with Upcoming / Past filter](T06-events-page.md) | T02, T04 | Open |
 | [T07 · Newsletter page and Write-for-us page](T07-newsletter-and-write-pages.md) | T02, T04 | Open |
 | [T13 · Replace sample content with real content](T13-real-content.md) | T04 and the content folder from Yogesh | Open |
