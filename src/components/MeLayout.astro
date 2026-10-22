@@ -1,5 +1,6 @@
 ---
-/* Dashboard shell: page head, side navigation, content. */
+/* Dashboard shell for /me pages: page head, side navigation, flash messages from ?ok= and ?error=
+ * (API routes redirect back to the page after a form post). noindex: personal pages are never indexed. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Subnav from './Subnav.astro';
 import '../styles/app.css';
@@ -13,6 +14,7 @@ const items = [
 const flash = Astro.url.searchParams.get('ok');
 const error = Astro.url.searchParams.get('error');
 ---
+
 <BaseLayout title={title} noindex={true}>
   <section class="page-head page-head--compact">
     <div class="container">

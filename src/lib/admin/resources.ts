@@ -1,29 +1,69 @@
-/* Admin resources: one definition per table drives the list page, the edit form, the API and the
- * audit log. Adding a field here adds it everywhere. */
+/* Admin resources: one definition per content table drives the list page, the edit form, the API
+ * route and the audit log (the resource pages under src/pages/admin and src/pages/api/admin). Adding
+ * a field here adds it everywhere; adding a table means a new migration plus an entry here.
+ * minRole gates the whole resource. `sortable` enables drag ordering on the `sort` column,
+ * `visible` adds the show/hide toggle, `pk` is the row identity and is never rewritten on edit.
+ * Members, posts, media and settings have their own pages and are not resources. */
 import type { Role } from '../types';
 
+/* `ref` renders a dropdown over another resource; the resource name 'members' is special-cased to
+ * the profiles table in the edit page. */
 export type Field = {
-  name: string; label: string;
+  name: string;
+  label: string;
   type: 'text' | 'textarea' | 'number' | 'date' | 'datetime' | 'bool' | 'select' | 'url' | 'media' | 'tags' | 'ref';
-  options?: string[]; required?: boolean; help?: string; max?: number; ref?: { resource: string; label: string };
+  options?: string[];
+  required?: boolean;
+  help?: string;
+  max?: number;
+  ref?: { resource: string; label: string };
 };
 export type Resource = {
-  key: string; table: string; title: string; singular: string; minRole: Role; pk: string;
-  fields: Field[]; columns: string[]; orderBy: string; sortable?: boolean; visible?: boolean; publicPage?: string; help?: string;
+  key: string;
+  table: string;
+  title: string;
+  singular: string;
+  minRole: Role;
+  pk: string;
+  fields: Field[];
+  columns: string[];
+  orderBy: string;
+  sortable?: boolean;
+  visible?: boolean;
+  publicPage?: string;
+  help?: string;
 };
 
 const EVENT_TYPES = ['Workshop', 'Talk', 'Hackathon', 'Competition', 'Social', 'Trip', 'Exhibition', 'Other'];
 
 export const RESOURCES: Record<string, Resource> = {
   events: {
-    key: 'events', table: 'events', title: 'Events', singular: 'event', minRole: 'officer', pk: 'id', orderBy: 'starts_at.desc', publicPage: '/timeline',
+    key: 'events',
+    table: 'events',
+    title: 'Events',
+    singular: 'event',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'starts_at.desc',
+    publicPage: '/timeline',
     columns: ['title', 'type', 'starts_at', 'location', 'registration_open', 'published'],
     fields: [
       { name: 'title', label: 'Title', type: 'text', required: true, max: 140 },
-      { name: 'slug', label: 'Slug (URL id)', type: 'text', help: 'Lowercase letters, digits and dashes. Leave empty to make one from the title.', max: 80 },
+      {
+        name: 'slug',
+        label: 'Slug (URL id)',
+        type: 'text',
+        help: 'Lowercase letters, digits and dashes. Leave empty to make one from the title.',
+        max: 80,
+      },
       { name: 'type', label: 'Type', type: 'select', options: EVENT_TYPES, required: true },
       { name: 'starts_at', label: 'Starts (Riyadh time)', type: 'datetime', required: true },
-      { name: 'ends_at', label: 'Ends (Riyadh time)', type: 'datetime', help: 'Optional. Multi-day events end on the last day.' },
+      {
+        name: 'ends_at',
+        label: 'Ends (Riyadh time)',
+        type: 'datetime',
+        help: 'Optional. Multi-day events end on the last day.',
+      },
       { name: 'all_day', label: 'All day (no specific time)', type: 'bool' },
       { name: 'location', label: 'Location', type: 'text', max: 120 },
       { name: 'summary', label: 'Summary', type: 'textarea', max: 240 },
@@ -37,7 +77,16 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   highlights: {
-    key: 'highlights', table: 'highlights', title: 'Polaroids', singular: 'polaroid', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true, visible: true, publicPage: '/',
+    key: 'highlights',
+    table: 'highlights',
+    title: 'Polaroids',
+    singular: 'polaroid',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    visible: true,
+    publicPage: '/',
     help: 'The seven tilted photos at the seam of the home page. Order matters.',
     columns: ['title', 'date', 'photo_key', 'visible'],
     fields: [
@@ -50,7 +99,16 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   stories: {
-    key: 'stories', table: 'stories', title: 'Moments', singular: 'moment', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true, visible: true, publicPage: '/',
+    key: 'stories',
+    table: 'stories',
+    title: 'Moments',
+    singular: 'moment',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    visible: true,
+    publicPage: '/',
     help: 'The slides under CC | KFUPM on the home page.',
     columns: ['title', 'date', 'photo_key', 'visible'],
     fields: [
@@ -63,7 +121,16 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   strip: {
-    key: 'strip', table: 'strip_photos', title: 'Photo strip', singular: 'photo', minRole: 'officer', pk: 'photo_key', orderBy: 'sort.asc', sortable: true, visible: true, publicPage: '/',
+    key: 'strip',
+    table: 'strip_photos',
+    title: 'Photo strip',
+    singular: 'photo',
+    minRole: 'officer',
+    pk: 'photo_key',
+    orderBy: 'sort.asc',
+    sortable: true,
+    visible: true,
+    publicPage: '/',
     help: 'The pool the "In pictures" strip picks 20 random photos from on every visit.',
     columns: ['photo_key', 'label', 'visible'],
     fields: [
@@ -74,7 +141,15 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   impact: {
-    key: 'impact', table: 'impact_semesters', title: 'Impact semesters', singular: 'semester', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true, publicPage: '/#impact',
+    key: 'impact',
+    table: 'impact_semesters',
+    title: 'Impact semesters',
+    singular: 'semester',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    publicPage: '/#impact',
     help: 'One row per semester in the impact reel. Add the prizes under Impact items.',
     columns: ['term', 'total_sar', 'total_is_minimum', 'photo_key'],
     fields: [
@@ -85,10 +160,23 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   'impact-items': {
-    key: 'impact-items', table: 'impact_items', title: 'Impact items', singular: 'prize', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true,
+    key: 'impact-items',
+    table: 'impact_items',
+    title: 'Impact items',
+    singular: 'prize',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
     columns: ['name', 'prize_sar', 'semester_id'],
     fields: [
-      { name: 'semester_id', label: 'Semester', type: 'ref', ref: { resource: 'impact', label: 'term' }, required: true },
+      {
+        name: 'semester_id',
+        label: 'Semester',
+        type: 'ref',
+        ref: { resource: 'impact', label: 'term' },
+        required: true,
+      },
       { name: 'name', label: 'Event', type: 'text', required: true, max: 80 },
       { name: 'prize_sar', label: 'Prize SAR', type: 'number' },
       { name: 'detail', label: 'Detail', type: 'text', max: 120 },
@@ -96,11 +184,26 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   partners: {
-    key: 'partners', table: 'partners', title: 'Partners', singular: 'partner', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true, visible: true, publicPage: '/#partners',
+    key: 'partners',
+    table: 'partners',
+    title: 'Partners',
+    singular: 'partner',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    visible: true,
+    publicPage: '/#partners',
     columns: ['name', 'kind', 'logo_key', 'visible'],
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true, max: 80 },
-      { name: 'kind', label: 'Kind', type: 'select', options: ['company', 'kfupm_unit', 'student_club', 'visited'], required: true },
+      {
+        name: 'kind',
+        label: 'Kind',
+        type: 'select',
+        options: ['company', 'kfupm_unit', 'student_club', 'visited'],
+        required: true,
+      },
       { name: 'what', label: 'What we did together', type: 'text', max: 160 },
       { name: 'logo_key', label: 'Logo', type: 'media' },
       { name: 'source_url', label: 'Source post (the click goes here)', type: 'url' },
@@ -113,7 +216,16 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   faq: {
-    key: 'faq', table: 'faq', title: 'FAQ', singular: 'question', minRole: 'officer', pk: 'id', orderBy: 'sort.asc', sortable: true, visible: true, publicPage: '/faq',
+    key: 'faq',
+    table: 'faq',
+    title: 'FAQ',
+    singular: 'question',
+    minRole: 'officer',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    visible: true,
+    publicPage: '/faq',
     columns: ['q_en', 'q_ar', 'visible'],
     fields: [
       { name: 'q_en', label: 'Question (English)', type: 'text', required: true, max: 160 },
@@ -124,12 +236,26 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   board: {
-    key: 'board', table: 'officer_terms', title: 'Community board', singular: 'officer', minRole: 'admin', pk: 'id', orderBy: 'sort.asc', sortable: true, publicPage: '/community',
+    key: 'board',
+    table: 'officer_terms',
+    title: 'Community board',
+    singular: 'officer',
+    minRole: 'admin',
+    pk: 'id',
+    orderBy: 'sort.asc',
+    sortable: true,
+    publicPage: '/community',
     help: 'Current officers show as cards; untick "current" to move someone to the alumni archive.',
     columns: ['name', 'title', 'committee', 'term', 'is_current'],
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true, max: 80 },
-      { name: 'user_id', label: 'Member account', type: 'ref', ref: { resource: 'members', label: 'name' }, help: 'Optional. Links the card to the member profile.' },
+      {
+        name: 'user_id',
+        label: 'Member account',
+        type: 'ref',
+        ref: { resource: 'members', label: 'name' },
+        help: 'Optional. Links the card to the member profile.',
+      },
       { name: 'title', label: 'Title', type: 'text', required: true, max: 60 },
       { name: 'committee', label: 'Committee', type: 'text', max: 60 },
       { name: 'term', label: 'Term (e.g. 2026–27)', type: 'text', required: true, max: 20 },
@@ -140,7 +266,14 @@ export const RESOURCES: Record<string, Resource> = {
     ],
   },
   solvers: {
-    key: 'solvers', table: 'flag_solvers', title: 'Flag solvers', singular: 'solver', minRole: 'admin', pk: 'id', orderBy: 'created_at.desc', publicPage: '/flag',
+    key: 'solvers',
+    table: 'flag_solvers',
+    title: 'Flag solvers',
+    singular: 'solver',
+    minRole: 'admin',
+    pk: 'id',
+    orderBy: 'created_at.desc',
+    publicPage: '/flag',
     help: 'People who solved the site challenge. Approve to show them on the flag page.',
     columns: ['name', 'handle', 'approved', 'created_at'],
     fields: [

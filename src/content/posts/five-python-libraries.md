@@ -1,10 +1,10 @@
 ---
-title: "Five Python libraries worth learning first"
+title: 'Five Python libraries worth learning first'
 date: 2026-02-02
-author: "CC Technical Team"
-category: "Tutorial"
-tags: ["python", "tutorial"]
-excerpt: "If you know basic Python and want to build real things, these five libraries cover most of what you will reach for."
+author: 'CC Technical Team'
+category: 'Tutorial'
+tags: ['python', 'tutorial']
+excerpt: 'If you know basic Python and want to build real things, these five libraries cover most of what you will reach for.'
 ---
 
 Basic Python gets you loops, functions and files. These five libraries are where it starts to feel like a real toolkit. Each one is a single `pip install` away.

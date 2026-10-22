@@ -1,6 +1,10 @@
 ---
 /* Events: upcoming first, then past grouped by semester. Every event links to its X post; upcoming
-   ones get calendar links and, when registration is open, a one-click reservation for members. */
+   ones get calendar links and, when registration is open, a one-click reservation for members.
+   The page is cached for everyone, so it renders both the reservation form and the sign-in link and
+   lets account.js show the right one from the cc_in cookie. Spot counts come from registration_counts(),
+   a security-definer function that returns numbers without exposing who registered. "Full" here is
+   advisory: the API makes the real capacity check when the form is posted. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getUpcomingEvents, getPastEvents, termOf, riyadhDate, fmtRiyadh } from '../lib/content';
 import { googleUrl, outlookUrl } from '../lib/calendar';
@@ -16,21 +20,54 @@ if (dbReady() && open.length) {
   const { data } = await publicClient().rpc('registration_counts', { p_event_ids: open.map((e) => e.id) });
   for (const r of data || []) counts.set(r.event_id, Number(r.count) || 0);
 }
-const groups = (list: EventItem[]) => { const out: { term: string; items: EventItem[] }[] = []; for (const e of list) { const t = termOf(e.start); const g = out.find((x) => x.term === t); g ? g.items.push(e) : out.push({ term: t, items: [e] }); } return out; };
+const groups = (list: EventItem[]) => {
+  const out: { term: string; items: EventItem[] }[] = [];
+  for (const e of list) {
+    const t = termOf(e.start);
+    const g = out.find((x) => x.term === t);
+    if (g) g.items.push(e);
+    else out.push({ term: t, items: [e] });
+  }
+  return out;
+};
 const day = (d: Date) => fmtRiyadh(d, { month: 'short', day: 'numeric' });
-const when = (e: EventItem) => (e.end && riyadhDate(e.end) !== riyadhDate(e.start) ? `${day(e.start)} – ${day(e.end)}` : day(e.start)) + (e.allDay ? '' : ` · ${fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' })}`);
-const calData = JSON.stringify([...upcoming, ...past].map((e) => ({ d: riyadhDate(e.start), e: e.end ? riyadhDate(e.end) : undefined, t: e.title, id: e.slug })));
+const when = (e: EventItem) =>
+  (e.end && riyadhDate(e.end) !== riyadhDate(e.start) ? `${day(e.start)} – ${day(e.end)}` : day(e.start)) +
+  (e.allDay ? '' : ` · ${fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' })}`);
+const calData = JSON.stringify(
+  [...upcoming, ...past].map((e) => ({
+    d: riyadhDate(e.start),
+    e: e.end ? riyadhDate(e.end) : undefined,
+    t: e.title,
+    id: e.slug,
+  })),
+);
 // Thumbnails share a view-transition name with the same photo on the home page, so it morphs into place.
 const seen = new Set<string>();
-const morph = (key: string | null) => { if (!key) return undefined; const n = `photo-${key.replace(/\.[a-z]+$/i, '')}`; if (seen.has(n)) return undefined; seen.add(n); return n; };
-const spots = (e: EventItem) => e.capacity ? `${Math.min(counts.get(e.id) || 0, e.capacity)} of ${e.capacity} spots taken` : `${counts.get(e.id) || 0} going`;
+const morph = (key: string | null) => {
+  if (!key) return undefined;
+  const n = `photo-${key.replace(/\.[a-z]+$/i, '')}`;
+  if (seen.has(n)) return undefined;
+  seen.add(n);
+  return n;
+};
+const spots = (e: EventItem) =>
+  e.capacity
+    ? `${Math.min(counts.get(e.id) || 0, e.capacity)} of ${e.capacity} spots taken`
+    : `${counts.get(e.id) || 0} going`;
 const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capacity;
 ---
 
-<BaseLayout title="Timeline" description="Every KFUPM Computer Club event, upcoming and past, with one-click calendar links.">
+<BaseLayout
+  title="Timeline"
+  description="Every KFUPM Computer Club event, upcoming and past, with one-click calendar links."
+>
   <section class="page-head page-head--compact">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Events"><b>CC</b><span>Events</span></h1>
+      <h1 class="ccmark ccmark--text" aria-label="CC Events">
+        <b>CC</b>
+        <span>Events</span>
+      </h1>
       <p class="lead">What's coming and what happened. One click puts an event in your calendar.</p>
     </div>
   </section>
@@ -38,41 +75,118 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
   <section class="section events">
     <div class="container events__grid">
       <div class="events__list">
-        {[{ title: 'Upcoming', list: upcoming, up: true }, { title: 'Past', list: past, up: false }].map((sec) => (
+        {[
+          { title: 'Upcoming', list: upcoming, up: true },
+          { title: 'Past', list: past, up: false },
+        ].map((sec) => (
           <div class="events__section" data-section>
             <h2 class="h2">{sec.title}</h2>
-            {sec.list.length === 0 && <p class="lead lead--muted">Nothing scheduled yet. Follow the club on X for the next announcement.</p>}
+            {sec.list.length === 0 && (
+              <p class="lead lead--muted">Nothing scheduled yet. Follow the club on X for the next announcement.</p>
+            )}
             {groups(sec.list).map((g) => (
               <div class="term" data-term>
-                <div class="term__label mono"><i aria-hidden="true"></i>{g.term}</div>
+                <div class="term__label mono">
+                  <i aria-hidden="true"></i>
+                  {g.term}
+                </div>
                 {g.items.map((e) => (
                   <article class="ev" id={`ev-${e.slug}`} data-type={e.type}>
                     {e.cover ? (
-                      e.xUrl ? <a class="ev__thumb-link" href={e.xUrl} target="_blank" rel="noopener" aria-label={`${e.title} on X`} transition:name={morph(e.coverKey)}><img class="ev__thumb" src={e.cover.src} srcset={e.cover.srcset} sizes="168px" alt="" width="168" height="168" loading="lazy" decoding="async" /></a> : <img class="ev__thumb" src={e.cover.src} alt="" width="168" height="168" loading="lazy" />
-                    ) : <span class="ev__thumb ev__thumb--empty" aria-hidden="true">CC</span>}
+                      e.xUrl ? (
+                        <a
+                          class="ev__thumb-link"
+                          href={e.xUrl}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={`${e.title} on X`}
+                          transition:name={morph(e.coverKey)}
+                        >
+                          <img
+                            class="ev__thumb"
+                            src={e.cover.src}
+                            srcset={e.cover.srcset}
+                            sizes="168px"
+                            alt=""
+                            width="168"
+                            height="168"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </a>
+                      ) : (
+                        <img class="ev__thumb" src={e.cover.src} alt="" width="168" height="168" loading="lazy" />
+                      )
+                    ) : (
+                      <span class="ev__thumb ev__thumb--empty" aria-hidden="true">
+                        CC
+                      </span>
+                    )}
                     <div class="ev__body">
-                      <p class="ev__when mono"><time datetime={e.start.toISOString()}>{when(e)}</time></p>
-                      <h3 class="ev__title">{e.xUrl ? <a href={e.xUrl} target="_blank" rel="noopener">{e.title}</a> : e.title}</h3>
+                      <p class="ev__when mono">
+                        <time datetime={e.start.toISOString()}>{when(e)}</time>
+                      </p>
+                      <h3 class="ev__title">
+                        {e.xUrl ? (
+                          <a href={e.xUrl} target="_blank" rel="noopener">
+                            {e.title}
+                          </a>
+                        ) : (
+                          e.title
+                        )}
+                      </h3>
                       <p class="ev__where mono">{e.location}</p>
                       <p class="ev__summary">{e.summary}</p>
                       {sec.up && (
                         <p class="ev__cal">
-                          {e.registerUrl && <a class="ev__register" href={e.registerUrl} target="_blank" rel="noopener">Register ↗</a>}
+                          {e.registerUrl && (
+                            <a class="ev__register" href={e.registerUrl} target="_blank" rel="noopener">
+                              Register ↗
+                            </a>
+                          )}
                           <span class="mono">Add to</span>
-                          <a href={googleUrl(e, site)} target="_blank" rel="noopener">Google</a>
-                          <a href={outlookUrl(e, 'work', site)} target="_blank" rel="noopener" title="Outlook for KFUPM and work accounts">Outlook</a>
-                          <a href={outlookUrl(e, 'personal', site)} target="_blank" rel="noopener" title="Outlook.com personal accounts">Outlook.com</a>
-                          <a href={`/api/events/${e.slug}.ics`} download={`${e.slug}.ics`}>.ics</a>
+                          <a href={googleUrl(e, site)} target="_blank" rel="noopener">
+                            Google
+                          </a>
+                          <a
+                            href={outlookUrl(e, 'work', site)}
+                            target="_blank"
+                            rel="noopener"
+                            title="Outlook for KFUPM and work accounts"
+                          >
+                            Outlook
+                          </a>
+                          <a
+                            href={outlookUrl(e, 'personal', site)}
+                            target="_blank"
+                            rel="noopener"
+                            title="Outlook.com personal accounts"
+                          >
+                            Outlook.com
+                          </a>
+                          <a href={`/api/events/${e.slug}.ics`} download={`${e.slug}.ics`}>
+                            .ics
+                          </a>
                         </p>
                       )}
                       {sec.up && e.registrationOpen && (
                         <div class="ev__rsvp">
                           <form method="post" action={`/api/events/${e.id}/register`} data-signed-in hidden>
                             <input type="hidden" name="next" value={`/timeline#ev-${e.slug}`} />
-                            <label class="ev__copy"><input type="checkbox" name="email_copy" value="1" /> email me a copy</label>
-                            <button class="btn btn--small" type="submit" disabled={full(e)}>{full(e) ? 'Full' : 'Reserve a spot'} <span aria-hidden="true">→</span></button>
+                            <label class="ev__copy">
+                              <input type="checkbox" name="email_copy" value="1" /> email me a copy
+                            </label>
+                            <button class="btn btn--small" type="submit" disabled={full(e)}>
+                              {full(e) ? 'Full' : 'Reserve a spot'} <span aria-hidden="true">→</span>
+                            </button>
                           </form>
-                          <a class="btn btn--small btn--ghost" data-signed-out href={`/join?next=${encodeURIComponent(`/timeline#ev-${e.slug}`)}`}>Sign in to reserve a spot</a>
+                          <a
+                            class="btn btn--small btn--ghost"
+                            data-signed-out
+                            href={`/join?next=${encodeURIComponent(`/timeline#ev-${e.slug}`)}`}
+                          >
+                            Sign in to reserve a spot
+                          </a>
                           <span class="mono ev__spots">{spots(e)}</span>
                         </div>
                       )}
@@ -88,10 +202,28 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
 
       <aside class="events__side">
         <div class="cal" data-events={calData}>
-          <div class="cal__head"><span class="mono">Calendar</span><a class="cal__ics" href="/calendar.ics" download="kfupm-computer-club.ics">Add iCal</a></div>
-          <div class="cal__nav"><strong class="cal__month"></strong><span><button type="button" class="cal__prev" aria-label="Previous month">‹</button><button type="button" class="cal__next" aria-label="Next month">›</button></span></div>
+          <div class="cal__head">
+            <span class="mono">Calendar</span>
+            <a class="cal__ics" href="/calendar.ics" download="kfupm-computer-club.ics">
+              Add iCal
+            </a>
+          </div>
+          <div class="cal__nav">
+            <strong class="cal__month"></strong>
+            <span>
+              <button type="button" class="cal__prev" aria-label="Previous month">
+                ‹
+              </button>
+              <button type="button" class="cal__next" aria-label="Next month">
+                ›
+              </button>
+            </span>
+          </div>
           <div class="cal__grid" role="grid"></div>
-          <p class="cal__hint mono">Highlighted days have events. Click one to jump to it. Subscribe to the feed to get every upcoming event in your calendar.</p>
+          <p class="cal__hint mono">
+            Highlighted days have events. Click one to jump to it. Subscribe to the feed to get every upcoming event in
+            your calendar.
+          </p>
         </div>
       </aside>
     </div>
@@ -99,37 +231,5 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
 </BaseLayout>
 
 <script>
-  import { onPage } from '../scripts/page.js';
-  // Mini calendar
-  onPage(() => {
-    const cal = document.querySelector('.cal');
-    if (!cal) return;
-    const events = JSON.parse(cal.dataset.events || '[]');
-    const byDay = new Map();
-    const addDay = (d, ev) => { if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(ev); };
-    for (const ev of events) {
-      const s = new Date(ev.d + 'T00:00:00Z'), e = new Date((ev.e || ev.d) + 'T00:00:00Z');
-      for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) addDay(d.toISOString().slice(0, 10), ev);
-    }
-    const grid = cal.querySelector('.cal__grid'), label = cal.querySelector('.cal__month');
-    const now = new Date(); let y = now.getFullYear(), m = now.getMonth();
-    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const render = () => {
-      label.textContent = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-      const first = new Date(Date.UTC(y, m, 1)).getUTCDay(), days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-      let html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => `<span class="cal__dow">${d}</span>`).join('');
-      for (let i = 0; i < first; i++) html += '<span></span>';
-      for (let d = 1; d <= days; d++) {
-        const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const evs = byDay.get(key);
-        const cls = ['cal__day', evs ? 'has-ev' : '', key === todayIso ? 'is-today' : '', evs && key >= todayIso ? 'is-up' : ''].filter(Boolean).join(' ');
-        html += evs ? `<button type="button" class="${cls}" title="${evs.map((e) => e.t).join(', ').replace(/"/g, '&quot;')}" data-id="${evs[0].id}">${d}</button>` : `<span class="${cls}">${d}</span>`;
-      }
-      grid.innerHTML = html;
-    };
-    render();
-    cal.querySelector('.cal__prev').addEventListener('click', () => { m--; if (m < 0) { m = 11; y--; } render(); });
-    cal.querySelector('.cal__next').addEventListener('click', () => { m++; if (m > 11) { m = 0; y++; } render(); });
-    grid.addEventListener('click', (e) => { const b = e.target.closest('[data-id]'); if (!b) return; const el = document.getElementById(`ev-${b.dataset.id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('is-hit'); setTimeout(() => el.classList.remove('is-hit'), 1600); } });
-  });
+  import '../scripts/mini-calendar.js';
 </script>

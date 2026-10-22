@@ -9,13 +9,35 @@ import { dbReady, serviceReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import { getSettings } from '../lib/content';
 const settings = await getSettings();
-const solvers = dbReady() ? ((await publicClient().from('flag_solvers').select('name,handle,created_at').eq('approved', true).order('created_at')).data || []).map((r: any) => ({ name: r.name, handle: r.handle, date: String(r.created_at).slice(0, 10) })) : (seedSolvers as any[]);
+const solvers = dbReady()
+  ? (
+      (
+        await publicClient()
+          .from('flag_solvers')
+          .select('name,handle,created_at')
+          .eq('approved', true)
+          .order('created_at')
+      ).data || []
+    ).map((r: any) => ({ name: r.name, handle: r.handle, date: String(r.created_at).slice(0, 10) }))
+  : (seedSolvers as any[]);
 const repo = (settings.links.github || 'https://github.com/KFUPM-COMPUTER-CLUB/website').replace(/\/+$/, '');
-const cfg = JSON.stringify({ endpoint: serviceReady() ? '/api/flag/solvers' : '', issue: `${repo}/issues/new` }).replace(/</g, '\\u003c');
-const fmt = (iso: string) => { const [y, m, d] = String(iso).split('-').map(Number); return y && m && d ? new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+const cfg = JSON.stringify({
+  endpoint: serviceReady() ? '/api/flag/solvers' : '',
+  issue: `${repo}/issues/new`,
+}).replace(/</g, '\\u003c');
+const fmt = (iso: string) => {
+  const [y, m, d] = String(iso).split('-').map(Number);
+  return y && m && d
+    ? new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
+};
 ---
 
-<BaseLayout title="Flag" description="A door for people who read the console, the source and the terminal." noindex={true}>
+<BaseLayout
+  title="Flag"
+  description="A door for people who read the console, the source and the terminal."
+  noindex={true}
+>
   <section class="flag" data-bg="#0B1A33" data-flag>
     <div class="container flag__inner">
       <span class="eyebrow">Capture the flag</span>
@@ -24,22 +46,42 @@ const fmt = (iso: string) => { const [y, m, d] = String(iso).split('-').map(Numb
         <h1 class="h1">You found the door.</h1>
         <p class="lead">Paste the flag to open it.</p>
         <form class="flag__form" data-flag-form>
-          <label class="flag__label" for="flag-key">Flag</label>
-          <input id="flag-key" class="flag__input" type="text" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" data-flag-input />
-          <button class="btn" type="submit">Check</button>
+          <label class="flag__label" for="flag-key">
+            Flag
+          </label>
+          <input
+            id="flag-key"
+            class="flag__input"
+            type="text"
+            required
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            maxlength="80"
+            data-flag-input
+          />
+          <button class="btn" type="submit">
+            Check
+          </button>
         </form>
         <p class="flag__result" aria-live="polite" data-flag-result></p>
       </div>
 
       <div data-flag-won hidden>
-        <h1 class="h1" tabindex="-1" data-flag-title>Congratulations, solver.</h1>
+        <h1 class="h1" tabindex="-1" data-flag-title>
+          Congratulations, solver.
+        </h1>
         <p class="lead">You read the console, the source and the terminal. That is exactly how we like it.</p>
 
         <h2 class="flag__h">Solvers</h2>
         {solvers.length ? (
           <ol class="flag__solvers">
             {solvers.map((s) => (
-              <li><span class="flag__name">{s.name}</span><span class="flag__meta">{[s.handle, fmt(s.date)].filter(Boolean).join(' · ')}</span></li>
+              <li>
+                <span class="flag__name">{s.name}</span>
+                <span class="flag__meta">{[s.handle, fmt(s.date)].filter(Boolean).join(' · ')}</span>
+              </li>
             ))}
           </ol>
         ) : (
@@ -49,14 +91,38 @@ const fmt = (iso: string) => { const [y, m, d] = String(iso).split('-').map(Numb
         <h2 class="flag__h">Add your name</h2>
         <form class="flag__form flag__form--solver" data-solver-form>
           <div class="flag__field">
-            <label class="flag__label" for="solver-name">Name</label>
-            <input id="solver-name" class="flag__input" type="text" required maxlength="40" autocomplete="name" data-solver-name />
+            <label class="flag__label" for="solver-name">
+              Name
+            </label>
+            <input
+              id="solver-name"
+              class="flag__input"
+              type="text"
+              required
+              maxlength="40"
+              autocomplete="name"
+              data-solver-name
+            />
           </div>
           <div class="flag__field">
-            <label class="flag__label" for="solver-handle">Handle, optional</label>
-            <input id="solver-handle" class="flag__input" type="text" maxlength="40" placeholder="X or GitHub" autocomplete="off" autocapitalize="off" spellcheck="false" data-solver-handle />
+            <label class="flag__label" for="solver-handle">
+              Handle, optional
+            </label>
+            <input
+              id="solver-handle"
+              class="flag__input"
+              type="text"
+              maxlength="40"
+              placeholder="X or GitHub"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-solver-handle
+            />
           </div>
-          <button class="btn" type="submit" data-solver-submit>Add your name</button>
+          <button class="btn" type="submit" data-solver-submit>
+            Add your name
+          </button>
         </form>
         <p class="flag__result" aria-live="polite" data-solver-result></p>
       </div>

@@ -14,10 +14,21 @@ onPage(() => {
   };
   setOpen(false);
   toggle?.addEventListener('click', () => setOpen(!body.classList.contains('nav-open')));
-  off.add(listen(document, 'keydown', (e) => { if (e.key === 'Escape' && body.classList.contains('nav-open')) { setOpen(false); toggle?.focus(); } }));
+  off.add(
+    listen(document, 'keydown', (e) => {
+      if (e.key === 'Escape' && body.classList.contains('nav-open')) {
+        setOpen(false);
+        toggle?.focus();
+      }
+    }),
+  );
   nav?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
   const wide = window.matchMedia('(min-width: 1024px)');
-  off.add(listen(wide, 'change', (e) => { if (e.matches) setOpen(false); }));
+  off.add(
+    listen(wide, 'change', (e) => {
+      if (e.matches) setOpen(false);
+    }),
+  );
 
   const hero = document.querySelector('[data-hero]');
   const headerH = () => document.querySelector('.site-header')?.offsetHeight || 72;
@@ -29,5 +40,8 @@ onPage(() => {
   onScroll();
   off.add(listen(window, 'scroll', onScroll, { passive: true }));
   off.add(listen(window, 'resize', onScroll));
-  return () => { off.flush(); body.classList.remove('nav-open', 'scrolled', 'past-hero'); };
+  return () => {
+    off.flush();
+    body.classList.remove('nav-open', 'scrolled', 'past-hero');
+  };
 });

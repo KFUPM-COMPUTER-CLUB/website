@@ -1,30 +1,109 @@
 ---
+/* Admin dashboard, the landing page for editor and up (the middleware lets editors this far).
+ * Counts come straight from the service client. The email figures come from the queue and warn at
+ * 80% of Resend's free tier, because once the daily budget is spent the rest waits for the next cron. */
 import AdminLayout from '../../components/AdminLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { emailQuota } from '../../lib/notify';
 import { fmtRiyadh } from '../../lib/content';
 const sb = serviceClient();
 const week = new Date(Date.now() - 7 * 864e5).toISOString();
-const [{ count: newMembers }, { count: members }, { count: pending }, { data: upcoming }, { count: regs }, quota] = await Promise.all([
-  sb.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', week).eq('onboarded', true),
-  sb.from('profiles').select('id', { count: 'exact', head: true }).eq('onboarded', true),
-  sb.from('posts').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
-  sb.from('events').select('id,slug,title,starts_at,registration_open,capacity').gte('starts_at', new Date(Date.now() - 864e5).toISOString()).order('starts_at').limit(5),
-  sb.from('registrations').select('id', { count: 'exact', head: true }).gte('created_at', week),
-  emailQuota(),
-]);
+const [{ count: newMembers }, { count: members }, { count: pending }, { data: upcoming }, { count: regs }, quota] =
+  await Promise.all([
+    sb.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', week).eq('onboarded', true),
+    sb.from('profiles').select('id', { count: 'exact', head: true }).eq('onboarded', true),
+    sb.from('posts').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+    sb
+      .from('events')
+      .select('id,slug,title,starts_at,registration_open,capacity')
+      .gte('starts_at', new Date(Date.now() - 864e5).toISOString())
+      .order('starts_at')
+      .limit(5),
+    sb.from('registrations').select('id', { count: 'exact', head: true }).gte('created_at', week),
+    emailQuota(),
+  ]);
 ---
+
 <AdminLayout title="Dashboard" live={false}>
   <div class="cards">
-    <div class="stat"><b>{newMembers ?? 0}</b><span>new members this week</span></div>
-    <div class="stat"><b>{members ?? 0}</b><span>members</span></div>
-    <a class="stat" href="/admin/posts" style="text-decoration:none"><b>{pending ?? 0}</b><span>posts waiting for review</span></a>
-    <div class="stat"><b>{regs ?? 0}</b><span>reservations this week</span></div>
-    {quota ? <div class={`stat${quota.warnDaily || quota.warnMonthly ? ' stat--warn' : ''}`}><b>{quota.sentToday}<small style="font-size:14px;color:var(--muted)"> / {quota.dailyLimit}</small></b><span>emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued{!quota.configured && ' · sending off'}</span></div> : <div class="stat"><b>—</b><span>email: not configured</span></div>}
+    <div class="stat">
+      <b>{newMembers ?? 0}</b>
+      <span>new members this week</span>
+    </div>
+    <div class="stat">
+      <b>{members ?? 0}</b>
+      <span>members</span>
+    </div>
+    <a class="stat" href="/admin/posts" style="text-decoration:none">
+      <b>{pending ?? 0}</b>
+      <span>posts waiting for review</span>
+    </a>
+    <div class="stat">
+      <b>{regs ?? 0}</b>
+      <span>reservations this week</span>
+    </div>
+    {quota ? (
+      <div class={`stat${quota.warnDaily || quota.warnMonthly ? ' stat--warn' : ''}`}>
+        <b>
+          {quota.sentToday}
+          <small style="font-size:14px;color:var(--muted)"> / {quota.dailyLimit}</small>
+        </b>
+        <span>
+          emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued
+          {!quota.configured && ' · sending off'}
+        </span>
+      </div>
+    ) : (
+      <div class="stat">
+        <b>—</b>
+        <span>email: not configured</span>
+      </div>
+    )}
   </div>
-  {quota && (quota.warnDaily || quota.warnMonthly) && <p class="flash--error" style="margin-top:16px">Email is at 80% of its {quota.warnDaily ? 'daily' : 'monthly'} limit. The rest of the queue rolls to the next day automatically.</p>}
+  {quota && (quota.warnDaily || quota.warnMonthly) && (
+    <p class="flash--error" style="margin-top:16px">
+      Email is at 80% of its {quota.warnDaily ? 'daily' : 'monthly'} limit. The rest of the queue rolls to the next day
+      automatically.
+    </p>
+  )}
   <div class="card" style="margin-top:20px">
     <h2 class="h3">Upcoming events</h2>
-    {upcoming?.length ? <div class="table-wrap"><table class="table"><thead><tr><th>Event</th><th>When</th><th>Registration</th><th></th></tr></thead><tbody>{upcoming.map((e: any) => <tr><td>{e.title}</td><td class="mono">{fmtRiyadh(new Date(e.starts_at), { weekday: 'short', day: 'numeric', month: 'short' })}</td><td>{e.registration_open ? `open${e.capacity ? ` · ${e.capacity} spots` : ''}` : 'closed'}</td><td><a class="btn btn--tiny btn--ghost" href={`/admin/events/${e.id}`}>Edit</a> <a class="btn btn--tiny btn--ghost" href={`/admin/events/${e.id}/registrations`}>Registrations</a></td></tr>)}</tbody></table></div> : <p class="hint">Nothing scheduled. <a href="/admin/events/new">Add an event</a>.</p>}
+    {upcoming?.length ? (
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>When</th>
+              <th>Registration</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {upcoming.map((e: any) => (
+              <tr>
+                <td>{e.title}</td>
+                <td class="mono">
+                  {fmtRiyadh(new Date(e.starts_at), { weekday: 'short', day: 'numeric', month: 'short' })}
+                </td>
+                <td>{e.registration_open ? `open${e.capacity ? ` · ${e.capacity} spots` : ''}` : 'closed'}</td>
+                <td>
+                  <a class="btn btn--tiny btn--ghost" href={`/admin/events/${e.id}`}>
+                    Edit
+                  </a>{' '}
+                  <a class="btn btn--tiny btn--ghost" href={`/admin/events/${e.id}/registrations`}>
+                    Registrations
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p class="hint">
+        Nothing scheduled. <a href="/admin/events/new">Add an event</a>.
+      </p>
+    )}
   </div>
 </AdminLayout>

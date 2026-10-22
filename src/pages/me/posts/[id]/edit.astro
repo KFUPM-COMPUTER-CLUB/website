@@ -1,4 +1,10 @@
 ---
+/* The post editor page. editor.js takes over the form: it builds the toolbar, autosaves to data-save
+ * and uploads through data-upload; the hidden content_html, content_json and dir fields are how it
+ * hands the latest copy to the form's own submit, which goes to /api/posts/<id>/submit.
+ * Reviewers can open anyone's post here ("Open in editor" on the review page). "locked" mirrors the
+ * API's rule: an author cannot edit while the post is under review or published, so the fields are
+ * disabled and editor.js starts read-only. Reviewer notes are shown above the form. */
 import MeLayout from '../../../../components/MeLayout.astro';
 import '../../../../styles/editor.css';
 import { serviceClient } from '../../../../lib/supabase';
@@ -6,35 +12,122 @@ import { atLeast } from '../../../../lib/types';
 import { isUuid } from '../../../../lib/api';
 const { user, role } = Astro.locals;
 if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
-const { data: post } = await serviceClient().from('posts').select('*, post_reviews(comment,status_set,created_at)').eq('id', Astro.params.id).maybeSingle();
+const { data: post } = await serviceClient()
+  .from('posts')
+  .select('*, post_reviews(comment,status_set,created_at)')
+  .eq('id', Astro.params.id)
+  .maybeSingle();
 if (!post || (post.author_id !== user!.id && !atLeast(role, 'reviewer'))) return new Response(null, { status: 404 });
-const locked = post.author_id === user!.id && !atLeast(role, 'reviewer') && !['draft', 'changes_requested'].includes(post.status);
+const locked =
+  post.author_id === user!.id && !atLeast(role, 'reviewer') && !['draft', 'changes_requested'].includes(post.status);
 const categories = ['News', 'Event recap', 'Tutorial', 'Project', 'Experience', 'Opinion', 'Announcement'];
 const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
 ---
+
 <MeLayout title={post.title}>
-  {locked && <p class="flash--ok">This post is {post.status.replace('_', ' ')}. Editing reopens once a reviewer answers.</p>}
-  {notes.length > 0 && <div class="card" style="margin-bottom:16px"><h2 class="h3">Reviewer notes</h2><ul>{notes.map((n: any) => <li><span class="mono">{String(n.created_at).slice(0, 10)}</span> · {n.comment}</li>)}</ul></div>}
-  <form class="editor" data-editor data-post-id={post.id} data-status={post.status} data-dir={post.dir} data-upload="/api/upload" data-save={`/api/posts/${post.id}`} data-preview={`/me/posts/${post.id}/preview`} method="post" action={`/api/posts/${post.id}/submit`}>
-    <div class="field"><label for="title">Title</label><input class="editor__title input" id="title" name="title" value={post.title} maxlength="140" required disabled={locked} /></div>
-    <div class="form__row">
-      <div class="field"><label for="excerpt">Summary (shown in the list)</label><input class="input" id="excerpt" name="excerpt" value={post.excerpt || ''} maxlength="200" disabled={locked} /></div>
-      <div class="field"><label for="category">Category</label><select class="select" id="category" name="category" disabled={locked}>{categories.map((c) => <option value={c} selected={post.category === c}>{c}</option>)}</select></div>
+  {locked && (
+    <p class="flash--ok">This post is {post.status.replace('_', ' ')}. Editing reopens once a reviewer answers.</p>
+  )}
+  {notes.length > 0 && (
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="h3">Reviewer notes</h2>
+      <ul>
+        {notes.map((n: any) => (
+          <li>
+            <span class="mono">{String(n.created_at).slice(0, 10)}</span> · {n.comment}
+          </li>
+        ))}
+      </ul>
     </div>
-    <div class="field"><label for="tags">Tags</label><input class="input" id="tags" name="tags" value={(post.tags || []).join(', ')} placeholder="comma separated" disabled={locked} /></div>
+  )}
+  <form
+    class="editor"
+    data-editor
+    data-post-id={post.id}
+    data-status={post.status}
+    data-dir={post.dir}
+    data-upload="/api/upload"
+    data-save={`/api/posts/${post.id}`}
+    data-preview={`/me/posts/${post.id}/preview`}
+    method="post"
+    action={`/api/posts/${post.id}/submit`}
+  >
+    <div class="field">
+      <label for="title">Title</label>
+      <input
+        class="editor__title input"
+        id="title"
+        name="title"
+        value={post.title}
+        maxlength="140"
+        required
+        disabled={locked}
+      />
+    </div>
+    <div class="form__row">
+      <div class="field">
+        <label for="excerpt">Summary (shown in the list)</label>
+        <input class="input" id="excerpt" name="excerpt" value={post.excerpt || ''} maxlength="200" disabled={locked} />
+      </div>
+      <div class="field">
+        <label for="category">Category</label>
+        <select class="select" id="category" name="category" disabled={locked}>
+          {categories.map((c) => (
+            <option value={c} selected={post.category === c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="tags">Tags</label>
+      <input
+        class="input"
+        id="tags"
+        name="tags"
+        value={(post.tags || []).join(', ')}
+        placeholder="comma separated"
+        disabled={locked}
+      />
+    </div>
     <div class="editor__toolbar" data-editor-toolbar></div>
     <div class="editor__surface" data-editor-surface></div>
     <textarea name="content_html" hidden data-editor-html>{post.content_html || ''}</textarea>
-    <textarea name="content_json" hidden data-editor-json>{post.content_json ? JSON.stringify(post.content_json) : ''}</textarea>
+    <textarea
+      name="content_json"
+      hidden
+      data-editor-json
+    >{post.content_json ? JSON.stringify(post.content_json) : ''}</textarea>
     <input type="hidden" name="dir" value={post.dir} data-editor-dir />
-    <p class="editor__status" data-editor-status aria-live="polite">{locked ? 'Read only' : 'Saved'}</p>
+    <p class="editor__status" data-editor-status aria-live="polite">
+      {locked ? 'Read only' : 'Saved'}
+    </p>
     <div class="form__actions">
-      <button type="button" class="btn btn--ghost" data-editor-preview>Preview</button>
-      {!locked && <button type="submit" class="btn" name="action" value="submit">Submit for review <span aria-hidden="true">→</span></button>}
+      <button type="button" class="btn btn--ghost" data-editor-preview>
+        Preview
+      </button>
+      {!locked && (
+        <button type="submit" class="btn" name="action" value="submit">
+          Submit for review <span aria-hidden="true">→</span>
+        </button>
+      )}
       {post.status === 'published' && <span class="live">Edits go live in about a minute</span>}
     </div>
   </form>
-  {!locked && <form method="post" action={`/api/posts/${post.id}`} style="margin-top:24px" onsubmit="return confirm('Delete this post?')"><input type="hidden" name="_method" value="DELETE" /><button class="btn btn--tiny btn--danger" type="submit">Delete post</button></form>}
+  {!locked && (
+    <form
+      method="post"
+      action={`/api/posts/${post.id}`}
+      style="margin-top:24px"
+      onsubmit="return confirm('Delete this post?')"
+    >
+      <input type="hidden" name="_method" value="DELETE" />
+      <button class="btn btn--tiny btn--danger" type="submit">
+        Delete post
+      </button>
+    </form>
+  )}
 </MeLayout>
 
 <script>

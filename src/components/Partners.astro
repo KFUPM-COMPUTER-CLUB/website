@@ -14,14 +14,26 @@ const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUr
 <section class="section partners bg-black" data-bg="#0B0B0F">
   <div class="container partners__inner">
     <span class="eyebrow reveal">Friends of the club</span>
-    <p class="partners__lead reveal">We're building a place at KFUPM where <b>curious students become builders</b>, and we're lucky to have friends whose work we really admire.</p>
+    <p class="partners__lead reveal">
+      We're building a place at KFUPM where <b>curious students become builders</b>, and we're lucky to have friends
+      whose work we really admire.
+    </p>
 
     <ul class="logo-tree reveal">
       {friends.map((c) => (
         <li>
-          <a href={href(c)} target="_blank" rel="noopener" title={c.what} aria-label={c.what ? `${c.name}: ${c.what}` : c.name}>
+          <a
+            href={href(c)}
+            target="_blank"
+            rel="noopener"
+            title={c.what}
+            aria-label={c.what ? `${c.name}: ${c.what}` : c.name}
+          >
             {c.logo && c.mark ? (
-              <span class={`logo-tree__pair${c.square ? ' logo-tree__pair--square' : ''}`}><img src={c.logo.src} alt="" loading="lazy" /><span class="logo-tree__text">{c.name}</span></span>
+              <span class={`logo-tree__pair${c.square ? ' logo-tree__pair--square' : ''}`}>
+                <img src={c.logo.src} alt="" loading="lazy" />
+                <span class="logo-tree__text">{c.name}</span>
+              </span>
             ) : c.logo ? (
               <img class={c.tall ? 'logo-tree__img--tall' : undefined} src={c.logo.src} alt={c.name} loading="lazy" />
             ) : (
@@ -33,7 +45,9 @@ const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUr
     </ul>
 
     <div class="partners__ask reveal" id="partner">
-      <a class="btn btn--light" data-magnet href={partnerHref} {...partnerExt}>Partner with us <span aria-hidden="true">→</span></a>
+      <a class="btn btn--light" data-magnet href={partnerHref} {...partnerExt}>
+        Partner with us <span aria-hidden="true">→</span>
+      </a>
     </div>
   </div>
 </section>

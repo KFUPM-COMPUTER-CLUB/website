@@ -29,9 +29,14 @@ const stageTabs = ['Moments', 'In pictures'];
     <div class="hero-grid" aria-hidden="true"></div>
     <div class="container screen__inner" data-hero-inner>
       <Image class="hero__logo" src={logoColor} alt={site.name} width={1100} densities={[1, 1.5]} loading="eager" />
-      <h1 class="h-display hero__title">{heroHead} <span class="hl">{heroTail}</span></h1>
+      <h1 class="h-display hero__title">
+        {heroHead} <span class="hl">{heroTail}</span>
+      </h1>
     </div>
-    <div class="scroll-hint" aria-hidden="true"><span class="mono">Scroll</span><i></i></div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span class="mono">Scroll</span>
+      <i></i>
+    </div>
   </section>
 
   <!-- Screen 2: CC x KFUPM pinned in the top half; the block under it steps between the photo strip and the moments -->
@@ -40,10 +45,18 @@ const stageTabs = ['Moments', 'In pictures'];
     <div class="stage__anchor" aria-hidden="true"></div>
     <div class="stage">
       <div class="container stage__top">
-        <span class="ccmark reveal" aria-label="CC KFUPM"><b>CC</b><Image src={kfupmLogo} alt="KFUPM" height={76} densities={[1, 2]} /></span>
+        <span class="ccmark reveal" aria-label="CC KFUPM">
+          <b>CC</b>
+          <Image src={kfupmLogo} alt="KFUPM" height={76} densities={[1, 2]} />
+        </span>
         <p class="stage__line">{site.intro}</p>
         <div class="stage__bar" role="tablist" aria-label="Sections">
-          {stageTabs.map((t, i) => <button class="stage__tab" role="tab" type="button" data-tab={i} aria-selected={i === 0 ? 'true' : 'false'}><i aria-hidden="true"></i><span>{t}</span></button>)}
+          {stageTabs.map((t, i) => (
+            <button class="stage__tab" role="tab" type="button" data-tab={i} aria-selected={i === 0 ? 'true' : 'false'}>
+              <i aria-hidden="true"></i>
+              <span>{t}</span>
+            </button>
+          ))}
         </div>
       </div>
       <div class="stage__panels">
@@ -51,7 +64,15 @@ const stageTabs = ['Moments', 'In pictures'];
           <Stories />
         </div>
         <div class="stage__panel stage__panel--strip" role="tabpanel" data-panel="1">
-          <div class="container stage__head"><div><span class="eyebrow">In pictures</span><h2 class="h3">Six years of building</h2></div><a class="link-arrow" href="https://x.com/KFUPM_CC" target="_blank" rel="noopener">More on X ↗</a></div>
+          <div class="container stage__head">
+            <div>
+              <span class="eyebrow">In pictures</span>
+              <h2 class="h3">Six years of building</h2>
+            </div>
+            <a class="link-arrow" href="https://x.com/KFUPM_CC" target="_blank" rel="noopener">
+              More on X ↗
+            </a>
+          </div>
           <PhotoStrip />
         </div>
       </div>
@@ -69,8 +90,12 @@ const stageTabs = ['Moments', 'In pictures'];
       <h2 class="h1">{home.buildWithUs.title}</h2>
       <p class="lead lead--muted">{home.buildWithUs.text}</p>
       <div class="hero__actions">
-        <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>Become a member <span aria-hidden="true">→</span></a>
-        <a class="btn btn--ghost" href="/timeline">See what's coming <span aria-hidden="true">→</span></a>
+        <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
+          Become a member <span aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost" href="/timeline">
+          See what's coming <span aria-hidden="true">→</span>
+        </a>
       </div>
     </div>
   </section>
@@ -84,16 +109,5 @@ const stageTabs = ['Moments', 'In pictures'];
 </script>
 
 <script>
-  import { onPage, reduceMotion } from '../scripts/page.js';
-  onPage(() => {
-    const reduce = reduceMotion();
-    document.querySelectorAll('[data-count]').forEach((el) => {
-      const raw = el.dataset.count || ''; const n = parseInt(raw.replace(/\D/g, ''), 10); if (!n || reduce) return;
-      const suffix = raw.replace(/^[\d,]+/, ''); const start = performance.now();
-      const step = (t) => { const p = Math.min(1, (t - start) / 1200); el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3))) + suffix; if (p < 1) requestAnimationFrame(step); };
-      requestAnimationFrame(step);
-    });
-    const t = new Date(); const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-    document.querySelectorAll('[data-date]').forEach((el) => { if ((el.getAttribute('data-date') || '') < todayIso) el.remove(); });
-  });
+  import '../scripts/home.js';
 </script>

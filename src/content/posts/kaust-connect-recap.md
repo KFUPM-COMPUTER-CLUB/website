@@ -1,10 +1,10 @@
 ---
-title: "KAUST Connect, in one evening"
+title: 'KAUST Connect, in one evening'
 date: 2025-10-19
-author: "CC Media Team"
-category: "Event recap"
-tags: ["kaust", "talks"]
-excerpt: "KAUST Academy alumni from every track, 400+ students from three universities, and a room that stayed full until the end."
+author: 'CC Media Team'
+category: 'Event recap'
+tags: ['kaust', 'talks']
+excerpt: 'KAUST Academy alumni from every track, 400+ students from three universities, and a room that stayed full until the end.'
 ---
 
 On 12 October we opened the doors at 7 PM for KAUST Connect. KAUST Academy alumni from every track came to tell us how they got in, what the programs are like from the inside, and what they would do differently.

@@ -11,7 +11,13 @@ onPage(() => {
 
   const stops = [...document.querySelectorAll('[data-bg]')];
   const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const lum = ([r, g, b]) => { const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const lum = ([r, g, b]) => {
+    const f = (c) => {
+      c /= 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  };
   const paint = () => {
     if (!stops.length) return;
     const y = window.scrollY + 36;
@@ -24,10 +30,20 @@ onPage(() => {
   off.add(listen(window, 'scroll', paint, { passive: true }));
   off.add(listen(window, 'resize', paint));
 
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
-  }, { threshold: 0.12 });
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries)
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+    },
+    { threshold: 0.12 },
+  );
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
-  return () => { off.flush(); io.disconnect(); };
+  return () => {
+    off.flush();
+    io.disconnect();
+  };
 });

@@ -1,18 +1,71 @@
 ---
+/* Admin-only audit log: the last 200 entries, with an Undo button where the API allows it. The button
+ * is shown by this page's undoable(), but the API decides for real (api/admin/audit/<id>/undo.ts);
+ * people, roles and reservations are never restored from a JSON snapshot. */
 import AdminLayout from '../../components/AdminLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 if (Astro.locals.role !== 'admin') return new Response('Admins only', { status: 403 });
-const { data } = await serviceClient().from('audit_log').select('id,action,table_name,row_id,before,after,undone_at,created_at, actor:profiles!audit_log_actor_id_fkey(name)').order('created_at', { ascending: false }).limit(200);
-const summary = (e: any) => { const a = e.after || e.before || {}; return a.title || a.name || a.term || a.q_en || a.label || a.key || a.role || a.status || e.row_id || ''; };
-const undoable = (e: any) => !e.undone_at && ['insert', 'update', 'delete'].includes(e.action) && !['profiles', 'user_roles', 'registrations'].includes(e.table_name);
+const { data } = await serviceClient()
+  .from('audit_log')
+  .select('id,action,table_name,row_id,before,after,undone_at,created_at, actor:profiles!audit_log_actor_id_fkey(name)')
+  .order('created_at', { ascending: false })
+  .limit(200);
+const summary = (e: any) => {
+  const a = e.after || e.before || {};
+  return a.title || a.name || a.term || a.q_en || a.label || a.key || a.role || a.status || e.row_id || '';
+};
+const undoable = (e: any) =>
+  !e.undone_at &&
+  ['insert', 'update', 'delete'].includes(e.action) &&
+  !['profiles', 'user_roles', 'registrations'].includes(e.table_name);
 ---
+
 <AdminLayout title="Audit log" lead="Every admin action. Content edits can be undone." live={false}>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>When</th><th>Who</th><th>Action</th><th>What</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Who</th>
+          <th>Action</th>
+          <th>What</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
-        {(data || []).map((e: any) => <tr><td class="mono">{String(e.created_at).slice(0, 16).replace('T', ' ')}</td><td>{e.actor?.name || 'system'}</td><td><span class="chip">{e.action}</span> {e.table_name}</td><td>{summary(e)}{e.undone_at && <span class="chip chip--draft" style="margin-left:8px">undone</span>}</td><td>{undoable(e) && <form method="post" action={`/api/admin/audit/${e.id}/undo`}><button class="btn btn--tiny btn--ghost" type="submit">Undo</button></form>}</td></tr>)}
-        {!data?.length && <tr><td colspan="5" class="hint">Nothing yet.</td></tr>}
+        {(data || []).map((e: any) => (
+          <tr>
+            <td class="mono">{String(e.created_at).slice(0, 16).replace('T', ' ')}</td>
+            <td>{e.actor?.name || 'system'}</td>
+            <td>
+              <span class="chip">{e.action}</span> {e.table_name}
+            </td>
+            <td>
+              {summary(e)}
+              {e.undone_at && (
+                <span class="chip chip--draft" style="margin-left:8px">
+                  undone
+                </span>
+              )}
+            </td>
+            <td>
+              {undoable(e) && (
+                <form method="post" action={`/api/admin/audit/${e.id}/undo`}>
+                  <button class="btn btn--tiny btn--ghost" type="submit">
+                    Undo
+                  </button>
+                </form>
+              )}
+            </td>
+          </tr>
+        ))}
+        {!data?.length && (
+          <tr>
+            <td colspan="5" class="hint">
+              Nothing yet.
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   </div>

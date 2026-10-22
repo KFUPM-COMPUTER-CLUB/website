@@ -1,17 +1,38 @@
 ---
-/* Terminal overlay. Included once in BaseLayout; opened with ` or /, or from any [data-term-open].
-   The data it answers from comes from the content layer and is inlined as JSON. */
+/* Terminal overlay. Included once in BaseLayout; opened with ` or /, or from any element with
+   data-term-open. The data it answers from is public content from the content layer (memoised, so
+   this costs nothing extra on cached pages), inlined as JSON for scripts/terminal.js. */
 import { getEvents, getImpact, getPartners, getSettings, riyadhDate, fmtRiyadh } from '../lib/content';
-const [events, impact, partners, settings] = await Promise.all([getEvents(), getImpact(), getPartners(), getSettings()]);
+const [events, impact, partners, settings] = await Promise.all([
+  getEvents(),
+  getImpact(),
+  getPartners(),
+  getSettings(),
+]);
 const data = {
-  events: events.map((e) => ({ id: e.slug, title: e.title, date: riyadhDate(e.start), endDate: e.end ? riyadhDate(e.end) : '', time: e.allDay ? '' : fmtRiyadh(e.start, { hour: '2-digit', minute: '2-digit', hour12: false }), location: e.location })),
+  events: events.map((e) => ({
+    id: e.slug,
+    title: e.title,
+    date: riyadhDate(e.start),
+    endDate: e.end ? riyadhDate(e.end) : '',
+    time: e.allDay ? '' : fmtRiyadh(e.start, { hour: '2-digit', minute: '2-digit', hour12: false }),
+    location: e.location,
+  })),
   impact: {
     semesters: impact.map((s) => ({ term: s.term, total_sar: s.totalSar, min: s.isMinimum })),
     total: impact.reduce((n, s) => n + (s.totalSar || 0), 0),
     plus: impact.some((s) => s.isMinimum),
   },
-  partners: { companies: partners.filter((p) => p.kind === 'company').map((p) => p.name), friends: partners.filter((p) => p.kind === 'kfupm_unit' || p.kind === 'student_club').map((p) => p.name) },
-  site: { name: settings.site.name, intro: settings.site.intro, description: settings.site.description, join: settings.links.join || '/join' },
+  partners: {
+    companies: partners.filter((p) => p.kind === 'company').map((p) => p.name),
+    friends: partners.filter((p) => p.kind === 'kfupm_unit' || p.kind === 'student_club').map((p) => p.name),
+  },
+  site: {
+    name: settings.site.name,
+    intro: settings.site.intro,
+    description: settings.site.description,
+    join: settings.links.join || '/join',
+  },
 };
 // "<" is escaped so the JSON can never close its own script tag.
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
@@ -20,13 +41,27 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
 <div class="terminal" role="dialog" aria-label="Terminal" hidden data-terminal>
   <div class="terminal__bar">
     <span class="terminal__title">guest@cckfupm — terminal</span>
-    <button type="button" class="terminal__close" data-term-close aria-label="Close terminal">esc</button>
+    <button type="button" class="terminal__close" data-term-close aria-label="Close terminal">
+      esc
+    </button>
   </div>
   <div class="terminal__out" role="log" aria-live="polite" data-term-out></div>
   <form class="terminal__line" data-term-form>
-    <label class="terminal__prompt" for="term-input">guest@cckfupm:~$</label>
+    <label class="terminal__prompt" for="term-input">
+      guest@cckfupm:~$
+    </label>
     <span class="terminal__field">
-      <input id="term-input" class="terminal__input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" enterkeyhint="send" data-term-input />
+      <input
+        id="term-input"
+        class="terminal__input"
+        type="text"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        autocomplete="off"
+        enterkeyhint="send"
+        data-term-input
+      />
       <span class="terminal__mirror" aria-hidden="true" data-term-mirror></span>
       <span class="terminal__cursor" aria-hidden="true" data-term-cursor></span>
     </span>

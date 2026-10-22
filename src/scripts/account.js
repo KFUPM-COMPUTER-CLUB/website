@@ -1,12 +1,21 @@
-/* Public pages are cached for everyone, so they never know who is signed in. A plain cookie set at
- * sign-in (no personal data) lets the Join button turn into "My account" on the client. */
+/* Public pages are cached for everyone (ISR), so the server never puts a person's state in them. At
+ * sign-in the callback sets cc_in=1, a cookie with no data in it and readable by scripts, and this
+ * swaps the Join button for "My account" and shows or hides the data-signed-in and data-signed-out
+ * pairs (the timeline's reservation form). It is a hint only: a stale cookie shows the wrong button
+ * until the next personal request, where the middleware checks the real session and corrects it. */
 import { onPage } from './page.js';
 onPage(() => {
   const signedIn = /(^|; )cc_in=1(;|$)/.test(document.cookie);
   document.querySelectorAll('[data-join]').forEach((a) => {
     if (!signedIn) return;
-    a.setAttribute('href', '/me'); a.removeAttribute('target'); a.innerHTML = 'My account <span aria-hidden="true">→</span>';
+    a.setAttribute('href', '/me');
+    a.removeAttribute('target');
+    a.innerHTML = 'My account <span aria-hidden="true">→</span>';
   });
-  document.querySelectorAll('[data-signed-in]').forEach((el) => { el.hidden = !signedIn; });
-  document.querySelectorAll('[data-signed-out]').forEach((el) => { el.hidden = signedIn; });
+  document.querySelectorAll('[data-signed-in]').forEach((el) => {
+    el.hidden = !signedIn;
+  });
+  document.querySelectorAll('[data-signed-out]').forEach((el) => {
+    el.hidden = signedIn;
+  });
 });

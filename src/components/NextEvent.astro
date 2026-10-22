@@ -4,7 +4,9 @@
    is no upcoming event. */
 import { getUpcomingEvents, eventEnd } from '../lib/content';
 const { variant = 'bar' } = Astro.props;
-const list = (await getUpcomingEvents()).slice(0, 5).map((e) => ({ id: e.slug, t: e.title, s: e.start.getTime(), e: eventEnd(e).getTime() }));
+const list = (await getUpcomingEvents())
+  .slice(0, 5)
+  .map((e) => ({ id: e.slug, t: e.title, s: e.start.getTime(), e: eventEnd(e).getTime() }));
 ---
 
 {list.length > 0 && (

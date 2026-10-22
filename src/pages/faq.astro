@@ -13,7 +13,16 @@ const hasArabic = faq.some((f) => f.qAr && f.aAr);
       <span class="eyebrow">Frequently asked questions</span>
       <h1 class="h-display">Questions people ask us.</h1>
       <p class="lead">Short answers. If yours is not here, ask on X or at any event.</p>
-      {hasArabic && <p class="faq__lang"><button type="button" class="btn btn--ghost btn--small" data-faq-lang="en" aria-pressed="true">English</button> <button type="button" class="btn btn--ghost btn--small" data-faq-lang="ar" aria-pressed="false">العربية</button></p>}
+      {hasArabic && (
+        <p class="faq__lang">
+          <button type="button" class="btn btn--ghost btn--small" data-faq-lang="en" aria-pressed="true">
+            English
+          </button>{' '}
+          <button type="button" class="btn btn--ghost btn--small" data-faq-lang="ar" aria-pressed="false">
+            العربية
+          </button>
+        </p>
+      )}
     </div>
   </section>
   <section class="section">
@@ -21,14 +30,34 @@ const hasArabic = faq.some((f) => f.qAr && f.aAr);
       <div class="faq reveal" data-faq>
         {faq.map((f, i) => (
           <details open={i === 0}>
-            <summary><span data-lang="en">{f.q}</span>{f.qAr && <span data-lang="ar" lang="ar" dir="rtl" hidden>{f.qAr}</span>}</summary>
-            <div class="faq__a"><p data-lang="en">{f.a}</p>{f.aAr && <p data-lang="ar" lang="ar" dir="rtl" hidden>{f.aAr}</p>}</div>
+            <summary>
+              <span data-lang="en">{f.q}</span>
+              {f.qAr && (
+                <span data-lang="ar" lang="ar" dir="rtl" hidden>
+                  {f.qAr}
+                </span>
+              )}
+            </summary>
+            <div class="faq__a">
+              <p data-lang="en">{f.a}</p>
+              {f.aAr && (
+                <p data-lang="ar" lang="ar" dir="rtl" hidden>
+                  {f.aAr}
+                </p>
+              )}
+            </div>
           </details>
         ))}
       </div>
       <div class="hero__actions" style="margin-top:40px">
-        <a class="btn" href="/join">Join the club <span aria-hidden="true">→</span></a>
-        {email && <a class="btn btn--ghost" href={`mailto:${email}`}>Email us</a>}
+        <a class="btn" href="/join">
+          Join the club <span aria-hidden="true">→</span>
+        </a>
+        {email && (
+          <a class="btn btn--ghost" href={`mailto:${email}`}>
+            Email us
+          </a>
+        )}
         {email && <CopyEmail email={email} label="Club email" />}
       </div>
     </div>
@@ -36,11 +65,5 @@ const hasArabic = faq.some((f) => f.qAr && f.aAr);
 </BaseLayout>
 
 <script>
-  import { onPage } from '../scripts/page.js';
-  onPage(() => {
-    const buttons = [...document.querySelectorAll('[data-faq-lang]')];
-    if (!buttons.length) return;
-    const show = (lang) => { document.querySelectorAll('[data-faq] [data-lang]').forEach((el) => { el.hidden = el.getAttribute('data-lang') !== lang; }); buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.faqLang === lang))); };
-    buttons.forEach((b) => b.addEventListener('click', () => show(b.dataset.faqLang)));
-  });
+  import '../scripts/faq.js';
 </script>

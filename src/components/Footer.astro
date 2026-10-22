@@ -1,23 +1,51 @@
 ---
+/* Site footer: social links, the "made by" credit and legal links. Everything comes from settings
+ * through the content layer. isReal() drops the REPLACE placeholders the seed JSON ships with. */
 import { Image } from 'astro:assets';
 import logoSm from '../assets/brand/logo-color-sm.png';
 import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
 import { getSettings } from '../lib/content';
 const settings = await getSettings();
-const site = { name: settings.site.name, email: settings.site.email, links: settings.links, madeBy: settings.madeBy, contributorsUrl: settings.contributorsUrl };
+const site = {
+  name: settings.site.name,
+  email: settings.site.email,
+  links: settings.links,
+  madeBy: settings.madeBy,
+  contributorsUrl: settings.contributorsUrl,
+};
 import CopyEmail from './CopyEmail.astro';
 
-const isReal = (value) => typeof value === 'string' && value.length > 0 && !value.includes('REPLACE');
+const isReal = (value: unknown) => typeof value === 'string' && value.length > 0 && !value.includes('REPLACE');
 const icons = {
-  instagram: { label: 'Instagram', d: 'M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.3-3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z' },
-  x: { label: 'X', d: 'M17.5 3h3.1l-6.8 7.8L21.8 21h-6.3l-4.9-6.4L5 21H1.9l7.3-8.3L1.5 3h6.4l4.4 5.9L17.5 3zm-1.1 16.2h1.7L6.9 4.7H5.1l11.3 14.5z' },
-  linkedin: { label: 'LinkedIn', d: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3V9zm7 0h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.5c0-1.3 0-3-1.9-3s-2.1 1.4-2.1 2.9V21h-4V9z' },
-  github: { label: 'GitHub', d: 'M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.2-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z' },
-  discord: { label: 'Discord', d: 'M19.3 5.3A16.5 16.5 0 0 0 15.2 4l-.5 1a15 15 0 0 0-5.4 0l-.5-1a16.5 16.5 0 0 0-4.1 1.3C2 9.2 1.3 13 1.6 16.7A16.6 16.6 0 0 0 6.7 19l1-1.6a10.8 10.8 0 0 1-1.7-.8l.4-.3a11.8 11.8 0 0 0 11.2 0l.4.3-1.7.8 1 1.6a16.6 16.6 0 0 0 5.1-2.3c.4-4.3-.7-8-2.9-11.4zM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z' },
-  whatsapp: { label: 'WhatsApp', d: 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.9 2.9 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.6-.3z' },
+  instagram: {
+    label: 'Instagram',
+    d: 'M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.3-3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z',
+  },
+  x: {
+    label: 'X',
+    d: 'M17.5 3h3.1l-6.8 7.8L21.8 21h-6.3l-4.9-6.4L5 21H1.9l7.3-8.3L1.5 3h6.4l4.4 5.9L17.5 3zm-1.1 16.2h1.7L6.9 4.7H5.1l11.3 14.5z',
+  },
+  linkedin: {
+    label: 'LinkedIn',
+    d: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3V9zm7 0h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.5c0-1.3 0-3-1.9-3s-2.1 1.4-2.1 2.9V21h-4V9z',
+  },
+  github: {
+    label: 'GitHub',
+    d: 'M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.2-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z',
+  },
+  discord: {
+    label: 'Discord',
+    d: 'M19.3 5.3A16.5 16.5 0 0 0 15.2 4l-.5 1a15 15 0 0 0-5.4 0l-.5-1a16.5 16.5 0 0 0-4.1 1.3C2 9.2 1.3 13 1.6 16.7A16.6 16.6 0 0 0 6.7 19l1-1.6a10.8 10.8 0 0 1-1.7-.8l.4-.3a11.8 11.8 0 0 0 11.2 0l.4.3-1.7.8 1 1.6a16.6 16.6 0 0 0 5.1-2.3c.4-4.3-.7-8-2.9-11.4zM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z',
+  },
+  whatsapp: {
+    label: 'WhatsApp',
+    d: 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 2.9 2.9 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.6-.3z',
+  },
 };
 // Invite links (WhatsApp, Discord) are members-only and never appear here.
-const follow = Object.entries(icons).filter(([key]) => key !== 'discord' && key !== 'whatsapp' && isReal(site.links[key])).map(([key, i]) => ({ href: site.links[key], ...i }));
+const follow = Object.entries(icons)
+  .filter(([key]) => key !== 'discord' && key !== 'whatsapp' && isReal(site.links[key]))
+  .map(([key, i]) => ({ href: site.links[key], ...i }));
 const makers = site.madeBy ?? [];
 // The credit shows on the home and officers pages only; blog, timeline and questions pages keep the rest of the footer.
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
@@ -30,30 +58,79 @@ const year = new Date().getFullYear();
   <div class="container">
     <div class="site-footer__row">
       <a class="site-logo" href="/" aria-label={`${site.name} home`}>
-        <span class="site-logo__stack"><Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} /><Image class="site-logo__icon site-logo__icon--dark" src={logoSmDark} alt="" width={64} densities={[1, 2, 3]} /></span>
-        <span class="site-logo__words"><span lang="ar" dir="rtl">نادي الحاسب الآلي</span><b>Computer Club</b></span>
+        <span class="site-logo__stack">
+          <Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} />
+          <Image
+            class="site-logo__icon site-logo__icon--dark"
+            src={logoSmDark}
+            alt=""
+            width={64}
+            densities={[1, 2, 3]}
+          />
+        </span>
+        <span class="site-logo__words">
+          <span lang="ar" dir="rtl">
+            نادي الحاسب الآلي
+          </span>
+          <b>Computer Club</b>
+        </span>
       </a>
 
       {showCredit && makers.length > 0 && (
         <div class="made-by">
           <span class="made-by__label">Made by</span>
-          <p class="made-by__names">{makers.map((m, i) => <>{i > 0 && <span class="made-by__dot" aria-hidden="true">·</span>}{m.github ? <a href={`https://github.com/${m.github}`} target="_blank" rel="noopener">{m.name}</a> : <b>{m.name}</b>}</>)}</p>
-          <a class="made-by__more" href={contributorsUrl} target="_blank" rel="noopener">All contributors <span aria-hidden="true">→</span></a>
+          <p class="made-by__names">
+            {makers.map((m, i) => (
+              <>
+                {i > 0 && (
+                  <span class="made-by__dot" aria-hidden="true">
+                    ·
+                  </span>
+                )}
+                {m.github ? (
+                  <a href={`https://github.com/${m.github}`} target="_blank" rel="noopener">
+                    {m.name}
+                  </a>
+                ) : (
+                  <b>{m.name}</b>
+                )}
+              </>
+            ))}
+          </p>
+          <a class="made-by__more" href={contributorsUrl} target="_blank" rel="noopener">
+            All contributors <span aria-hidden="true">→</span>
+          </a>
         </div>
       )}
 
       <ul class="site-footer__social" aria-label="Follow the club">
         {follow.map((l) => (
-          <li><a href={l.href} target="_blank" rel="noopener" aria-label={l.label} title={l.label}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d={l.d} /></svg></a></li>
+          <li>
+            <a href={l.href} target="_blank" rel="noopener" aria-label={l.label} title={l.label}>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path fill="currentColor" d={l.d} />
+              </svg>
+            </a>
+          </li>
         ))}
       </ul>
     </div>
 
     <div class="site-footer__bottom">
-      <p>© {year} {site.name}. A student club at KFUPM.</p>
-      {isReal(site.email) && <p><CopyEmail email={site.email} label="Club email" /></p>}
-      <p><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/KFUPM-COMPUTER-CLUB/website" target="_blank" rel="noopener">Source on GitHub</a></p>
+      <p>
+        © {year} {site.name}. A student club at KFUPM.
+      </p>
+      {isReal(site.email) && (
+        <p>
+          <CopyEmail email={site.email} label="Club email" />
+        </p>
+      )}
+      <p>
+        <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·{' '}
+        <a href="https://github.com/KFUPM-COMPUTER-CLUB/website" target="_blank" rel="noopener">
+          Source on GitHub
+        </a>
+      </p>
     </div>
   </div>
 </footer>
-
