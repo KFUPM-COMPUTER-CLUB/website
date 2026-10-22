@@ -1,25 +1,17 @@
 ---
 /* Terminal overlay. Included once in BaseLayout; opened with ` or /, or from any [data-term-open].
-   The data it answers from is computed here at build time and inlined as JSON. */
-import events from '../data/events.json';
-import impact from '../data/impact.json';
-import partners from '../data/partners.json';
-import site from '../data/site.json';
-
-const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
-const names = (list) => (Array.isArray(list) ? list.map((p) => p.name).filter(Boolean) : []);
-
+   The data it answers from comes from the content layer and is inlined as JSON. */
+import { getEvents, getImpact, getPartners, getSettings, riyadhDate, fmtRiyadh } from '../lib/content';
+const [events, impact, partners, settings] = await Promise.all([getEvents(), getImpact(), getPartners(), getSettings()]);
 const data = {
-  events: [...events]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map((e) => ({ id: e.id, title: e.title, date: e.date, endDate: e.endDate || '', time: e.time || '', location: e.location || '' })),
+  events: events.map((e) => ({ id: e.slug, title: e.title, date: riyadhDate(e.start), endDate: e.end ? riyadhDate(e.end) : '', time: e.allDay ? '' : fmtRiyadh(e.start, { hour: '2-digit', minute: '2-digit', hour12: false }), location: e.location })),
   impact: {
-    semesters: impact.semesters.map((s) => ({ term: s.term, total_sar: s.total_sar ?? null, min: !!s.total_is_minimum })),
-    total: impact.semesters.reduce((n, s) => n + (s.total_sar || 0), 0),
-    plus: impact.semesters.some((s) => s.total_is_minimum),
+    semesters: impact.map((s) => ({ term: s.term, total_sar: s.totalSar, min: s.isMinimum })),
+    total: impact.reduce((n, s) => n + (s.totalSar || 0), 0),
+    plus: impact.some((s) => s.isMinimum),
   },
-  partners: { companies: names(partners.companies), friends: [...names(partners.kfupm_units), ...names(partners.student_clubs)] },
-  site: { name: site.name, intro: site.intro, description: site.description, join: isReal(site.links.join) ? site.links.join : '/about' },
+  partners: { companies: partners.filter((p) => p.kind === 'company').map((p) => p.name), friends: partners.filter((p) => p.kind === 'kfupm_unit' || p.kind === 'student_club').map((p) => p.name) },
+  site: { name: settings.site.name, intro: settings.site.intro, description: settings.site.description, join: settings.links.join || '/join' },
 };
 // "<" is escaped so the JSON can never close its own script tag.
 const json = JSON.stringify(data).replace(/</g, '\\u003c');

@@ -1,0 +1,31 @@
+---
+import AdminLayout from '../../components/AdminLayout.astro';
+import { atLeast } from '../../lib/types';
+import { getSettings } from '../../lib/content';
+import { mediaMap } from '../../lib/photos';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+const s = await getSettings();
+const images = [...(await mediaMap()).values()].filter((m) => m.kind === 'image');
+---
+<AdminLayout title="Home page" lead="Everything on the home page that is content. Photos and slides have their own lists.">
+  <div class="cards" style="margin-bottom:20px">
+    <a class="stat" href="/admin/highlights" style="text-decoration:none"><b>7</b><span>polaroids</span></a>
+    <a class="stat" href="/admin/stories" style="text-decoration:none"><b>Moments</b><span>the slides under CC | KFUPM</span></a>
+    <a class="stat" href="/admin/strip" style="text-decoration:none"><b>Strip</b><span>photo pool for "In pictures"</span></a>
+    <a class="stat" href="/admin/impact" style="text-decoration:none"><b>Impact</b><span>semesters and prizes</span></a>
+  </div>
+  <form class="form" method="post" action="/api/admin/settings">
+    <input type="hidden" name="key" value="home" />
+    <div class="field"><label for="heroLine">Hero line</label><input class="input" id="heroLine" name="heroLine" value={s.home.heroLine} maxlength="120" required /><small>The last two words are highlighted in blue.</small></div>
+    <h2 class="h3">Headline stats (impact reel)</h2>
+    <div class="field"><label for="totalPrizesSar">Total prizes since 2023 (SAR)</label><input class="input" id="totalPrizesSar" name="totalPrizesSar" inputmode="numeric" value={s.home.totalPrizesSar} /></div>
+    {[0, 1, 2].map((i) => <div class="form__row"><div class="field"><label>Stat {i + 1} value</label><input class="input" name={`stat_v_${i}`} value={s.home.stats[i]?.v || ''} /></div><div class="field"><label>Unit</label><input class="input" name={`stat_u_${i}`} value={s.home.stats[i]?.u || ''} /></div><div class="field"><label>Label</label><input class="input" name={`stat_l_${i}`} value={s.home.stats[i]?.l || ''} /></div></div>)}
+    <h2 class="h3">Photo moment</h2>
+    <div class="field"><label for="moment_photo">Photo</label><input class="input" id="moment_photo" name="moment_photo" list="media-keys" value={s.home.photoMoment.photoKey} /><datalist id="media-keys">{images.map((m) => <option value={m.key}>{m.alt || m.key}</option>)}</datalist></div>
+    <div class="form__row"><div class="field"><label for="moment_eyebrow">Small line</label><input class="input" id="moment_eyebrow" name="moment_eyebrow" value={s.home.photoMoment.eyebrow} /></div><div class="field"><label for="moment_line">Big line</label><input class="input" id="moment_line" name="moment_line" value={s.home.photoMoment.line} /></div></div>
+    <h2 class="h3">Build with us</h2>
+    <div class="field"><label for="build_title">Title</label><input class="input" id="build_title" name="build_title" value={s.home.buildWithUs.title} /></div>
+    <div class="field"><label for="build_text">Text</label><textarea class="textarea" id="build_text" name="build_text" maxlength="240">{s.home.buildWithUs.text}</textarea></div>
+    <div class="form__actions"><button class="btn" type="submit">Save</button><a class="btn btn--ghost" href="/" target="_blank" rel="noopener">View home ↗</a></div>
+  </form>
+</AdminLayout>

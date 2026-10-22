@@ -1,35 +1,39 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const iso = (d) => d.toISOString().slice(0, 10);
-const mon = (d) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
-const dayYear = (d) => `${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+import { getPosts } from '../../lib/content';
+const posts = await getPosts();
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const mon = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
+const dayYear = (d: Date) => `${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+const tag = Astro.url.searchParams.get('tag');
+const category = Astro.url.searchParams.get('category');
+const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category || p.category === category));
 ---
 
 <BaseLayout title="Blog" description="Written by members of the KFUPM Computer Club: what we did, what we taught, and what we learned.">
   <section class="page-head">
     <div class="container">
       <h1 class="ccmark ccmark--text" aria-label="CC Blogs"><b>CC</b><span>Blogs</span></h1>
-      <p class="lead">Event recaps, tutorials and what we learned.</p>
+      <p class="lead">Event recaps, tutorials and what we learned. <a href="/rss.xml">RSS</a></p>
+      {(tag || category) && <p class="mono">Showing {tag ? `#${tag}` : category} · <a href="/blog">all posts</a></p>}
     </div>
   </section>
-
   <section class="section">
     <div class="container">
       <div class="posts">
-        {posts.map((p) => (
-          <a class="post reveal" href={`/blog/${p.id}`}>
-            <time class="post__date" datetime={iso(p.data.date)}><b>{mon(p.data.date)}</b><span>{dayYear(p.data.date)}</span></time>
+        {shown.map((p) => (
+          <a class="post reveal" href={`/blog/${p.slug}`} dir={p.dir}>
+            <time class="post__date" datetime={iso(p.date)}><b>{mon(p.date)}</b><span>{dayYear(p.date)}</span></time>
             <div class="post__body">
-              <h2 class="post__title">{p.data.title}</h2>
-              <p class="post__author">{p.data.author}</p>
-              <p class="post__excerpt">{p.data.excerpt}</p>
+              <h2 class="post__title">{p.title}</h2>
+              <p class="post__author">{p.authorName}{p.category && ` · ${p.category}`}</p>
+              <p class="post__excerpt">{p.excerpt}</p>
             </div>
           </a>
         ))}
+        {shown.length === 0 && <p class="lead lead--muted">Nothing here yet.</p>}
       </div>
+      <p style="margin-top:40px"><a class="btn btn--ghost" href="/me/posts/new">Write a post <span aria-hidden="true">→</span></a></p>
     </div>
   </section>
 </BaseLayout>

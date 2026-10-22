@@ -1,0 +1,14 @@
+---
+import MeLayout from '../../../components/MeLayout.astro';
+const categories = ['News', 'Event recap', 'Tutorial', 'Project', 'Experience', 'Opinion', 'Announcement'];
+---
+<MeLayout title="New post" lead="Give it a title; you can change everything in the editor.">
+  <form class="form" method="post" action="/api/posts">
+    <div class="field"><label for="title">Title</label><input class="input" id="title" name="title" required maxlength="140" autofocus /></div>
+    <div class="form__row">
+      <div class="field"><label for="category">Category</label><select class="select" id="category" name="category">{categories.map((c) => <option value={c}>{c}</option>)}</select></div>
+      <div class="field"><label for="dir">Language direction</label><select class="select" id="dir" name="dir"><option value="ltr">English (left to right)</option><option value="rtl">العربية (right to left)</option></select></div>
+    </div>
+    <div class="form__actions"><button class="btn" type="submit">Open the editor <span aria-hidden="true">→</span></button></div>
+  </form>
+</MeLayout>

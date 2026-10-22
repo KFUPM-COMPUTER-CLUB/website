@@ -1,22 +1,21 @@
 ---
 // Three moments: one photo each with a short record of what happened. Advances on its own every
 // few seconds, pauses on hover, and can be stepped with the dots or arrows. Static under
-// prefers-reduced-motion. Edit src/data/stories.json to change the slides.
-import { Image } from 'astro:assets';
-import stories from '../data/stories.json';
-const all = import.meta.glob('../assets/photos/*.jpg', { eager: true });
+// prefers-reduced-motion. Content comes from the stories table (or src/data/stories.json as seed).
+import { getStories } from '../lib/content';
+const stories = await getStories();
 const fmt = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 ---
 
 <section class="stories bg-black" data-bg="#0B0B0F" data-stories aria-roledescription="carousel" aria-label="Moments from the club">
   {stories.map((s, i) => (
     <article class="story" data-slide={i} data-active={i === 0 ? '' : undefined} aria-hidden={i !== 0}>
-      <Image class="story__photo" src={all[`../assets/photos/${s.photo}`].default} alt="" width={1800} height={1000} loading={i === 0 ? 'eager' : 'lazy'} />
+      <img class="story__photo" src={s.img!.src} srcset={s.img!.srcset} sizes="100vw" alt="" width="1800" height="1000" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
       <div class="story__card">
         <span class="eyebrow">{fmt(s.date)}</span>
         <h3 class="h2">{s.title}</h3>
         <p>{s.text}</p>
-        {s.post && <a class="link-arrow" href={s.post} target="_blank" rel="noopener">Open the post ↗</a>}
+        {s.postUrl && <a class="link-arrow" href={s.postUrl} target="_blank" rel="noopener">Open the post ↗</a>}
       </div>
     </article>
   ))}

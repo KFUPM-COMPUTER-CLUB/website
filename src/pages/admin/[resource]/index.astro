@@ -1,0 +1,41 @@
+---
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { resource } from '../../../lib/admin/resources';
+import { display } from '../../../lib/admin/io';
+import { atLeast } from '../../../lib/types';
+import { serviceClient } from '../../../lib/supabase';
+const res = resource(Astro.params.resource || '');
+if (!res) return new Response(null, { status: 404 });
+if (!atLeast(Astro.locals.role, res.minRole)) return new Response('Not allowed', { status: 403 });
+const [col, dir] = res.orderBy.split('.');
+const { data: rows } = await serviceClient().from(res.table).select('*').order(col, { ascending: dir !== 'desc' }).limit(500);
+const field = (n: string) => res.fields.find((f) => f.name === n);
+const toggleCol = res.visible ? 'visible' : res.key === 'events' ? 'published' : res.key === 'board' ? 'is_current' : res.key === 'solvers' ? 'approved' : null;
+const extra = res.key === 'impact' ? [{ href: '/admin/impact-items', label: 'Impact items' }] : res.key === 'events' ? [] : [];
+---
+<AdminLayout title={res.title} lead={res.help}>
+  <p class="form__actions">
+    <a class="btn btn--small" href={`/admin/${res.key}/new`}>Add {res.singular} <span aria-hidden="true">→</span></a>
+    {extra.map((e) => <a class="btn btn--small btn--ghost" href={e.href}>{e.label}</a>)}
+    {res.publicPage && <a class="btn btn--small btn--ghost" href={res.publicPage} target="_blank" rel="noopener">View on site ↗</a>}
+  </p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr>{res.sortable && <th>Order</th>}{res.columns.map((c) => <th>{field(c)?.label || c}</th>)}<th></th></tr></thead>
+      <tbody>
+        {(rows || []).map((r: any, i: number) => (
+          <tr>
+            {res.sortable && <td><form method="post" action={`/api/admin/${res.key}`}><input type="hidden" name="_action" value="move" /><input type="hidden" name="id" value={r[res.pk]} /><button class="btn btn--tiny btn--ghost" name="dir" value="up" type="submit" aria-label="Move up" disabled={i === 0}>↑</button> <button class="btn btn--tiny btn--ghost" name="dir" value="down" type="submit" aria-label="Move down" disabled={i === (rows?.length || 0) - 1}>↓</button></form></td>}
+            {res.columns.map((c) => <td>{field(c)?.type === 'media' && r[c] ? <span class="mono">{String(r[c]).slice(0, 28)}</span> : display(field(c), r[c])}</td>)}
+            <td style="white-space:nowrap">
+              <a class="btn btn--tiny btn--ghost" href={`/admin/${res.key}/${encodeURIComponent(r[res.pk])}`}>Edit</a>
+              {res.key === 'events' && <a class="btn btn--tiny btn--ghost" href={`/admin/events/${r.id}/registrations`}>Registrations</a>}
+              {toggleCol && <form method="post" action={`/api/admin/${res.key}`}><input type="hidden" name="_action" value="toggle" /><input type="hidden" name="id" value={r[res.pk]} /><button class="btn btn--tiny btn--ghost" type="submit">{r[toggleCol] ? (toggleCol === 'is_current' ? 'Move to alumni' : 'Hide') : (toggleCol === 'is_current' ? 'Make current' : toggleCol === 'approved' ? 'Approve' : 'Show')}</button></form>}
+            </td>
+          </tr>
+        ))}
+        {!rows?.length && <tr><td colspan="99" class="hint">Nothing yet. Add the first {res.singular}.</td></tr>}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

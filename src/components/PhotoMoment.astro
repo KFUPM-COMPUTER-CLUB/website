@@ -1,14 +1,15 @@
 ---
-// One huge darkened photo with a single line over it.
-import { Image } from 'astro:assets';
-const all = import.meta.glob('../assets/photos/*.jpg', { eager: true });
-const { photo, line, eyebrow } = Astro.props;
+// One huge darkened photo with a single line over it. Props: photoKey, eyebrow, line.
+import { photoImg } from '../lib/photos';
+const { photoKey, line, eyebrow } = Astro.props;
+const img = await photoImg(photoKey);
 ---
-
-<section class="moment bg-black" data-bg="#0B0B0F">
-  <Image class="moment__photo" src={all[`../assets/photos/${photo}`].default} alt="" width={1800} height={1000} loading="lazy" />
-  <div class="moment__text">
-    {eyebrow && <span class="eyebrow">{eyebrow}</span>}
-    <p class="h1">{line}</p>
-  </div>
-</section>
+{img && (
+  <section class="moment bg-black" data-bg="#0B0B0F">
+    <img class="moment__photo" src={img.src} srcset={img.srcset} sizes="100vw" alt="" width="1800" height="1000" loading="lazy" decoding="async" />
+    <div class="moment__text">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <p class="h1">{line}</p>
+    </div>
+  </section>
+)}

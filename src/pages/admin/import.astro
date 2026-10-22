@@ -1,0 +1,47 @@
+---
+import AdminLayout from '../../components/AdminLayout.astro';
+import { totalMediaSteps } from '../../lib/importer';
+import { serviceClient } from '../../lib/supabase';
+if (Astro.locals.role !== 'admin') return new Response('Admins only', { status: 403 });
+const sb = serviceClient();
+const [{ count: media }, { count: events }, { count: posts }] = await Promise.all([sb.from('media').select('key', { count: 'exact', head: true }), sb.from('events').select('id', { count: 'exact', head: true }), sb.from('posts').select('id', { count: 'exact', head: true })]);
+const files = totalMediaSteps();
+---
+<AdminLayout title="Import starter content" lead="Loads the photos, logos, events, polaroids, moments, impact numbers, partners, board, FAQ, settings and the three posts that ship with the site. Safe to run again: nothing duplicates, and anything you edited stays." live={false}>
+  <div class="cards" style="margin-bottom:20px">
+    <div class="stat"><b>{media ?? 0}<small style="font-size:14px;color:var(--muted)"> / {files}</small></b><span>photos and logos in the library</span></div>
+    <div class="stat"><b>{events ?? 0}</b><span>events</span></div>
+    <div class="stat"><b>{posts ?? 0}</b><span>posts</span></div>
+  </div>
+  <div class="card" data-import>
+    <p>Takes two to three minutes the first time; the page shows progress. Keep it open.</p>
+    <p class="form__actions"><button class="btn" type="button" data-import-start>Import starter content <span aria-hidden="true">→</span></button> <label class="check"><input type="checkbox" data-import-force /> Re-upload every photo (slower)</label></p>
+    <p class="live" data-import-status></p>
+    <pre class="prose" style="max-height:320px;overflow:auto;font-size:12px;padding:12px;background:#0B1A33" data-import-log hidden></pre>
+  </div>
+</AdminLayout>
+
+<script>
+  import { onPage } from '../../scripts/page.js';
+  onPage(() => {
+    const root = document.querySelector('[data-import]'); if (!root) return;
+    const btn = root.querySelector('[data-import-start]'), status = root.querySelector('[data-import-status]'), log = root.querySelector('[data-import-log]'), force = root.querySelector('[data-import-force]');
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; log.hidden = false; log.textContent = '';
+      let step = { step: 'photos', offset: 0 };
+      try {
+        while (step) {
+          status.textContent = `Importing… ${step.step} ${step.offset}`;
+          const r = await fetch('/api/admin/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...step, force: force.checked }) });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || 'Import failed');
+          log.textContent += j.log.join('\n') + '\n'; log.scrollTop = log.scrollHeight;
+          status.textContent = `${j.done} of ${j.total} steps done`;
+          step = j.next;
+        }
+        status.textContent = 'Done. The site reads from the database now; changes are live in about a minute.';
+      } catch (e) { status.textContent = `Stopped: ${e.message}. Press the button again to continue.`; }
+      btn.disabled = false;
+    });
+  });
+</script>

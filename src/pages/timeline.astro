@@ -1,28 +1,30 @@
 ---
-import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
+/* Events: upcoming first, then past grouped by semester. Every event links to its X post; upcoming
+   ones get calendar links and, when registration is open, a one-click reservation for members. */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { googleUrl, outlookUrl, icsHref, plain } from '../lib/calendar.js';
+import { getUpcomingEvents, getPastEvents, termOf, riyadhDate, fmtRiyadh } from '../lib/content';
+import { googleUrl, outlookUrl } from '../lib/calendar';
+import { dbReady } from '../lib/env';
+import { publicClient } from '../lib/supabase';
+import type { EventItem } from '../lib/types';
 
-const photos = import.meta.glob('../assets/photos/*.jpg', { eager: true });
-const photo = (name) => (name ? photos[`../assets/photos/${name}`]?.default : undefined);
-
-const today = new Date(); today.setUTCHours(0, 0, 0, 0);
-const all = (await getCollection('events')).map(plain);
-const upcoming = all.filter((e) => (e.endDate ?? e.date).valueOf() >= today.valueOf()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
-const past = all.filter((e) => (e.endDate ?? e.date).valueOf() < today.valueOf()).sort((a, b) => b.date.valueOf() - a.date.valueOf());
-const types = [...new Set(all.map((e) => e.type))].sort();
-
-const term = (d) => { const m = d.getUTCMonth(), y = d.getUTCFullYear(); return m >= 8 ? `Fall ${y}` : m <= 4 ? `Spring ${y}` : `Summer ${y}`; };
-const groups = (list) => { const out = []; for (const e of list) { const t = term(e.date); const g = out.find((x) => x.term === t); g ? g.items.push(e) : out.push({ term: t, items: [e] }); } return out; };
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const day = (d) => `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`;
-const when = (e) => (e.endDate ? `${day(e.date)} – ${day(e.endDate)}` : day(e.date)) + (e.time ? ` · ${e.time}` : '');
-const iso = (d) => d.toISOString().slice(0, 10);
+const [upcoming, past] = await Promise.all([getUpcomingEvents(), getPastEvents()]);
+const site = Astro.site?.origin || '';
+const counts = new Map<string, number>();
+const open = upcoming.filter((e) => e.registrationOpen);
+if (dbReady() && open.length) {
+  const { data } = await publicClient().rpc('registration_counts', { p_event_ids: open.map((e) => e.id) });
+  for (const r of data || []) counts.set(r.event_id, Number(r.count) || 0);
+}
+const groups = (list: EventItem[]) => { const out: { term: string; items: EventItem[] }[] = []; for (const e of list) { const t = termOf(e.start); const g = out.find((x) => x.term === t); g ? g.items.push(e) : out.push({ term: t, items: [e] }); } return out; };
+const day = (d: Date) => fmtRiyadh(d, { month: 'short', day: 'numeric' });
+const when = (e: EventItem) => (e.end && riyadhDate(e.end) !== riyadhDate(e.start) ? `${day(e.start)} – ${day(e.end)}` : day(e.start)) + (e.allDay ? '' : ` · ${fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' })}`);
+const calData = JSON.stringify([...upcoming, ...past].map((e) => ({ d: riyadhDate(e.start), e: e.end ? riyadhDate(e.end) : undefined, t: e.title, id: e.slug })));
 // Thumbnails share a view-transition name with the same photo on the home page, so it morphs into place.
-const seen = new Set();
-const morph = (file) => { if (!file) return undefined; const n = `photo-${file.replace(/\.[a-z]+$/i, '')}`; if (seen.has(n)) return undefined; seen.add(n); return n; };
-const calData = JSON.stringify(all.map((e) => ({ d: iso(e.date), e: e.endDate ? iso(e.endDate) : undefined, t: e.title, id: e.id })));
+const seen = new Set<string>();
+const morph = (key: string | null) => { if (!key) return undefined; const n = `photo-${key.replace(/\.[a-z]+$/i, '')}`; if (seen.has(n)) return undefined; seen.add(n); return n; };
+const spots = (e: EventItem) => e.capacity ? `${Math.min(counts.get(e.id) || 0, e.capacity)} of ${e.capacity} spots taken` : `${counts.get(e.id) || 0} going`;
+const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capacity;
 ---
 
 <BaseLayout title="Timeline" description="Every KFUPM Computer Club event, upcoming and past, with one-click calendar links.">
@@ -44,23 +46,35 @@ const calData = JSON.stringify(all.map((e) => ({ d: iso(e.date), e: e.endDate ? 
               <div class="term" data-term>
                 <div class="term__label mono"><i aria-hidden="true"></i>{g.term}</div>
                 {g.items.map((e) => (
-                  <article class="ev" id={`ev-${e.id}`} data-type={e.type} data-text={`${e.title} ${e.location} ${e.summary}`.toLowerCase()}>
-                    {photo(e.image) ? (
-                      e.detailsUrl ? <a class="ev__thumb-link" href={e.detailsUrl} target="_blank" rel="noopener" aria-label={`${e.title} on X`} transition:name={morph(e.image)}><Image class="ev__thumb" src={photo(e.image)} alt="" width={168} height={168} loading="lazy" /></a> : <Image class="ev__thumb" src={photo(e.image)} alt="" width={168} height={168} loading="lazy" />
+                  <article class="ev" id={`ev-${e.slug}`} data-type={e.type}>
+                    {e.cover ? (
+                      e.xUrl ? <a class="ev__thumb-link" href={e.xUrl} target="_blank" rel="noopener" aria-label={`${e.title} on X`} transition:name={morph(e.coverKey)}><img class="ev__thumb" src={e.cover.src} srcset={e.cover.srcset} sizes="168px" alt="" width="168" height="168" loading="lazy" decoding="async" /></a> : <img class="ev__thumb" src={e.cover.src} alt="" width="168" height="168" loading="lazy" />
                     ) : <span class="ev__thumb ev__thumb--empty" aria-hidden="true">CC</span>}
                     <div class="ev__body">
-                      <p class="ev__when mono"><time datetime={iso(e.date)}>{when(e)}</time></p>
-                      <h3 class="ev__title">{e.detailsUrl ? <a href={e.detailsUrl} target="_blank" rel="noopener">{e.title}</a> : e.title}</h3>
+                      <p class="ev__when mono"><time datetime={e.start.toISOString()}>{when(e)}</time></p>
+                      <h3 class="ev__title">{e.xUrl ? <a href={e.xUrl} target="_blank" rel="noopener">{e.title}</a> : e.title}</h3>
                       <p class="ev__where mono">{e.location}</p>
                       <p class="ev__summary">{e.summary}</p>
                       {sec.up && (
                         <p class="ev__cal">
-                          {e.url && <a class="ev__register" href={e.url} target="_blank" rel="noopener">Register ↗</a>}
+                          {e.registerUrl && <a class="ev__register" href={e.registerUrl} target="_blank" rel="noopener">Register ↗</a>}
                           <span class="mono">Add to</span>
-                          <a href={googleUrl(e)} target="_blank" rel="noopener">Google</a>
-                          <a href={outlookUrl(e)} target="_blank" rel="noopener">Outlook</a>
-                          <a href={icsHref([e])} download={`${e.id}.ics`}>.ics</a>
+                          <a href={googleUrl(e, site)} target="_blank" rel="noopener">Google</a>
+                          <a href={outlookUrl(e, 'work', site)} target="_blank" rel="noopener" title="Outlook for KFUPM and work accounts">Outlook</a>
+                          <a href={outlookUrl(e, 'personal', site)} target="_blank" rel="noopener" title="Outlook.com personal accounts">Outlook.com</a>
+                          <a href={`/api/events/${e.slug}.ics`} download={`${e.slug}.ics`}>.ics</a>
                         </p>
+                      )}
+                      {sec.up && e.registrationOpen && (
+                        <div class="ev__rsvp">
+                          <form method="post" action={`/api/events/${e.id}/register`} data-signed-in hidden>
+                            <input type="hidden" name="next" value={`/timeline#ev-${e.slug}`} />
+                            <label class="ev__copy"><input type="checkbox" name="email_copy" value="1" /> email me a copy</label>
+                            <button class="btn btn--small" type="submit" disabled={full(e)}>{full(e) ? 'Full' : 'Reserve a spot'} <span aria-hidden="true">→</span></button>
+                          </form>
+                          <a class="btn btn--small btn--ghost" data-signed-out href={`/join?next=${encodeURIComponent(`/timeline#ev-${e.slug}`)}`}>Sign in to reserve a spot</a>
+                          <span class="mono ev__spots">{spots(e)}</span>
+                        </div>
                       )}
                     </div>
                     <span class="tag ev__tag">{e.type}</span>
@@ -70,14 +84,14 @@ const calData = JSON.stringify(all.map((e) => ({ d: iso(e.date), e: e.endDate ? 
             ))}
           </div>
         ))}
-              </div>
+      </div>
 
       <aside class="events__side">
         <div class="cal" data-events={calData}>
           <div class="cal__head"><span class="mono">Calendar</span><a class="cal__ics" href="/calendar.ics" download="kfupm-computer-club.ics">Add iCal</a></div>
           <div class="cal__nav"><strong class="cal__month"></strong><span><button type="button" class="cal__prev" aria-label="Previous month">‹</button><button type="button" class="cal__next" aria-label="Next month">›</button></span></div>
           <div class="cal__grid" role="grid"></div>
-          <p class="cal__hint mono">Highlighted days have events. Click one to jump to it.</p>
+          <p class="cal__hint mono">Highlighted days have events. Click one to jump to it. Subscribe to the feed to get every upcoming event in your calendar.</p>
         </div>
       </aside>
     </div>

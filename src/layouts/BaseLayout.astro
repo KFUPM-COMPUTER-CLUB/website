@@ -9,7 +9,9 @@ import '../styles/copy.css';
 import Terminal from '../components/Terminal.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import site from '../data/site.json';
+import { getSettings } from '../lib/content';
+const settings = await getSettings();
+const site = settings.site;
 import { ClientRouter } from 'astro:transitions';
 
 // Every page passes a title; the description falls back to the club's.
@@ -42,6 +44,7 @@ const { title, description = site.description, noindex = false } = Astro.props;
     <div class="scroll-progress" aria-hidden="true"><i></i></div>
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
+    {settings.banner && <div class="banner" role="status"><div class="container">{settings.banner.url ? <a href={settings.banner.url}>{settings.banner.text}</a> : settings.banner.text}</div></div>}
     <main id="main" class="site-main bg-black" data-bg="#0B0B0F">
       <slot />
     </main>

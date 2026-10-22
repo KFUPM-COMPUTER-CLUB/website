@@ -2,21 +2,15 @@
 import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
 // Impact as a pinned show reel. A tall section keeps a full-screen stage sticky while the user
 // scrolls; scroll progress (or hovering a semester) picks the active scene, and the backdrop
-// photo crossfades. Everything comes from src/data/impact.json. Under prefers-reduced-motion
+// photo crossfades. Content comes from the impact tables (or src/data/impact.json as seed). Under prefers-reduced-motion
 // the section is not pinned and one static photo is shown.
 import { Image } from 'astro:assets';
-import impact from '../data/impact.json';
-const photos = import.meta.glob('../assets/photos/*.jpg', { eager: true });
-const photo = (n) => photos[`../assets/photos/${n}`]?.default;
-const scenes = impact.semesters.filter((s) => s.total_sar && s.photo).sort((a, b) => b.term.slice(-4) - a.term.slice(-4) || (a.term.startsWith('Fall') ? -1 : 1));
-const sar = (n) => n.toLocaleString('en-US');
-const total = impact.headline_numbers.announced_prizes_since_2023_sar;
-const totalNum = Number(total.replace(/\D/g, ''));
-const stats = [
-  { v: '40,000', u: 'SAR', l: 'biggest prize pool' },
-  { v: '60+', u: 'teams', l: 'at Techathon 2025' },
-  { v: '400+', u: 'students', l: 'at KAUST Connect' },
-];
+import { getImpact, getSettings } from '../lib/content';
+const settings = await getSettings();
+const scenes = (await getImpact()).filter((s) => s.totalSar && s.img).sort((a, b) => Number(b.term.slice(-4)) - Number(a.term.slice(-4)) || (a.term.startsWith('Fall') ? -1 : 1));
+const sar = (n: number) => n.toLocaleString('en-US');
+const totalNum = settings.home.totalPrizesSar;
+const stats = settings.home.stats;
 ---
 
 <section class="reel bg-black" data-bg="#0B0B0F" data-reel style={`--n:${scenes.length}`} id="impact">
@@ -24,7 +18,7 @@ const stats = [
     <div class="reel__backdrops" aria-hidden="true">
       {scenes.map((s, i) => (
         <div class="reel__scene" data-scene={i} data-active={i === 0 ? '' : undefined}>
-          <Image src={photo(s.photo)} alt="" width={1600} height={1000} loading={i === 0 ? 'eager' : 'lazy'} />
+          <img src={s.img!.src} srcset={s.img!.srcset} sizes="100vw" alt="" width="1600" height="1000" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
         </div>
       ))}
       <div class="reel__beam"></div>
@@ -41,7 +35,7 @@ const stats = [
         {scenes.map((s, i) => (
           <li>
             <button type="button" class="reel__link" data-index={i} data-active={i === 0 ? '' : undefined}>
-              <span>{s.term}</span><i aria-hidden="true">·</i><span>{sar(s.total_sar)}{s.total_is_minimum && '+'}</span>
+              <span>{s.term}</span><i aria-hidden="true">·</i><span>{sar(s.totalSar!)}{s.isMinimum && '+'}</span>
             </button>
           </li>
         ))}
@@ -50,7 +44,7 @@ const stats = [
       <div class="reel__events">
         {scenes.map((s, i) => (
           <p data-events={i} hidden={i !== 0}>
-            {s.events.filter((e) => e.prize_sar).map((e, k) => <>{k > 0 && <span aria-hidden="true"> · </span>}<a href={e.source} target="_blank" rel="noopener">{e.name.replace(/\s*\(.*\)$/, '')} {sar(e.prize_sar)}{/\d\+/.test(e.detail || '') && '+'}</a></>)}
+            {s.items.filter((e) => e.prizeSar).map((e, k) => <>{k > 0 && <span aria-hidden="true"> · </span>}<a href={e.sourceUrl || '#'} target="_blank" rel="noopener">{e.name.replace(/\s*\(.*\)$/, '')} {sar(e.prizeSar!)} SAR</a></>)}
           </p>
         ))}
       </div>

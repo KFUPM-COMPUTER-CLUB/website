@@ -1,0 +1,9 @@
+---
+/* Side navigation for the dashboard and the admin panel. */
+const { items } = Astro.props as { items: { href: string; label: string }[] };
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const current = (href: string) => path === href || (href !== '/me' && href !== '/admin' && path.startsWith(`${href}/`)) || (href !== '/me' && href !== '/admin' && path === href);
+---
+<nav class="subnav" aria-label="Section">
+  {items.map((i) => <a href={i.href} aria-current={current(i.href) ? 'page' : undefined}>{i.label}</a>)}
+</nav>

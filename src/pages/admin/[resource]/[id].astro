@@ -1,0 +1,65 @@
+---
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { resource, RESOURCES } from '../../../lib/admin/resources';
+import { toRiyadhInput } from '../../../lib/admin/io';
+import { atLeast } from '../../../lib/types';
+import { serviceClient } from '../../../lib/supabase';
+import { mediaMap, mediaImg } from '../../../lib/photos';
+const res = resource(Astro.params.resource || '');
+if (!res) return new Response(null, { status: 404 });
+if (!atLeast(Astro.locals.role, res.minRole)) return new Response('Not allowed', { status: 403 });
+const id = Astro.params.id === 'new' ? null : decodeURIComponent(Astro.params.id || '');
+const sb = serviceClient();
+const row: any = id ? (await sb.from(res.table).select('*').eq(res.pk, id).maybeSingle()).data : null;
+if (id && !row) return new Response(null, { status: 404 });
+const media = res.fields.some((f) => f.type === 'media') ? await mediaMap() : new Map();
+const images = [...media.values()].filter((m) => m.kind === 'image').sort((a, b) => (a.key < b.key ? 1 : -1));
+const refOptions: Record<string, { value: string; label: string }[]> = {};
+for (const f of res.fields) if (f.type === 'ref' && f.ref) {
+  if (f.ref.resource === 'members') refOptions[f.name] = ((await sb.from('profiles').select('id,name,handle').eq('onboarded', true).order('name')).data || []).map((p: any) => ({ value: p.id, label: `${p.name} (@${p.handle})` }));
+  else { const r = RESOURCES[f.ref.resource]; refOptions[f.name] = ((await sb.from(r.table).select(`${r.pk},${f.ref.label}`).order('sort')).data || []).map((x: any) => ({ value: x[r.pk], label: x[f.ref!.label] })); }
+}
+const val = (n: string) => (row ? row[n] : undefined);
+---
+<AdminLayout title={id ? `Edit ${res.singular}` : `New ${res.singular}`}>
+  <form class="form" method="post" action={`/api/admin/${res.key}`} data-admin-form>
+    <input type="hidden" name="_action" value="save" />
+    {id && <input type="hidden" name="id" value={id} />}
+    {res.fields.map((f) => (
+      <div class="field">
+        {f.type === 'bool' ? (
+          <label class="check"><input type="checkbox" name={f.name} value="1" checked={val(f.name) ?? (f.name === 'visible' || f.name === 'published' || f.name === 'is_current')} /> {f.label}</label>
+        ) : (
+          <>
+            <label for={`f-${f.name}`}>{f.label}{f.required && ' *'}</label>
+            {f.type === 'textarea' && <textarea class="textarea" id={`f-${f.name}`} name={f.name} maxlength={f.max} required={f.required}>{val(f.name) || ''}</textarea>}
+            {(f.type === 'text' || f.type === 'url') && <input class="input" id={`f-${f.name}`} name={f.name} type={f.type === 'url' ? 'url' : 'text'} maxlength={f.max} required={f.required} value={val(f.name) || ''} readonly={!!(id && res.pk === f.name)} />}
+            {f.type === 'number' && <input class="input" id={`f-${f.name}`} name={f.name} type="number" inputmode="numeric" value={val(f.name) ?? ''} required={f.required} />}
+            {f.type === 'date' && <input class="input" id={`f-${f.name}`} name={f.name} type="date" value={val(f.name) || ''} required={f.required} />}
+            {f.type === 'datetime' && <input class="input" id={`f-${f.name}`} name={f.name} type="datetime-local" value={toRiyadhInput(val(f.name) || null)} required={f.required} />}
+            {f.type === 'select' && <select class="select" id={`f-${f.name}`} name={f.name}>{f.options!.map((o) => <option value={o} selected={val(f.name) === o}>{o}</option>)}</select>}
+            {f.type === 'ref' && <select class="select" id={`f-${f.name}`} name={f.name}><option value="">—</option>{refOptions[f.name].map((o) => <option value={o.value} selected={val(f.name) === o.value}>{o.label}</option>)}</select>}
+            {f.type === 'media' && (
+              <div class="media-pick" data-media-pick>
+                {val(f.name) && media.get(val(f.name)) && <img class="media-pick__preview" src={mediaImg(media.get(val(f.name))!).src} alt="" width="160" height="120" style="width:160px;height:120px;object-fit:cover;border:1px solid var(--line-strong)" />}
+                <input class="input" id={`f-${f.name}`} name={f.name} list={`media-${f.name}`} value={val(f.name) || ''} placeholder="photo key" required={f.required} readonly={!!(id && res.pk === f.name)} />
+                <datalist id={`media-${f.name}`}>{images.map((m) => <option value={m.key}>{m.alt || m.key}</option>)}</datalist>
+                <label class="field__label" style="margin-top:6px">Or upload a new one <input type="file" accept="image/*" data-media-upload={f.name} /></label>
+              </div>
+            )}
+            {f.help && <small>{f.help}</small>}
+          </>
+        )}
+      </div>
+    ))}
+    <div class="form__actions">
+      <button class="btn" type="submit">Save</button>
+      <a class="btn btn--ghost" href={`/admin/${res.key}`}>Cancel</a>
+      {id && <button class="btn btn--ghost btn--danger" type="submit" name="_action" value="delete" formnovalidate onclick="return confirm('Delete this item? You can undo it from the audit log.')">Delete</button>}
+    </div>
+  </form>
+</AdminLayout>
+
+<script>
+  import '../../../scripts/admin.js';
+</script>

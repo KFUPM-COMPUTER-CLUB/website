@@ -3,8 +3,6 @@
  * Stays hidden when nothing is ahead. */
 import { onPage, siteHref } from './page.js';
 
-const at = (iso, time) => { const [y, m, d] = iso.split('-').map(Number); const [hh, mm] = (time || '').split(':').map(Number); return new Date(y, m - 1, d, hh || 0, mm || 0).getTime(); };
-const endOf = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 23, 59, 59).getTime(); };
 const until = (ms) => {
   const min = Math.floor(ms / 60000), h = Math.floor(min / 60), d = Math.floor(h / 24);
   if (d >= 1) return `in ${d}d ${h % 24}h`;
@@ -19,9 +17,9 @@ onPage(() => {
     const now = Date.now();
     for (const pill of pills) {
       let list = []; try { list = JSON.parse(pill.dataset.next || '[]'); } catch { /* bad data: stay hidden */ }
-      const ev = list.find((e) => endOf(e.e) >= now);
+      const ev = list.find((e) => e.e >= now);
       if (!ev) { pill.hidden = true; continue; }
-      const start = at(ev.d, ev.h);
+      const start = ev.s;
       pill.querySelector('.next-pill__title').textContent = ev.t;
       pill.querySelector('.next-pill__when').textContent = now >= start ? 'is on now' : until(start - now);
       pill.href = siteHref(`/timeline#ev-${ev.id}`);

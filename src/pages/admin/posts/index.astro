@@ -1,0 +1,21 @@
+---
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { serviceClient } from '../../../lib/supabase';
+import { atLeast } from '../../../lib/types';
+if (!atLeast(Astro.locals.role, 'reviewer')) return new Response('Reviewers only', { status: 403 });
+const status = Astro.url.searchParams.get('status') || 'submitted';
+const { data } = await serviceClient().from('posts').select('id,slug,title,status,category,updated_at,author_name, author:profiles!posts_author_id_fkey(name,handle)').eq('status', status).order('updated_at', { ascending: false }).limit(100);
+const STATUSES = ['submitted', 'changes_requested', 'published', 'draft', 'unpublished'];
+---
+<AdminLayout title="Blog review" lead="Submitted posts wait here. Open one to read it, leave a note and set its status.">
+  <p class="links-row">{STATUSES.map((s) => <a class={`chip${s === status ? ' chip--published' : ''}`} href={`?status=${s}`}>{s.replace('_', ' ')}</a>)}</p>
+  <div class="table-wrap" style="margin-top:14px">
+    <table class="table">
+      <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Updated</th><th></th></tr></thead>
+      <tbody>
+        {(data || []).map((p: any) => <tr><td><a href={`/admin/posts/${p.id}`}>{p.title}</a></td><td>{p.author?.name || p.author_name}{p.author?.handle && <span class="mono"> @{p.author.handle}</span>}</td><td>{p.category}</td><td class="mono">{String(p.updated_at).slice(0, 10)}</td><td><a class="btn btn--tiny btn--ghost" href={`/admin/posts/${p.id}`}>Review</a>{p.status === 'published' && <> <a class="btn btn--tiny btn--ghost" href={`/blog/${p.slug}`} target="_blank">View ↗</a></>}</td></tr>)}
+        {!data?.length && <tr><td colspan="5" class="hint">Nothing with status "{status.replace('_', ' ')}".</td></tr>}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

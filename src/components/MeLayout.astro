@@ -1,0 +1,34 @@
+---
+/* Dashboard shell: page head, side navigation, content. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Subnav from './Subnav.astro';
+import '../styles/app.css';
+const { title, lead } = Astro.props as { title: string; lead?: string };
+const items = [
+  { href: '/me', label: 'Overview' },
+  { href: '/me/profile', label: 'Profile' },
+  { href: '/me/posts', label: 'My posts' },
+  { href: '/me/registrations', label: 'Events' },
+];
+const flash = Astro.url.searchParams.get('ok');
+const error = Astro.url.searchParams.get('error');
+---
+<BaseLayout title={title} noindex={true}>
+  <section class="page-head page-head--compact">
+    <div class="container">
+      <span class="eyebrow">My account</span>
+      <h1 class="h1">{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+    </div>
+  </section>
+  <section class="section">
+    <div class="container app">
+      <Subnav items={items} />
+      <div>
+        {flash && <p class="flash--ok">{flash}</p>}
+        {error && <p class="flash--error">{error}</p>}
+        <slot />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

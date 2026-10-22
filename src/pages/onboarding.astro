@@ -1,0 +1,53 @@
+---
+/* First sign-in: the short form that turns an account into a membership. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/app.css';
+const p = Astro.locals.profile;
+const next = Astro.url.searchParams.get('next') || '/me';
+const error = Astro.url.searchParams.get('error');
+const years = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
+const suggested = (p?.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20);
+---
+<BaseLayout title="Welcome" noindex={true}>
+  <section class="page-head page-head--compact">
+    <div class="container">
+      <span class="eyebrow">One last step</span>
+      <h1 class="h1">Tell us who you are.</h1>
+      <p class="lead">Takes a minute. The WhatsApp groups appear right after. Your phone and email stay visible to the club's admins only.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {error && <p class="flash--error" style="margin-bottom:20px">{error}</p>}
+      <form class="form" method="post" action="/api/me/onboard" enctype="multipart/form-data">
+        <input type="hidden" name="next" value={next} />
+        <div class="form__row">
+          <div class="field"><label for="name">Full name</label><input class="input" id="name" name="name" required maxlength="80" value={p?.name || ''} /></div>
+          <div class="field"><label for="handle">Public handle</label><input class="input" id="handle" name="handle" required pattern="[a-z0-9_]{3,24}" maxlength="24" value={p?.handle || suggested} /><small>3 to 24 characters: letters, digits, underscore. Your profile lives at /u/handle.</small></div>
+        </div>
+        <div class="form__row">
+          <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" required maxlength="120" value={p?.email || Astro.locals.user?.email || ''} /></div>
+          <div class="field"><label for="phone">Phone (Saudi)</label><input class="input" id="phone" name="phone" type="tel" required inputmode="tel" placeholder="05xxxxxxxx" value={p?.phone || ''} /><small>05xxxxxxxx or +9665xxxxxxxx. Admins only.</small></div>
+        </div>
+        <div class="form__row">
+          <div class="field"><label for="major">Major</label><input class="input" id="major" name="major" required maxlength="80" value={p?.major || ''} /></div>
+          <div class="field"><label for="year">Year</label><select class="select" id="year" name="year" required>{years.map((y) => <option value={y} selected={p?.year === y}>{y}</option>)}</select></div>
+        </div>
+        <details>
+          <summary class="field__label" style="cursor:pointer">Optional: KFUPM email, GitHub, LinkedIn, bio, photo</summary>
+          <div class="form" style="margin-top:16px">
+            <div class="form__row">
+              <div class="field"><label for="kfupm_email">KFUPM email</label><input class="input" id="kfupm_email" name="kfupm_email" type="email" maxlength="120" value={p?.kfupm_email || ''} /></div>
+              <div class="field"><label for="github">GitHub username</label><input class="input" id="github" name="github" maxlength="60" value={p?.github || ''} /></div>
+            </div>
+            <div class="field"><label for="linkedin">LinkedIn URL</label><input class="input" id="linkedin" name="linkedin" type="url" maxlength="200" value={p?.linkedin || ''} /></div>
+            <div class="field"><label for="bio">Bio</label><textarea class="textarea" id="bio" name="bio" maxlength="400">{p?.bio || ''}</textarea></div>
+            <div class="field"><label for="avatar">Photo</label><input class="input" id="avatar" name="avatar" type="file" accept="image/*" /><small>JPEG, PNG or WebP under 8 MB. Without one we use your sign-in avatar.</small></div>
+          </div>
+        </details>
+        <label class="check"><input type="checkbox" name="show_in_contributors" value="1" checked /> Show me on the Community page when I publish posts</label>
+        <div class="form__actions"><button class="btn" type="submit">Join the club <span aria-hidden="true">→</span></button><span class="hint">You can edit all of this later. By joining you accept the <a href="/terms">terms</a> and the <a href="/privacy">privacy page</a>.</span></div>
+      </form>
+    </div>
+  </section>
+</BaseLayout>

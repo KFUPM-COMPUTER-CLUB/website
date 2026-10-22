@@ -2,18 +2,20 @@
 import { Image } from 'astro:assets';
 import logoSm from '../assets/brand/logo-color-sm.png';
 import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
-import site from '../data/site.json';
+import { getSettings } from '../lib/content';
+const settings = await getSettings();
+const site = { name: settings.site.name, links: settings.links };
 import NextEvent from './NextEvent.astro';
 
 // The logo is the home link. Everything else lives in these five entries.
 const links = [
   { href: '/timeline', label: 'Timeline' },
   { href: '/blog', label: 'Blog' },
-  { href: '/officers', label: 'Officers' },
+  { href: '/community', label: 'Community' },
   { href: '/faq', label: 'FAQ' },
 ];
 
-const joinHref = site.links.join.includes('REPLACE') ? '/about' : site.links.join;
+const joinHref = site.links.join || '/join';
 const external = joinHref.startsWith('http');
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isCurrent = (href) => path === href || path.startsWith(`${href}/`);
@@ -33,7 +35,7 @@ const isCurrent = (href) => path === href || path.startsWith(`${href}/`);
       <nav id="site-nav" class="site-nav" aria-label="Main">
         <NextEvent variant="menu" />
         {links.map((l) => <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a>)}
-        <a class="btn btn--small" data-magnet href={joinHref} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>Join <span aria-hidden="true">→</span></a>
+        <a class="btn btn--small" data-magnet href={joinHref} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined} data-join>Join <span aria-hidden="true">→</span></a>
       </nav>
       <div class="site-header__tools">
         <button type="button" class="term-open" data-term-open aria-label="Open terminal" title="Terminal">&gt;_</button>
@@ -45,4 +47,5 @@ const isCurrent = (href) => path === href || path.startsWith(`${href}/`);
 
 <script>
   import '../scripts/header.js';
+  import '../scripts/account.js';
 </script>

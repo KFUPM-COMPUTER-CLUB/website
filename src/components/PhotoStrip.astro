@@ -2,28 +2,19 @@
 // Infinite horizontal strip of event photos. Every thumbnail is rendered small and lazy;
 // a script picks a random 20 on each load (mixed years), duplicates them for a seamless loop,
 // pauses on hover, and stays static under prefers-reduced-motion.
-import { Image } from 'astro:assets';
-import events from '../data/events.json';
-import highlights from '../data/highlights.json';
-const photos = import.meta.glob('../assets/photos/*.jpg', { eager: true });
-const items = Object.entries(photos).map(([path, mod]) => {
-  const name = path.split('/').pop().replace('.jpg', '');
-  const [date, id] = name.split('_');
-  return { date, id, img: mod.default, year: date.slice(0, 4) };
-}).sort((a, b) => a.date.localeCompare(b.date));
-const labels = new Map([...events.map((e) => [e.image, e.title]), ...highlights.map((h) => [h.photo, h.title])].filter(([k]) => k));
-const byDate = new Map(events.filter((e) => e.image).map((e) => [e.date, e.title]));
-const label = (p) => labels.get(`${p.date}_${p.id}.jpg`) || byDate.get(p.date) || '@KFUPM_CC';
-const fmt = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+// The pool comes from the strip_photos table (or every seed photo in src/assets/photos).
+import { getStripPhotos } from '../lib/content';
+const items = (await getStripPhotos()).map((p) => ({ ...p, year: p.date.slice(0, 4) })).sort((a, b) => a.date.localeCompare(b.date));
+const fmt = (d: string) => d ? new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
 ---
 
 <div class="strip" data-strip>
   <ul class="strip__track">
     {items.map((p) => (
       <li class="strip__item" data-year={p.year} hidden>
-        <a href={`https://x.com/KFUPM_CC/status/${p.id}`} target="_blank" rel="noopener">
-          <Image src={p.img} alt={`Club event, ${fmt(p.date)}`} width={360} height={240} loading="lazy" />
-          <span class="strip__cap"><b>{label(p)}</b><span>{fmt(p.date)}</span></span>
+        <a href={p.postUrl || '#'} target="_blank" rel="noopener">
+          <img src={p.img!.src} srcset={p.img!.srcset} sizes="360px" alt={`Club event, ${fmt(p.date)}`} width="360" height="240" loading="lazy" decoding="async" />
+          <span class="strip__cap"><b>{p.label}</b><span>{fmt(p.date)}</span></span>
         </a>
       </li>
     ))}
