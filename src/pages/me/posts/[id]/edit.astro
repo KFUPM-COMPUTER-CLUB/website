@@ -40,7 +40,8 @@ const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at <
       </ul>
     </div>
   )}
-  <form data-astro-reload
+  <form
+    data-astro-reload
     class="editor"
     data-editor
     data-post-id={post.id}
@@ -116,7 +117,8 @@ const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at <
     </div>
   </form>
   {!locked && (
-    <form data-astro-reload
+    <form
+      data-astro-reload
       method="post"
       action={`/api/posts/${post.id}`}
       style="margin-top:24px"

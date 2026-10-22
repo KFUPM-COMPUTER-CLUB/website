@@ -8,11 +8,11 @@ import { dbReady } from './env';
 import { publicClient, publicUrl } from './supabase';
 import type { Img } from './types';
 
-const localPhotos = import.meta.glob('../assets/photos/*.jpg', { eager: true }) as Record<
+const localPhotos = import.meta.glob('../data/photos/*.jpg', { eager: true }) as Record<
   string,
   { default: ImageMetadata }
 >;
-const localLogos = import.meta.glob('../assets/partners/*', { eager: true }) as Record<
+const localLogos = import.meta.glob('../data/partners/*', { eager: true }) as Record<
   string,
   { default: ImageMetadata }
 >;
@@ -68,7 +68,7 @@ export function photoImg(key: string | null | undefined, kind: 'photo' | 'logo' 
           const m = (await mediaMap()).get(key);
           return m ? mediaImg(m) : null;
         }
-        const mod = kind === 'logo' ? localLogos[`../assets/partners/${key}`] : localPhotos[`../assets/photos/${key}`];
+        const mod = kind === 'logo' ? localLogos[`../data/partners/${key}`] : localPhotos[`../data/photos/${key}`];
         if (!mod) return null;
         const meta = mod.default;
         // Logos get one size and keep their format: SVGs pass through untouched, and logos are small anyway.

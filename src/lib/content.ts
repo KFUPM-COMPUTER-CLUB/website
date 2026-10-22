@@ -497,7 +497,7 @@ async function withAuthors(rows: any[]): Promise<PostSummary[]> {
   const byId = new Map(authors.map((a: any) => [a.id, a]));
   return rows.map((r) => rowToPost({ ...r, author: byId.get(r.author_id) || null }));
 }
-/* Seed posts are markdown in src/content/posts rendered by Astro; database posts carry the editor's HTML. */
+/* Seed posts are markdown in src/data/posts rendered by Astro; database posts carry the editor's HTML. */
 export function getPosts(): Promise<PostSummary[]> {
   return cached('posts', async () => {
     if (!dbReady()) {

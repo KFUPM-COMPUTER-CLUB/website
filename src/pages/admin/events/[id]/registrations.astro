@@ -76,7 +76,8 @@ const admin = atLeast(Astro.locals.role, 'admin');
               </form>
             </td>
             <td>
-              <form data-astro-reload
+              <form
+                data-astro-reload
                 method="post"
                 action={`/api/admin/events/${ev.id}/registrations`}
                 onsubmit="return confirm('Remove this reservation?')"

@@ -2,8 +2,8 @@
 /* Site footer: social links, the "made by" credit and legal links. Everything comes from settings
  * through the content layer. isReal() drops the REPLACE placeholders the seed JSON ships with. */
 import { Image } from 'astro:assets';
-import logoSm from '../assets/brand/logo-color-sm.png';
-import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
+import logoSm from '../data/brand/logo-color-sm.png';
+import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 import { getSettings } from '../lib/content';
 const settings = await getSettings();
 const site = {

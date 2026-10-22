@@ -86,7 +86,12 @@ const when = (e: any) =>
             {r.events?.title} · <span class="mono">{r.events ? when(r.events) : ''}</span>{' '}
             {r.attended && <span class="chip chip--published">attended</span>}{' '}
             {r.events && (
-              <form data-astro-reload style="display:inline" method="post" action={`/api/events/${r.events.id}/register`}>
+              <form
+                data-astro-reload
+                style="display:inline"
+                method="post"
+                action={`/api/events/${r.events.id}/register`}
+              >
                 <input type="hidden" name="_action" value="show" />
                 <button class="btn btn--tiny btn--ghost" type="submit">
                   {r.show_on_profile ? 'Shown on profile · hide' : 'Show on profile'}

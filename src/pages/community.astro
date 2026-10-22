@@ -2,7 +2,7 @@
 /* Community: the current board, how many members there are, the members who write, and past boards. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
-import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
+import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 import { getOfficers, getMemberCount, getContributors, getSettings } from '../lib/content';
 const [officers, memberCount, contributors, settings] = await Promise.all([
   getOfficers(),

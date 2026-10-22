@@ -1,6 +1,6 @@
 name: Feature request
 description: Something the site should do
-labels: ['type: feature']
+labels: ['enhancement']
 body:
   - type: textarea
     id: problem

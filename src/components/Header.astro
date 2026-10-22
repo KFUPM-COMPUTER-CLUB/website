@@ -4,8 +4,8 @@
  * turns it into "My account" on the client when the cc_in cookie is present. The Join link may be an
  * external form when settings.links.join is set. */
 import { Image } from 'astro:assets';
-import logoSm from '../assets/brand/logo-color-sm.png';
-import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
+import logoSm from '../data/brand/logo-color-sm.png';
+import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 import { getSettings } from '../lib/content';
 const settings = await getSettings();
 const site = { name: settings.site.name, links: settings.links };

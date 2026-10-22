@@ -1,6 +1,6 @@
 # Design system
 
-Everything is in `src/styles/global.css` (site) and `src/styles/app.css` (dashboards and admin), demonstrated at `/styleguide` on the running site. Use the tokens and classes below; do not add colours or sizes outside them.
+Everything is in `src/styles/global.css` (site) and `src/styles/app.css` (dashboards and admin). Use the tokens and classes below; do not add colours or sizes outside them.
 
 Dark navy and white, one blue accent, large light headings, one-pixel rules instead of boxes. Sections alternate navy, white and paper backgrounds.
 
@@ -37,4 +37,4 @@ Dark navy and white, one blue accent, large light headings, one-pixel rules inst
 
 Focus: `:focus-visible` outline in `--accent-2`. Motion is disabled under `prefers-reduced-motion`.
 
-To add something: open an issue, add the rule to `global.css` using existing tokens, add it to `/styleguide`, update this file.
+To add something: open an issue, add the rule to `global.css` using existing tokens, update this file.

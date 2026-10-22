@@ -1,5 +1,5 @@
 {
-  "_note": "Collected from @KFUPM_CC posts on X (2020-2026). The click opens the club post that shows the collaboration (\"source\"); \"url\" is the organisation's site, kept for reference. To show a logo, drop the file into src/assets/partners/ and set \"logo\"; set \"mark\": true when the file is a square symbol or avatar so the name is printed beside it. Files named x-<handle>.jpg are the partner's X profile picture.",
+  "_note": "Collected from @KFUPM_CC posts on X (2020-2026). The click opens the club post that shows the collaboration (\"source\"); \"url\" is the organisation's site, kept for reference. To show a logo, drop the file into src/data/partners/ and set \"logo\"; set \"mark\": true when the file is a square symbol or avatar so the name is printed beside it. Files named x-<handle>.jpg are the partner's X profile picture.",
   "companies": [
     {
       "name": "Stream",
