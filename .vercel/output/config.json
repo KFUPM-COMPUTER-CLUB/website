@@ -59,6 +59,10 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/admin/import$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/admin/media$",
 			"dest": "_render"
 		},
@@ -99,6 +103,10 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/admin/import$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/admin/media$",
 			"dest": "_render"
 		},
@@ -116,6 +124,10 @@
 		},
 		{
 			"src": "^/api/admin/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cron/daily$",
 			"dest": "_render"
 		},
 		{
@@ -140,6 +152,10 @@
 		},
 		{
 			"src": "^/api/me/profile$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/media/([^/]+?)$",
 			"dest": "_render"
 		},
 		{
@@ -192,59 +208,59 @@
 		},
 		{
 			"src": "^(/404/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/about/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/blog/([^/]+?)/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/blog/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/calendar\\.ics)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/community/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/faq/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/flag/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/officers/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/rss\\.xml)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/styleguide/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/timeline/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/u/([^/]+?)/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^(/)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=3301a6ca-6ab6-474a-a2d2-595b4887d34e"
 		},
 		{
 			"src": "^/.*$",

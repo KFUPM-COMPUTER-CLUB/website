@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { handle, requireUser, readBody, str, ApiError, isUuid, guardRate, ok, audit } from '../../../../lib/api';
+import { handle, requireUser, readBody, str, ApiError, isUuid, guardRate, ok, audit, wantsHtml } from '../../../../lib/api';
 import { serviceClient } from '../../../../lib/supabase';
 import { sanitizePost, plainText } from '../../../../lib/sanitize';
 import { atLeast } from '../../../../lib/types';
 import { bust } from '../../../../lib/content';
+import { deletePostMedia } from '../../../../lib/upload';
 
 export const prerender = false;
 const CATEGORIES = ['News', 'Event recap', 'Tutorial', 'Project', 'Experience', 'Opinion', 'Announcement'];
@@ -43,9 +44,10 @@ export const DELETE: APIRoute = handle(async (ctx) => {
   const { user, post, own, reviewer } = await load(ctx);
   const admin = atLeast(ctx.locals.role, 'admin');
   if (!(admin || (own && ['draft', 'changes_requested'].includes(post.status)))) throw new ApiError('Only drafts can be deleted.', 403);
+  await deletePostMedia(post.id);
   await serviceClient().from('posts').delete().eq('id', post.id);
   await audit(user.id, 'delete', 'posts', post.id, post, null);
   if (post.status === 'published') bust();
-  return ok();
+  return wantsHtml(ctx.request) ? ctx.redirect('/me/posts?ok=Post+deleted.', 303) : ok();
 });
 export const POST: APIRoute = async (ctx) => (String((await ctx.request.clone().formData().catch(() => new FormData())).get('_method') || '').toUpperCase() === 'DELETE' ? DELETE(ctx) : PATCH(ctx));

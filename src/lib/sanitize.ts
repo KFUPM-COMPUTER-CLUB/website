@@ -3,7 +3,7 @@ import sanitizeHtml from 'sanitize-html';
 import { supabaseUrl } from './env';
 
 const storage = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
-const isStorageUrl = (u: string) => !!storage && u.startsWith(storage);
+const isStorageUrl = (u: string) => u.startsWith('/api/media/') || (!!storage && u.startsWith(storage));
 
 export function sanitizePost(html: string) {
   return sanitizeHtml(html || '', {
@@ -19,8 +19,9 @@ export function sanitizePost(html: string) {
     },
     allowedSchemes: ['http', 'https', 'mailto'],
     allowedSchemesByTag: { img: ['https'], iframe: ['https'] },
+    allowProtocolRelative: false,
     allowedClasses: { code: [/^language-/], pre: [/^language-/], a: ['pdf-card'], figure: ['pdf'], iframe: ['pdf-frame'], span: [/^hljs-/] },
-    exclusiveFilter: (frame) => (frame.tag === 'iframe' && !isStorageUrl(frame.attribs.src || '')) || (frame.tag === 'img' && !frame.attribs.alt),
+    exclusiveFilter: (frame) => (frame.tag === 'iframe' && !isStorageUrl(frame.attribs.src || '')) || (frame.tag === 'img' && (!frame.attribs.alt || !(isStorageUrl(frame.attribs.src || '') || /^https:\/\//.test(frame.attribs.src || '')))),
     transformTags: {
       a: (tag, attribs) => { const href = attribs.href || ''; const external = /^https?:/i.test(href); return { tagName: 'a', attribs: { ...attribs, ...(external ? { target: '_blank', rel: 'noopener' } : {}) } }; },
     },

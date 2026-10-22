@@ -77,9 +77,15 @@ create table if not exists public.media (
   sizes jsonb not null default '{}'::jsonb,   -- {"480": url, "960": url, "1600": url} or {"file": url}
   path text not null,                          -- storage path of the original
   tags text[] not null default '{}',
+  bucket text not null default 'media',        -- media | files (public) or drafts (private until published)
+  post_id uuid,                                -- set for files uploaded from the post editor
+  published boolean not null default true,     -- false while the owning post is not published
   uploaded_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
+alter table public.media add column if not exists bucket text not null default 'media';
+alter table public.media add column if not exists post_id uuid;
+alter table public.media add column if not exists published boolean not null default true;
 
 -- ── Content ─────────────────────────────────────────────────────────────────
 create table if not exists public.events (
@@ -110,9 +116,25 @@ create table if not exists public.registrations (
   user_id uuid not null references public.profiles(id) on delete cascade,
   email_copy boolean not null default false,
   attended boolean not null default false,
+  show_on_profile boolean not null default false,   -- the member chooses to show it on /u/handle
   created_at timestamptz not null default now(),
   unique (event_id, user_id)
 );
+alter table public.registrations add column if not exists show_on_profile boolean not null default false;
+
+-- Public counts per event ("12 of 40 spots taken") without exposing who registered.
+create or replace function public.registration_counts(p_event_ids uuid[]) returns table (event_id uuid, count bigint)
+language sql stable security definer set search_path = public as $$
+  select r.event_id, count(*) from public.registrations r where r.event_id = any (p_event_ids) group by r.event_id
+$$;
+-- Events a member chose to show on their public profile.
+create or replace function public.profile_events(p_user uuid) returns table (slug text, title text, starts_at timestamptz, attended boolean)
+language sql stable security definer set search_path = public as $$
+  select e.slug, e.title, e.starts_at, r.attended
+  from public.registrations r join public.events e on e.id = r.event_id join public.profiles p on p.id = r.user_id
+  where r.user_id = p_user and r.show_on_profile and e.published and p.onboarded and not p.suspended
+  order by e.starts_at desc limit 24
+$$;
 
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
@@ -241,6 +263,21 @@ create table if not exists public.settings (
 create or replace function public.setting_is_public(k text) returns boolean language sql immutable as $$
   select k in ('site', 'links', 'home', 'banner', 'made_by', 'faq_intro')
 $$;
+-- Invite links (WhatsApp, Discord, any chat) live only under the private key "whatsapp_groups",
+-- which admins read and members receive through their dashboard and the welcome email. This trigger
+-- strips such links from every public key so they can never be published by mistake.
+create or replace function public.scrub_public_settings() returns trigger language plpgsql as $$
+begin
+  if public.setting_is_public(new.key) then
+    if new.key = 'links' then new.value = new.value - 'whatsapp' - 'discord' - 'telegram' - 'invite'; end if;
+    if new.value::text ~* '(chat\.whatsapp\.com|wa\.me|discord\.gg|discord\.com/invite|t\.me/\+)' then
+      raise exception 'Invite links are private: store them under the whatsapp_groups setting.';
+    end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists scrub_public_settings on public.settings;
+create trigger scrub_public_settings before insert or update on public.settings for each row execute function public.scrub_public_settings();
 
 create table if not exists public.flag_solvers (
   id uuid primary key default gen_random_uuid(),
@@ -324,6 +361,14 @@ do $$ declare t text; begin
   end loop;
 end $$;
 
+-- Writes never happen with a user's token: every change goes through the site's API with the service
+-- key after a role check, so only read policies exist. Drop write policies an earlier version created.
+do $$ declare r record; begin
+  for r in select policyname, tablename from pg_policies where schemaname = 'public' and policyname in ('profiles_self_update','profiles_self_insert','media_member_insert','media_officer_write','media_officer_delete','events_officer_write','registrations_self_insert','registrations_self_delete','registrations_officer_update','posts_author_insert','posts_author_update','posts_author_delete','reviews_insert','officer_terms_write','highlights_write','stories_write','strip_write','impact_write','impact_items_write','partners_write','faq_write','settings_write','solvers_write') loop
+    execute format('drop policy if exists %I on public.%I', r.policyname, r.tablename);
+  end loop;
+end $$;
+
 -- helper to (re)create a policy
 create or replace function public._policy(p_name text, p_table text, p_cmd text, p_using text, p_check text default null) returns void language plpgsql as $$
 begin
@@ -343,78 +388,61 @@ end $$;
 
 do $$ begin
   perform public._policy('profiles_self_read', 'profiles', 'select', 'id = auth.uid() or public.has_role(''admin'')');
-  perform public._policy('profiles_self_update', 'profiles', 'update', 'id = auth.uid()', 'id = auth.uid() and suspended = false');
-  perform public._policy('profiles_self_insert', 'profiles', 'insert', 'id = auth.uid()');
 end $$;
 
 do $$ begin
-  perform public._policy('media_public_read', 'media', 'select', 'true');
-  perform public._policy('media_member_insert', 'media', 'insert', 'auth.uid() is not null and uploaded_by = auth.uid()');
-  perform public._policy('media_officer_write', 'media', 'update', 'public.has_role(''officer'')');
-  perform public._policy('media_officer_delete', 'media', 'delete', 'public.has_role(''officer'')');
+  perform public._policy('media_public_read', 'media', 'select', 'published or uploaded_by = auth.uid() or public.has_role(''reviewer'')');
 end $$;
 
 do $$ begin
   perform public._policy('events_public_read', 'events', 'select', 'published or public.has_role(''officer'')');
-  perform public._policy('events_officer_write', 'events', 'all', 'public.has_role(''officer'')');
 end $$;
 
 do $$ begin
-  perform public._policy('registrations_read', 'registrations', 'select', 'true');
-  perform public._policy('registrations_self_insert', 'registrations', 'insert', 'user_id = auth.uid()');
-  perform public._policy('registrations_self_delete', 'registrations', 'delete', 'user_id = auth.uid() or public.has_role(''officer'')');
-  perform public._policy('registrations_officer_update', 'registrations', 'update', 'public.has_role(''officer'')');
+  perform public._policy('registrations_read', 'registrations', 'select', 'user_id = auth.uid() or public.has_role(''officer'')');
 end $$;
 
 do $$ begin
   perform public._policy('posts_public_read', 'posts', 'select', 'status = ''published'' or author_id = auth.uid() or public.has_role(''reviewer'')');
-  perform public._policy('posts_author_insert', 'posts', 'insert', 'author_id = auth.uid()');
-  perform public._policy('posts_author_update', 'posts', 'update', 'author_id = auth.uid() or public.has_role(''reviewer'')');
-  perform public._policy('posts_author_delete', 'posts', 'delete', '(author_id = auth.uid() and status in (''draft'', ''changes_requested'')) or public.has_role(''admin'')');
 end $$;
 
 do $$ begin
   perform public._policy('reviews_read', 'post_reviews', 'select', 'public.has_role(''reviewer'') or exists (select 1 from public.posts p where p.id = post_id and p.author_id = auth.uid())');
-  perform public._policy('reviews_insert', 'post_reviews', 'insert', 'public.has_role(''reviewer'') and reviewer_id = auth.uid()');
 end $$;
 
 do $$ begin
   perform public._policy('officer_terms_read', 'officer_terms', 'select', 'true');
-  perform public._policy('officer_terms_write', 'officer_terms', 'all', 'public.has_role(''admin'')');
 end $$;
 
 do $$ begin
   perform public._policy('highlights_read', 'highlights', 'select', 'visible or public.has_role(''officer'')');
-  perform public._policy('highlights_write', 'highlights', 'all', 'public.has_role(''officer'')');
   perform public._policy('stories_read', 'stories', 'select', 'visible or public.has_role(''officer'')');
-  perform public._policy('stories_write', 'stories', 'all', 'public.has_role(''officer'')');
   perform public._policy('strip_read', 'strip_photos', 'select', 'visible or public.has_role(''officer'')');
-  perform public._policy('strip_write', 'strip_photos', 'all', 'public.has_role(''officer'')');
   perform public._policy('impact_read', 'impact_semesters', 'select', 'true');
-  perform public._policy('impact_write', 'impact_semesters', 'all', 'public.has_role(''officer'')');
   perform public._policy('impact_items_read', 'impact_items', 'select', 'true');
-  perform public._policy('impact_items_write', 'impact_items', 'all', 'public.has_role(''officer'')');
   perform public._policy('partners_read', 'partners', 'select', 'visible or public.has_role(''officer'')');
-  perform public._policy('partners_write', 'partners', 'all', 'public.has_role(''officer'')');
   perform public._policy('faq_read', 'faq', 'select', 'visible or public.has_role(''officer'')');
-  perform public._policy('faq_write', 'faq', 'all', 'public.has_role(''officer'')');
   perform public._policy('settings_read', 'settings', 'select', 'public.setting_is_public(key) or public.has_role(''admin'')');
-  perform public._policy('settings_write', 'settings', 'all', 'public.has_role(''admin'')');
   perform public._policy('solvers_read', 'flag_solvers', 'select', 'approved or public.has_role(''admin'')');
-  perform public._policy('solvers_write', 'flag_solvers', 'all', 'public.has_role(''admin'')');
 end $$;
 -- email_queue, audit_log, rate_limits, keepalive: no policies, so only the service key reaches them.
 
--- Admins may read everyone's roles and profiles (above); members read nothing about others beyond the public view.
+-- Reads only for the anon and authenticated roles (filtered by the policies above). No write grants:
+-- the API writes with the service key. Admins read everyone's roles and profiles; members read nothing
+-- about others beyond the public view.
 grant usage on schema public to anon, authenticated;
 grant select on all tables in schema public to anon, authenticated;
-grant insert, update, delete on public.profiles, public.media, public.registrations, public.posts, public.post_reviews, public.events, public.highlights, public.stories, public.strip_photos, public.impact_semesters, public.impact_items, public.partners, public.faq, public.settings, public.officer_terms, public.flag_solvers to authenticated;
-grant execute on function public.member_count(), public.my_role(), public.has_role(text), public.role_rank(text) to anon, authenticated;
-revoke execute on function public.hit_rate_limit(text, int, int) from anon, authenticated;
+revoke insert, update, delete on all tables in schema public from anon, authenticated;
+grant execute on function public.member_count(), public.my_role(), public.has_role(text), public.role_rank(text), public.registration_counts(uuid[]), public.profile_events(uuid) to anon, authenticated;
+-- Internal functions are not callable through the API (execute on new functions defaults to PUBLIC).
+revoke execute on function public.hit_rate_limit(text, int, int), public._policy(text, text, text, text, text), public.handle_new_user(), public.touch_updated_at(), public.scrub_public_settings() from public, anon, authenticated;
 
 -- ── Storage buckets ─────────────────────────────────────────────────────────
 insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do update set public = true;
 insert into storage.buckets (id, name, public) values ('files', 'files', true) on conflict (id) do update set public = true;
+insert into storage.buckets (id, name, public) values ('drafts', 'drafts', false) on conflict (id) do update set public = false;
 drop policy if exists "media public read" on storage.objects;
 create policy "media public read" on storage.objects for select using (bucket_id in ('media', 'files'));
--- Uploads go through the site's API with the service key, so no insert policy for users is needed.
+-- The drafts bucket is private: files are served through /api/media/<key> with signed URLs until the
+-- post is published, when they move to the public buckets. Uploads go through the site's API with the
+-- service key, so no insert policy for users is needed.

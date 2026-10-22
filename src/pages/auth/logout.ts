@@ -8,4 +8,3 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   cookies.delete('cc_in', { path: '/' });
   return redirect('/');
 };
-export const GET = POST;

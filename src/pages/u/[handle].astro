@@ -13,7 +13,7 @@ const { data: p } = await db.from('profiles_public').select('*').eq('handle', ha
 if (!p) return new Response(null, { status: 404 });
 const [{ data: posts }, { data: regs }, { data: officer }, { data: solved }, settings] = await Promise.all([
   db.from('posts').select('slug,title,excerpt,published_at,category').eq('author_id', p.id).eq('status', 'published').order('published_at', { ascending: false }),
-  db.from('registrations').select('attended,events(slug,title,starts_at)').eq('user_id', p.id).order('created_at', { ascending: false }).limit(12),
+  db.rpc('profile_events', { p_user: p.id }),
   db.from('officer_terms').select('title,committee,term,is_current').eq('user_id', p.id).order('is_current', { ascending: false }).limit(3),
   db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
   getSettings(),
@@ -48,7 +48,7 @@ const badges = [current && `Officer · ${current.title}`, (officer || []).some((
         </article>
       )}
       {posts?.length ? <><h2 class="h2" style="margin-top:40px">Posts</h2><div class="posts">{posts.map((x: any) => <a class="post" href={`/blog/${x.slug}`}><time class="post__date" datetime={String(x.published_at).slice(0, 10)}><b>{fmtRiyadh(new Date(x.published_at), { month: 'short' })}</b><span>{fmtRiyadh(new Date(x.published_at), { day: 'numeric', year: 'numeric' })}</span></time><div class="post__body"><h3 class="post__title">{x.title}</h3><p class="post__excerpt">{x.excerpt}</p></div></a>)}</div></> : null}
-      {regs?.length ? <><h2 class="h2" style="margin-top:40px">Events</h2><ul>{regs.map((r: any) => r.events && <li><a href={`/timeline#ev-${r.events.slug}`}>{r.events.title}</a> · <span class="mono">{fmtRiyadh(new Date(r.events.starts_at), { day: 'numeric', month: 'short', year: 'numeric' })}</span> {r.attended ? <span class="chip chip--published">attended</span> : <span class="chip">registered</span>}</li>)}</ul></> : null}
+      {regs?.length ? <><h2 class="h2" style="margin-top:40px">Events</h2><ul>{regs.map((r: any) => <li><a href={`/timeline#ev-${r.slug}`}>{r.title}</a> · <span class="mono">{fmtRiyadh(new Date(r.starts_at), { day: 'numeric', month: 'short', year: 'numeric' })}</span> {r.attended ? <span class="chip chip--published">attended</span> : <span class="chip">registered</span>}</li>)}</ul></> : null}
     </div>
   </section>
 </BaseLayout>

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { handle, requireUser, ApiError, isUuid, wantsHtml, ok, audit } from '../../../../lib/api';
+import { handle, requireUser, ApiError, isUuid, wantsHtml, ok, audit, readBody, str } from '../../../../lib/api';
+import { sanitizePost, plainText } from '../../../../lib/sanitize';
 import { serviceClient } from '../../../../lib/supabase';
 
 export const prerender = false;
@@ -11,6 +12,13 @@ export const POST: APIRoute = handle(async (ctx) => {
   const { data: post } = await sb.from('posts').select('*').eq('id', ctx.params.id).maybeSingle();
   if (!post || post.author_id !== user.id) throw new ApiError('Not your post.', 403);
   if (!['draft', 'changes_requested'].includes(post.status)) throw new ApiError('This post is already in review or published.', 409);
+  // The form carries the editor's latest content; save it before judging it.
+  const b = await readBody(ctx.request);
+  if ('content_html' in b) {
+    const patch: Record<string, unknown> = { content_html: sanitizePost(String(b.content_html || '')), title: str(b.title, 140) || post.title, excerpt: str(b.excerpt, 200) || post.excerpt || plainText(String(b.content_html || ''), 180), dir: b.dir === 'rtl' ? 'rtl' : 'ltr' };
+    if (typeof b.content_json === 'string' && b.content_json) { try { patch.content_json = JSON.parse(b.content_json); } catch { /* keep the stored one */ } }
+    await sb.from('posts').update(patch).eq('id', post.id); Object.assign(post, patch);
+  }
   if (!post.title || post.title === 'Untitled' || !post.content_html || post.content_html.length < 40) throw new ApiError('Add a title and some content before submitting.');
   await sb.from('posts').update({ status: 'submitted' }).eq('id', post.id);
   await audit(user.id, 'status', 'posts', post.id, { status: post.status }, { status: 'submitted' });

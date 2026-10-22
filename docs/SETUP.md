@@ -1,4 +1,4 @@
-# Owner setup (about 25 minutes)
+# Owner setup (about 20 minutes)
 
 Only the project owner can do these steps. Do them in order; nothing on the site breaks while a step is still missing, the feature just stays switched off.
 
@@ -45,21 +45,15 @@ Vercel → the `cckfupm-website` project → **Settings → Environment Variable
 
 Then **Deployments → ⋯ on the latest → Redeploy** so the build picks them up. Also check **Settings → Functions → Function Region** shows **Stockholm (arn1)**; `vercel.json` requests it.
 
-## 4. Seed the database (3 min, on your computer)
+## 4. First sign-in (1 min)
 
-```bash
-git pull
-npm install
-cp .env.example .env     # fill PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
-node scripts/import-seed.mjs --dry-run   # shows what will be imported
-node scripts/import-seed.mjs             # uploads photos and logos, imports every data file
-```
+Open `https://cckfupm-website.vercel.app/join`, **Continue with GitHub**, fill the onboarding form. Because your email is in `ADMIN_EMAILS` you land as **admin**: `/admin` is open.
 
-It is idempotent: run it again any time and nothing duplicates. After it finishes, the site reads from the database; `src/data/*.json` stays in the repo as seed data only.
+## 5. Import the starter content (3 min, in the browser)
 
-## 5. First sign-in (1 min)
+`/admin` → **Import starter content** → press the button and keep the page open. It uploads every photo and logo from the repository to Storage (WebP, three sizes), then imports events, polaroids, moments, impact numbers, partners, the board, FAQ, settings and the three posts. Safe to run again: nothing duplicates and anything you edited stays. Under **Settings → Members-only group links** paste the WhatsApp invite links; under **Links** fill the social links.
 
-Open `https://cckfupm-website.vercel.app/join`, **Continue with GitHub**, fill the onboarding form. Because your email is in `ADMIN_EMAILS` you land as **admin**: `/admin` is open. Under **Settings → WhatsApp groups** paste the invite links; under **Links** fill the social links.
+(There is also a terminal version, `npm run seed`, for developers with the keys in `.env`.)
 
 ## Later: switch on the rest (nothing breaks until then)
 

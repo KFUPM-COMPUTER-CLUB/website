@@ -95,7 +95,7 @@ export function getEvents(): Promise<EventItem[]> {
     return list.sort((a, b) => a.start.valueOf() - b.start.valueOf());
   });
 }
-export const eventEnd = (e: EventItem) => e.end ?? (e.allDay ? new Date(e.start.valueOf() + 86_400_000 - 1) : new Date(e.start.valueOf() + 2 * 3_600_000));
+export const eventEnd = (e: EventItem) => e.allDay ? new Date(parseRiyadh(riyadhDate(e.end ?? e.start)).valueOf() + 86_400_000 - 1) : (e.end ?? new Date(e.start.valueOf() + 2 * 3_600_000));
 export async function getUpcomingEvents() { const now = Date.now(); return (await getEvents()).filter((e) => eventEnd(e).valueOf() >= now); }
 export async function getPastEvents() { const now = Date.now(); return (await getEvents()).filter((e) => eventEnd(e).valueOf() < now).sort((a, b) => b.start.valueOf() - a.start.valueOf()); }
 export async function getEvent(slugOrId: string) { return (await getEvents()).find((e) => e.slug === slugOrId || e.id === slugOrId) || null; }

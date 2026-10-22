@@ -3,6 +3,7 @@ import { handle, requireRole, readBody, ApiError, str, isUuid, wantsHtml, ok, au
 import { serviceClient } from '../../../../../lib/supabase';
 import { bust } from '../../../../../lib/content';
 import { notifyStatus } from '../../../../../lib/notify';
+import { publishPostMedia } from '../../../../../lib/upload';
 
 export const prerender = false;
 const NEXT = ['submitted', 'changes_requested', 'published', 'unpublished', 'draft'];
@@ -19,9 +20,10 @@ export const POST: APIRoute = handle(async (ctx) => {
   const patch: Record<string, unknown> = { status };
   if (status === 'published' && !post.published_at) patch.published_at = new Date().toISOString();
   await sb.from('posts').update(patch).eq('id', post.id);
+  if (status === 'published') await publishPostMedia(post.id);
   await sb.from('post_reviews').insert({ post_id: post.id, reviewer_id: reviewer.id, comment, status_set: status });
   await audit(reviewer.id, 'status', 'posts', post.id, { status: post.status }, { status, comment });
   bust();
-  if (post.status !== status) await notifyStatus({ title: post.title, slug: post.slug }, status.replace('_', ' '), comment, post.author?.email || null);
+  if (post.status !== status) await notifyStatus({ title: post.title, slug: post.slug, author_name: post.author?.name || post.author_name }, status.replace('_', ' '), comment, post.author?.email || null);
   return wantsHtml(ctx.request) ? ctx.redirect(`/admin/posts?ok=${encodeURIComponent(`"${post.title}" is now ${status.replace('_', ' ')}.`)}`, 303) : ok();
 });

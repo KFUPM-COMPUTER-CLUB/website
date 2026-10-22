@@ -1,5 +1,5 @@
 import { kt as defineMiddleware, t as sequence } from "./chunks/sequence_CcNeFUgX.mjs";
-import { a as adminEmails, c as serviceReady, i as sessionClient, o as dbReady, r as serviceClient } from "./chunks/supabase_BKsAzIKQ.mjs";
+import { a as adminEmails, f as serviceReady, i as sessionClient, r as serviceClient, s as dbReady } from "./chunks/supabase_CcU7CO77.mjs";
 import { t as atLeast } from "./chunks/types_DpuWdFt1.mjs";
 //#region src/middleware.ts
 var PERSONAL = /^\/(me|admin|onboarding|auth|api|join)(\/|$)/;
@@ -10,7 +10,7 @@ var onRequest$1 = defineMiddleware(async (ctx, next) => {
 	ctx.locals.role = "guest";
 	const path = ctx.url.pathname;
 	const method = ctx.request.method;
-	if (path.startsWith("/api/") && method !== "GET" && method !== "HEAD" && !path.startsWith("/api/cron/")) {
+	if ((path.startsWith("/api/") || path.startsWith("/auth/")) && method !== "GET" && method !== "HEAD" && !path.startsWith("/api/cron/")) {
 		const origin = ctx.request.headers.get("origin");
 		const site = ctx.request.headers.get("sec-fetch-site");
 		if (!(origin === ctx.url.origin || site === "same-origin")) return new Response("Forbidden", { status: 403 });
@@ -48,13 +48,14 @@ var onRequest$1 = defineMiddleware(async (ctx, next) => {
 	const toSignIn = () => ctx.redirect(`/join?next=${encodeURIComponent(path)}`);
 	if (/^\/(me|onboarding)(\/|$)/.test(path)) {
 		if (!user) return toSignIn();
-		if (profile && !profile.onboarded && !path.startsWith("/onboarding")) return ctx.redirect("/onboarding");
+		if (!profile?.onboarded && !path.startsWith("/onboarding")) return ctx.redirect("/onboarding");
 		if (profile?.onboarded && path.startsWith("/onboarding")) return ctx.redirect("/me");
 	}
 	if (path.startsWith("/admin")) {
 		if (!user) return toSignIn();
 		if (!atLeast(role, "editor")) return new Response("You do not have access to the admin panel.", { status: 403 });
 	}
+	if (/^\/(me|onboarding|admin)(\/|$)/.test(path) && !serviceReady()) return new Response("The database is not fully configured (service key missing).", { status: 503 });
 	return next();
 });
 //#endregion

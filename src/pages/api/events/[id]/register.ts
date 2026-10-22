@@ -17,6 +17,12 @@ export const POST: APIRoute = handle(async (ctx) => {
   const { data: ev } = await sb.from('events').select('*').eq('id', ctx.params.id).eq('published', true).maybeSingle();
   if (!ev) throw new ApiError('Event not found.', 404);
   const next = safeNext(b.next, '/me/registrations');
+  if (b._action === 'show') {
+    const { data: mine } = await sb.from('registrations').select('id,show_on_profile').eq('event_id', ev.id).eq('user_id', user.id).maybeSingle();
+    if (!mine) throw new ApiError('No reservation found.', 404);
+    await sb.from('registrations').update({ show_on_profile: !mine.show_on_profile }).eq('id', mine.id);
+    return wantsHtml(ctx.request) ? ctx.redirect(`/me/registrations?ok=${mine.show_on_profile ? 'Hidden from your profile.' : 'Shown on your profile.'}`, 303) : ok({ show_on_profile: !mine.show_on_profile });
+  }
   if (bool(b.cancel)) {
     await sb.from('registrations').delete().eq('event_id', ev.id).eq('user_id', user.id);
     return wantsHtml(ctx.request) ? ctx.redirect(`/me/registrations?ok=Reservation cancelled.`, 303) : ok({ registered: false });

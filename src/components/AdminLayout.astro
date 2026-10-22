@@ -19,6 +19,7 @@ const all = [
   { href: '/admin/solvers', label: 'Flag solvers', min: 'admin' },
   { href: '/admin/settings', label: 'Settings', min: 'admin' },
   { href: '/admin/audit', label: 'Audit log', min: 'admin' },
+  { href: '/admin/import', label: 'Import starter content', min: 'admin' },
 ] as const;
 const items = all.filter((i) => atLeast(role, i.min)).map(({ href, label }) => ({ href, label }));
 const flash = Astro.url.searchParams.get('ok');

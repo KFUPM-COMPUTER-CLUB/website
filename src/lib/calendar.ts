@@ -19,7 +19,7 @@ export function outlookUrl(e: EventItem, kind: 'work' | 'personal', site = '') {
   if (e.allDay) q.set('allday', 'true');
   return `https://${kind === 'work' ? 'outlook.office.com' : 'outlook.live.com'}/calendar/0/deeplink/compose?${q}`;
 }
-const esc = (s: string | null | undefined) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+const esc = (s: string | null | undefined) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 export function vevent(e: EventItem, site = '') {
   return ['BEGIN:VEVENT', `UID:${e.slug}@cckfupm`, `DTSTAMP:${stamp(new Date())}`,
     e.allDay ? `DTSTART;VALUE=DATE:${dateOnly(e.start)}` : `DTSTART:${stamp(e.start)}`,

@@ -1,0 +1,95 @@
+import { P as __exportAll, t as bust } from "./content_cbSbtds5.mjs";
+import { r as serviceClient } from "./supabase_CcU7CO77.mjs";
+import { a as handle, f as ok, l as isUuid, m as requireRole, n as audit, p as readBody, t as ApiError, v as str, y as wantsHtml } from "./api_BB02cnYN.mjs";
+//#region src/pages/api/admin/members/index.ts
+var members_exports = /* @__PURE__ */ __exportAll({
+	GET: () => GET,
+	POST: () => POST,
+	prerender: () => false
+});
+var ROLES = [
+	"member",
+	"editor",
+	"reviewer",
+	"officer",
+	"admin"
+];
+var csv = (rows) => {
+	const cols = Object.keys(rows[0] || { id: "" });
+	const esc = (v) => `"${String(v ?? "").replace(/"/g, "\"\"")}"`;
+	return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\r\n");
+};
+var GET = handle(async (ctx) => {
+	requireRole(ctx, "admin");
+	const { data } = await serviceClient().from("profiles").select("handle,name,email,phone,major,year,kfupm_email,github,linkedin,onboarded,suspended,created_at, user_roles(role)").order("created_at");
+	const rows = (data || []).map((p) => ({
+		handle: p.handle,
+		name: p.name,
+		email: p.email,
+		phone: p.phone,
+		major: p.major,
+		year: p.year,
+		kfupm_email: p.kfupm_email,
+		github: p.github,
+		linkedin: p.linkedin,
+		role: p.user_roles?.role || "member",
+		onboarded: p.onboarded,
+		suspended: p.suspended,
+		joined: String(p.created_at).slice(0, 10)
+	}));
+	return new Response(csv(rows), { headers: {
+		"Content-Type": "text/csv; charset=utf-8",
+		"Content-Disposition": `attachment; filename="members-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.csv"`,
+		"Cache-Control": "no-store"
+	} });
+});
+var POST = handle(async (ctx) => {
+	const admin = requireRole(ctx, "admin");
+	const b = await readBody(ctx.request);
+	const id = str(b.user_id, 40);
+	if (!isUuid(id)) throw new ApiError("Not found.", 404);
+	if (id === admin.id && (b._action === "delete" || b._action === "suspend")) throw new ApiError("You cannot do that to your own account.");
+	const sb = serviceClient();
+	const { data: p } = await sb.from("profiles").select("id,name,email,suspended").eq("id", id).maybeSingle();
+	if (!p) throw new ApiError("Not found.", 404);
+	const back = `/admin/members?q=${encodeURIComponent(str(b.q, 60))}`;
+	const done = (m) => {
+		bust();
+		return wantsHtml(ctx.request) ? ctx.redirect(`${back}&ok=${encodeURIComponent(m)}`, 303) : ok();
+	};
+	switch (b._action) {
+		case "role": {
+			const role = str(b.role, 20);
+			if (!ROLES.includes(role)) throw new ApiError("Unknown role.");
+			if (id === admin.id && role !== "admin") throw new ApiError("You cannot remove your own admin role.");
+			const { data: old } = await sb.from("user_roles").select("role").eq("user_id", id).maybeSingle();
+			await sb.from("user_roles").upsert({
+				user_id: id,
+				role,
+				granted_by: admin.id
+			});
+			await audit(admin.id, "role", "user_roles", id, { role: old?.role || "member" }, { role });
+			return done(`${p.name || p.email} is now ${role}.`);
+		}
+		case "suspend":
+			await sb.from("profiles").update({ suspended: !p.suspended }).eq("id", id);
+			await audit(admin.id, "update", "profiles", id, { suspended: p.suspended }, { suspended: !p.suspended });
+			return done(p.suspended ? "Account reinstated." : "Account suspended.");
+		case "delete": {
+			await audit(admin.id, "delete", "profiles", id, {
+				id,
+				name: p.name,
+				email: p.email
+			}, null);
+			const { error } = await sb.auth.admin.deleteUser(id);
+			if (error) throw new ApiError(error.message, 500);
+			return done("Account deleted.");
+		}
+		default: throw new ApiError("Unknown action.");
+	}
+});
+//#endregion
+//#region \0virtual:astro:page:src/pages/api/admin/members/index@_@ts
+var page = () => members_exports;
+//#endregion
+export { page };

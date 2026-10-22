@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { handle, requireRole, readBody, ApiError, audit, str, wantsHtml, ok } from '../../../../lib/api';
+import { handle, requireRole, readBody, ApiError, audit, str, wantsHtml, ok, safeNext } from '../../../../lib/api';
 import { serviceClient } from '../../../../lib/supabase';
 import { resource } from '../../../../lib/admin/resources';
 import { parseFields } from '../../../../lib/admin/io';
@@ -16,7 +16,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   const sb = serviceClient();
   const action = str(b._action, 20) || 'save';
   const id = str(b.id, 200);
-  const back = str(b.next, 300) || `/admin/${res.key}`;
+  const back = safeNext(b.next, `/admin/${res.key}`);
   const done = (msg: string, extra: Record<string, unknown> = {}) => { bust(); invalidateMedia(); return wantsHtml(ctx.request) ? ctx.redirect(`${back}${back.includes('?') ? '&' : '?'}ok=${encodeURIComponent(msg)}`, 303) : ok(extra); };
   const current = id ? (await sb.from(res.table).select('*').eq(res.pk, id).maybeSingle()).data : null;
 
@@ -29,7 +29,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (action === 'move' || action === 'toggle') {
     if (!current) throw new ApiError('Not found.', 404);
     const patch: Record<string, unknown> = {};
-    if (action === 'toggle') { const col = res.visible ? 'visible' : res.key === 'events' ? 'published' : res.key === 'board' ? 'is_current' : 'approved'; patch[col] = !current[col]; }
+    if (action === 'toggle') { const col = res.visible ? 'visible' : res.key === 'events' ? 'published' : res.key === 'board' ? 'is_current' : res.key === 'solvers' ? 'approved' : null; if (!col) throw new ApiError('Nothing to toggle.'); patch[col] = !current[col]; }
     else {
       const { data: all } = await sb.from(res.table).select(`${res.pk},sort`).order('sort');
       const list = all || []; const i = list.findIndex((r: any) => String(r[res.pk]) === id); const j = b.dir === 'up' ? i - 1 : i + 1;

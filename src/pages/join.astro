@@ -3,10 +3,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { dbReady, googleEnabled } from '../lib/env';
 import { getSettings } from '../lib/content';
+import { safeNext } from '../lib/api';
 export const prerender = false;
 const settings = await getSettings();
 const q = Astro.url.searchParams;
-const next = q.get('next') || '/me';
+const next = safeNext(q.get('next'), '/me');
 const error = q.get('error');
 const google = googleEnabled();
 if (Astro.locals.user) return Astro.redirect(Astro.locals.profile?.onboarded ? next : '/onboarding');

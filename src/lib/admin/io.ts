@@ -9,6 +9,7 @@ export const fromRiyadhInput = (v: string) => { const m = /^(\d{4})-(\d{2})-(\d{
 export function parseFields(res: Resource, body: Record<string, any>, existing: Record<string, any> | null) {
   const row: Record<string, any> = {};
   for (const f of res.fields) {
+    if (existing && f.name === res.pk) continue; // the key is the row identity; never rewritten
     const raw = body[f.name];
     let v: any;
     switch (f.type) {
@@ -19,7 +20,7 @@ export function parseFields(res: Resource, body: Record<string, any>, existing: 
       case 'tags': v = String(raw || '').split(',').map((t) => str(t, 30)).filter(Boolean); break;
       case 'url': v = str(raw, 500) || null; if (v && !isUrl(v)) throw new ApiError(`${f.label} must be a full URL (https://…).`); break;
       case 'select': v = f.options?.includes(String(raw)) ? String(raw) : (f.required ? f.options?.[0] : null); break;
-      default: v = str(raw, f.max || 2000) || null;
+      default: v = str(raw, f.max || 2000) || (f.type === 'text' || f.type === 'textarea' ? '' : null);
     }
     if (f.required && (v === null || v === '' || v === undefined)) throw new ApiError(`${f.label} is required.`);
     row[f.name] = v;
@@ -31,6 +32,6 @@ export const display = (f: Field | undefined, v: any) => {
   if (v === null || v === undefined || v === '') return '';
   if (f?.type === 'bool' || typeof v === 'boolean') return v ? 'yes' : 'no';
   if (f?.type === 'datetime') return toRiyadhInput(String(v)).replace('T', ' ');
-  if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) return v.slice(0, 10);
+  if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) return toRiyadhInput(v).slice(0, 10);
   return String(v);
 };

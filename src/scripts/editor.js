@@ -76,6 +76,9 @@ onPage(() => {
   const value = (name) => { const f = field(name); return f && 'value' in f ? String(f.value) : ''; };
   const setStatus = (text, kind = '') => { if (!status) return; status.textContent = text; status.dataset.kind = kind; };
   let dir = form.dataset.dir === 'rtl' ? 'rtl' : 'ltr';
+  /* A post under review or published by a plain author is read-only: the page disables its fields
+   * (or sets data-locked) and the API answers 409, so the editor opens without toolbar or autosave. */
+  const locked = form.hasAttribute('data-locked') || !!field('title')?.disabled;
 
   /* ── Document ───────────────────────────────────────────────────────── */
   const initial = () => {
@@ -85,6 +88,7 @@ onPage(() => {
   };
   const editor = new Editor({
     element: surface,
+    editable: !locked,
     content: initial(),
     extensions: [
       StarterKit.configure({ codeBlock: false, link: false, heading: { levels: [2, 3] } }),
@@ -105,7 +109,7 @@ onPage(() => {
   const tags = () => value('tags').split(',').map((t) => t.trim()).filter((t, i, a) => t && a.indexOf(t) === i);
   const payload = () => ({ title: value('title').trim(), excerpt: value('excerpt').trim(), category: value('category'), tags: tags(), dir, content_html: editor.getHTML(), content_json: editor.getJSON() });
   let dirty = false, serial = 0, timer = 0, inflight = null, queued = false;
-  const markDirty = () => { dirty = true; serial++; clearTimeout(timer); timer = setTimeout(save, 1500); };
+  const markDirty = () => { if (locked) return; dirty = true; serial++; clearTimeout(timer); timer = setTimeout(save, 1500); };
   async function send() {
     const at = serial;
     setStatus('Saving…', 'busy');
@@ -139,6 +143,7 @@ onPage(() => {
     fd.append('file', file, file.name);
     if (kind === 'image') fd.append('alt', alt);
     fd.append('kind', kind);
+    if (form.dataset.postId) fd.append('post_id', form.dataset.postId);
     const res = await fetch(form.dataset.upload, { method: 'POST', credentials: 'same-origin', body: fd });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || data.ok === false || !data.url) throw new Error(data?.error || `Upload failed (HTTP ${res.status})`);
@@ -172,7 +177,7 @@ onPage(() => {
   }));
 
   /* ── Toolbar ────────────────────────────────────────────────────────── */
-  toolbar.setAttribute('role', 'toolbar'); toolbar.setAttribute('aria-label', 'Formatting');
+  toolbar.setAttribute('role', 'toolbar'); toolbar.setAttribute('aria-label', 'Formatting'); toolbar.hidden = locked;
   const tools = [];
   const group = (label, hidden = false) => { const g = document.createElement('span'); g.className = 'editor__group'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', label); g.hidden = hidden; toolbar.append(g); return g; };
   const tool = (g, label, aria, run, { active, can, wide } = {}) => {
@@ -253,7 +258,7 @@ onPage(() => {
   const fieldChanged = (e) => { const t = e.target; if (!t || surface.contains(t) || t.type === 'hidden' || t.type === 'file' || t.hidden) return; markDirty(); };
   off.add(listen(form, 'input', fieldChanged));
   off.add(listen(form, 'change', fieldChanged));
-  off.add(listen(form, 'keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); save(); } }));
+  off.add(listen(form, 'keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); if (!locked) save(); } }));
   off.add(listen(surface, 'mousedown', (e) => { if (e.target === surface) { e.preventDefault(); editor.commands.focus('end'); } }));
   off.add(listen(form, 'submit', () => { clearTimeout(timer); syncFields(); dirty = false; })); // the submit carries the content itself
   off.add(listen(window, 'beforeunload', (e) => { if (dirty || inflight) { e.preventDefault(); e.returnValue = ''; } }));
@@ -262,7 +267,7 @@ onPage(() => {
   if (previewBtn) off.add(listen(previewBtn, 'click', async () => {
     const url = form.dataset.preview;
     const win = window.open('about:blank', '_blank'); // opened inside the click so popup blockers allow it
-    const ok = await save();
+    const ok = locked || await save();
     if (!ok) { win?.close(); return; }
     if (win) { win.opener = null; win.location.href = url; } else window.open(url, '_blank', 'noopener');
   }));

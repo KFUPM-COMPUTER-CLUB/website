@@ -5,7 +5,7 @@ if (Astro.locals.role !== 'admin') return new Response('Admins only', { status: 
 const { data } = await serviceClient().from('settings').select('key,value');
 const v: Record<string, any> = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
 const site = v.site || {}, links = v.links || {}, banner = v.banner || {}, groups: any[] = Array.isArray(v.whatsapp_groups) ? v.whatsapp_groups : [], tpl = v.email_templates || {}, made: any[] = Array.isArray(v.made_by) ? v.made_by : [];
-const LINKS = [['join', 'Join form (optional, overrides the built-in join page)'], ['whatsapp', 'Public WhatsApp'], ['discord', 'Discord'], ['instagram', 'Instagram'], ['x', 'X'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['solvers', 'Flag solvers endpoint (optional)']];
+const LINKS = [['join', 'Join form (optional, overrides the built-in join page)'], ['instagram', 'Instagram'], ['x', 'X'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['solvers', 'Flag solvers endpoint (optional)']];
 ---
 <AdminLayout title="Settings">
   <form class="form card" id="site" method="post" action="/api/admin/settings"><input type="hidden" name="key" value="site" />
@@ -23,8 +23,8 @@ const LINKS = [['join', 'Join form (optional, overrides the built-in join page)'
     <button class="btn btn--small" type="submit">Save links</button>
   </form>
   <form class="form card" id="whatsapp_groups" method="post" action="/api/admin/settings" style="margin-top:16px"><input type="hidden" name="key" value="whatsapp_groups" />
-    <h2 class="h3">WhatsApp groups (members only)</h2>
-    <p class="hint">Shown to members right after onboarding and in the welcome email. Never public.</p>
+    <h2 class="h3">Members-only group links</h2>
+    <p class="hint">WhatsApp, Discord or any invite link. Shown to members right after onboarding, on their dashboard and in the welcome email. Never public: the database refuses invite links under any public setting.</p>
     {[...groups, {}, {}].slice(0, Math.max(groups.length + 1, 2)).map((g: any) => <div class="form__row"><div class="field"><label>Label</label><input class="input" name="label[]" value={g.label || ''} placeholder="General" /></div><div class="field"><label>Invite link</label><input class="input" name="url[]" type="url" value={g.url || ''} placeholder="https://chat.whatsapp.com/…" /></div></div>)}
     <button class="btn btn--small" type="submit">Save groups</button>
   </form>

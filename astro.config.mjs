@@ -9,6 +9,7 @@ export default defineConfig({
   output: 'server',
   adapter: vercel({
     imageService: false, // Astro's own sharp service; no paid image transforms
+    maxDuration: 60,
     isr: {
       expiration: 60,
       exclude: [/^\/me(\/|$)/, /^\/admin(\/|$)/, /^\/api\//, /^\/auth\//, /^\/onboarding(\/|$)/, /^\/join(\/|$)/],

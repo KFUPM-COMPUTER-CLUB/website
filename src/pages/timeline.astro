@@ -13,8 +13,8 @@ const site = Astro.site?.origin || '';
 const counts = new Map<string, number>();
 const open = upcoming.filter((e) => e.registrationOpen);
 if (dbReady() && open.length) {
-  const { data } = await publicClient().from('registrations').select('event_id').in('event_id', open.map((e) => e.id));
-  for (const r of data || []) counts.set(r.event_id, (counts.get(r.event_id) || 0) + 1);
+  const { data } = await publicClient().rpc('registration_counts', { p_event_ids: open.map((e) => e.id) });
+  for (const r of data || []) counts.set(r.event_id, Number(r.count) || 0);
 }
 const groups = (list: EventItem[]) => { const out: { term: string; items: EventItem[] }[] = []; for (const e of list) { const t = termOf(e.start); const g = out.find((x) => x.term === t); g ? g.items.push(e) : out.push({ term: t, items: [e] }); } return out; };
 const day = (d: Date) => fmtRiyadh(d, { month: 'short', day: 'numeric' });
