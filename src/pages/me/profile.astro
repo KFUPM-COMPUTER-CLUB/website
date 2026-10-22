@@ -5,8 +5,8 @@
 import MeLayout from '../../components/MeLayout.astro';
 import { googleEnabled } from '../../lib/env';
 import { sessionClient } from '../../lib/supabase';
+import { YEARS as years } from '../../lib/types';
 const p = Astro.locals.profile!;
-const years = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
 const {
   data: { user },
 } = await sessionClient(Astro.request, Astro.cookies).auth.getUser();
