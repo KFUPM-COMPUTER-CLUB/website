@@ -29,7 +29,7 @@ const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at <
       <Fragment set:html={post.content_html || '<p>(empty)</p>'} />
     </article>
     <div>
-      <form class="form card" method="post" action={`/api/admin/posts/${post.id}/review`}>
+      <form data-astro-reload class="form card" method="post" action={`/api/admin/posts/${post.id}/review`}>
         <h2 class="h3">Decision</h2>
         <div class="field">
           <label for="status">Status</label>

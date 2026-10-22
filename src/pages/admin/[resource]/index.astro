@@ -64,7 +64,7 @@ const extra = res.key === 'impact' ? [{ href: '/admin/impact-items', label: 'Imp
           <tr>
             {res.sortable && (
               <td>
-                <form method="post" action={`/api/admin/${res.key}`}>
+                <form data-astro-reload method="post" action={`/api/admin/${res.key}`}>
                   <input type="hidden" name="_action" value="move" />
                   <input type="hidden" name="id" value={r[res.pk]} />
                   <button
@@ -109,7 +109,7 @@ const extra = res.key === 'impact' ? [{ href: '/admin/impact-items', label: 'Imp
                 </a>
               )}
               {toggleCol && (
-                <form method="post" action={`/api/admin/${res.key}`}>
+                <form data-astro-reload method="post" action={`/api/admin/${res.key}`}>
                   <input type="hidden" name="_action" value="toggle" />
                   <input type="hidden" name="id" value={r[res.pk]} />
                   <button class="btn btn--tiny btn--ghost" type="submit">

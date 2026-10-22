@@ -171,7 +171,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                       )}
                       {sec.up && e.registrationOpen && (
                         <div class="ev__rsvp">
-                          <form method="post" action={`/api/events/${e.id}/register`} data-signed-in hidden>
+                          <form data-astro-reload method="post" action={`/api/events/${e.id}/register`} data-signed-in hidden>
                             <input type="hidden" name="next" value={`/timeline#ev-${e.slug}`} />
                             <label class="ev__copy">
                               <input type="checkbox" name="email_copy" value="1" /> email me a copy

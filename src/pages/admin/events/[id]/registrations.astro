@@ -68,7 +68,7 @@ const admin = atLeast(Astro.locals.role, 'admin');
               {r.email_copy && ' · emailed'}
             </td>
             <td>
-              <form method="post" action={`/api/admin/events/${ev.id}/registrations`}>
+              <form data-astro-reload method="post" action={`/api/admin/events/${ev.id}/registrations`}>
                 <input type="hidden" name="registration_id" value={r.id} />
                 <button class={`btn btn--tiny ${r.attended ? '' : 'btn--ghost'}`} type="submit">
                   {r.attended ? '✓ Attended' : 'Mark attended'}
@@ -76,7 +76,7 @@ const admin = atLeast(Astro.locals.role, 'admin');
               </form>
             </td>
             <td>
-              <form
+              <form data-astro-reload
                 method="post"
                 action={`/api/admin/events/${ev.id}/registrations`}
                 onsubmit="return confirm('Remove this reservation?')"

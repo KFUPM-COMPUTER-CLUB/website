@@ -5,7 +5,7 @@ const categories = ['News', 'Event recap', 'Tutorial', 'Project', 'Experience', 
 ---
 
 <MeLayout title="New post" lead="Give it a title; you can change everything in the editor.">
-  <form class="form" method="post" action="/api/posts">
+  <form data-astro-reload class="form" method="post" action="/api/posts">
     <div class="field">
       <label for="title">Title</label>
       <input class="input" id="title" name="title" required maxlength="140" autofocus />

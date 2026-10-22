@@ -34,7 +34,7 @@ const suggested = (p?.name || '')
           {error}
         </p>
       )}
-      <form class="form" method="post" action="/api/me/onboard" enctype="multipart/form-data">
+      <form data-astro-reload class="form" method="post" action="/api/me/onboard" enctype="multipart/form-data">
         <input type="hidden" name="next" value={next} />
         <div class="form__row">
           <div class="field">

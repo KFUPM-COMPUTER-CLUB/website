@@ -1,7 +1,10 @@
 ---
 /* The shell every page uses: head tags, fonts, header, banner, footer, the terminal and the global
  * scripts. ClientRouter enables view transitions, which is why every client script goes through
- * onPage() in scripts/page.js instead of running at module load. Settings come from the content
+ * onPage() in scripts/page.js instead of running at module load. ClientRouter also submits forms
+ * with fetch and gives up on any reply that is not HTML; our API only redirects real browser form
+ * posts, so a form that posts to /api or /auth must carry data-astro-reload (the guard below adds
+ * it at submit time for any form that forgets). Settings come from the content
  * layer (memoised), so this layout is cheap on cached pages. The HTML comment near the end of body
  * is clue 2 of the site challenge; keep it. */
 import '../styles/global.css';
@@ -38,6 +41,13 @@ const { title, description = site.description, noindex = false } = Astro.props;
     <meta name="theme-color" content="#0B0B0F" />
     <meta name="site-root" content="/" />
     <ClientRouter fallback="animate" />
+    <script>
+      // Runs in the capture phase, so it marks the form before ClientRouter's own submit handler looks at it.
+      document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (form instanceof HTMLFormElement && /^\/(api|auth)\//.test(new URL(form.action, location.href).pathname)) form.setAttribute('data-astro-reload', '');
+      }, true);
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

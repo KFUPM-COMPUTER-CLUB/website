@@ -32,7 +32,7 @@ const images = [...(await mediaMap()).values()].filter((m) => m.kind === 'image'
       <span>semesters and prizes</span>
     </a>
   </div>
-  <form class="form" method="post" action="/api/admin/settings">
+  <form data-astro-reload class="form" method="post" action="/api/admin/settings">
     <input type="hidden" name="key" value="home" />
     <div class="field">
       <label for="heroLine">Hero line</label>
