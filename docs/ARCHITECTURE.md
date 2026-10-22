@@ -1,55 +1,62 @@
 # Architecture
 
-The site is an [Astro](https://astro.build) app rendered on demand on Vercel. Public pages are cached by Vercel's ISR for 60 seconds, so they are as fast as static pages and an admin's edit is live within about a minute without a deploy. Pages about a specific person (`/me`, `/admin`, `/onboarding`, `/api/*`, `/auth/*`) are never cached.
+One Astro app, rendered on demand on Vercel, with Supabase behind it. Public pages are cached for 60 seconds (ISR); anything about a specific person is never cached.
 
+```mermaid
+flowchart LR
+  B[Browser] -->|HTML, cached 60 s for public pages| V[Astro on Vercel<br/>functions in Stockholm]
+  V -->|anon key, row level security| DB[(Supabase Postgres)]
+  V -->|secret key, server only| DB
+  V -->|PKCE cookies| AUTH[Supabase Auth<br/>GitHub, Google]
+  V -->|uploads, signed URLs| ST[Supabase Storage<br/>media · files · drafts]
+  V -->|queued, max 90 a day| R[Resend]
+  CRON[Vercel cron, daily] --> V
+  V -.->|no keys: seed JSON| SEED[src/data]
 ```
-browser ─ Vercel CDN (ISR, 60 s) ─ Astro server (Node, region arn1)
-                                        ├── src/lib/content.ts ─┬─ Supabase Postgres (anon key, RLS)
-                                        │                       └─ src/data/*.json (seed fallback)
-                                        ├── src/lib/supabase.ts ── Supabase Auth, Storage (service key, server only)
-                                        └── src/lib/email.ts ──── Resend (queued, 90 a day)
-```
-
-## Data
-
-| Where | What |
-|---|---|
-| `supabase/migrations/0001_init.sql` | Every table, view, function, policy and bucket. Run once; safe to re-run. |
-| `src/lib/content.ts` | The only way pages read content. With `PUBLIC_SUPABASE_URL` set it queries the database; without it, it serves the seed JSON. |
-| `src/lib/photos.ts` | Resolves a photo key to `{ src, srcset }`: WebP sizes in Storage, or the seed photo optimised by Astro. |
-| `src/data/*.json`, `src/content/posts/*.md` | Seed data. Imported once with `scripts/import-seed.mjs`; after that the database is the source of truth. |
-
-Tables: `profiles` (+ `profiles_public` view without phone or email), `user_roles`, `media`, `events`, `registrations`, `posts`, `post_reviews`, `officer_terms`, `highlights`, `stories`, `strip_photos`, `impact_semesters`, `impact_items`, `partners`, `faq`, `settings` (key/value JSON), `flag_solvers`, `email_queue`, `audit_log`, `rate_limits`, `keepalive`.
-
-Row level security is on everywhere. The anon key can read published, visible rows and nothing personal. Signed-in users can read and edit their own rows. Everything else goes through the site's API routes, which check the role and then use the service key. The service key exists only on the server.
-
-## Roles
-
-`member` < `editor` < `reviewer` < `officer` < `admin`. A signed-in user without a role row is a member. Officers edit site content (events, home page, partners, FAQ, media); reviewers run the blog queue; admins also manage members, the board, settings, flag solvers and the audit log. The first admins come from the `ADMIN_EMAILS` environment variable.
 
 ## Request flow
 
-1. `src/middleware.ts` runs on every request. On personal routes it reads the Supabase session from cookies, loads the profile and role into `Astro.locals`, and enforces sign-in and onboarding. On every `/api/*` mutation it checks the request came from this site (origin / `Sec-Fetch-Site`).
-2. Pages render with the content layer. Components receive plain objects, never a Supabase client.
-3. API routes (`src/pages/api/**`) use `src/lib/api.ts`: `handle()` turns errors into JSON (or a redirect with `?error=` for form posts), `requireRole()`, `rateLimit()` (a Postgres function, per IP and scope), `audit()`.
-4. Writes call `bust()` so the in-memory memo clears; ISR expiry does the rest.
+1. `src/middleware.ts` runs first. On personal routes (`/me`, `/admin`, `/onboarding`, `/auth`, `/api`, `/join`) it reads the session from cookies and puts `user`, `profile` and `role` on `Astro.locals`. Public routes skip that entirely, because a cached page must never contain one person's data. On every `/api` and `/auth` mutation it checks the request came from this site.
+2. Pages read data through `src/lib/content.ts`. With `PUBLIC_SUPABASE_URL` set it queries Postgres with the anon key (so row level security applies); without it, it serves `src/data/*.json`. Photos resolve through `src/lib/photos.ts` to WebP sizes in Storage or to seed images Astro optimises.
+3. Writes go through API routes in `src/pages/api/` with the service key, after `requireRole` or an ownership check. They log to `audit_log`, call `bust()` to clear the in-memory memo, and ISR expiry does the rest.
+4. Email goes into `email_queue`; `src/lib/email.ts` sends immediately while under the daily budget and the daily cron (`/api/cron/daily`) sends the rest by priority and keeps the free Supabase project awake.
 
-## Images and files
+## Roles
 
-Uploads (`/api/upload`) are checked by real file signature and size, converted to WebP at 480, 960 and 1600 px with sharp, stored in the `media` bucket, and recorded in `media` with required alt text. PDFs (max 10 MB) go to the `files` bucket. No paid image transforms are used; the seed photos are optimised by Astro's own image service at request time and cached by the CDN.
+| Role     | Who                                             | Can                                                                               |
+| -------- | ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| guest    | anyone                                          | read public pages                                                                 |
+| member   | any signed-in, onboarded account                | edit own profile, reserve spots, write and submit posts, see the group links      |
+| editor   | members the admins trust with drafts            | everything a member can, plus the admin dashboard                                 |
+| reviewer | blog team                                       | review queue: notes, publish, request changes                                     |
+| officer  | board members                                   | events and registrations, home page content, partners, FAQ, media library         |
+| admin    | the club lead and the web lead (`ADMIN_EMAILS`) | everything, plus members, roles, board, settings, flag solvers, audit log, import |
 
-## Blog
+Roles are ranks: an officer can do what a reviewer can. `has_role()` in SQL and `atLeast()` in TypeScript encode the same order.
 
-Posts are written in a TipTap editor (`src/scripts/editor.js`), autosaved as HTML + JSON. The server sanitises the HTML (`src/lib/sanitize.ts`) before storing it. Status flow: draft → submitted → changes requested or published → unpublished. Reviewers leave notes in `/admin/posts`; each status change emails the author.
+## Data model
 
-## Email
+| Table                                                                                          | Holds                                                                                                            | Public read                                         | Notes                                                                           |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `profiles`                                                                                     | one row per account: name, handle, contact, major, year, links, flags                                            | only through `profiles_public` (no phone, no email) | created by a trigger on sign-up                                                 |
+| `user_roles`                                                                                   | one role per user                                                                                                | own row                                             | first admins from `ADMIN_EMAILS`                                                |
+| `media`                                                                                        | every uploaded file: key, sizes, alt, bucket, post, published                                                    | published rows                                      | seed photos keep their file name as key                                         |
+| `events`                                                                                       | title, type, start/end, location, cover, X post, registration settings                                           | published rows                                      | times are UTC instants entered in Riyadh time                                   |
+| `registrations`                                                                                | member × event, email copy, attended, show on profile                                                            | own rows                                            | counts through `registration_counts()`, profile list through `profile_events()` |
+| `posts`                                                                                        | title, HTML + JSON content, status, author, category, tags, dir                                                  | published rows                                      | HTML is sanitised server-side before storage                                    |
+| `post_reviews`                                                                                 | reviewer notes per post                                                                                          | author and reviewers                                |                                                                                 |
+| `officer_terms`                                                                                | the board, current and past                                                                                      | all                                                 | linked to a profile when the officer has an account                             |
+| `highlights`, `stories`, `strip_photos`, `impact_semesters`, `impact_items`, `partners`, `faq` | home page and FAQ content                                                                                        | visible rows                                        | ordered by `sort`                                                               |
+| `settings`                                                                                     | key → JSON: `site`, `links`, `home`, `banner`, `made_by` (public); `whatsapp_groups`, `email_templates` (admins) | public keys only                                    | a trigger refuses invite links under any public key                             |
+| `flag_solvers`                                                                                 | names from the hidden challenge                                                                                  | approved rows                                       | moderated in admin                                                              |
+| `email_queue`, `audit_log`, `rate_limits`, `keepalive`                                         | operations                                                                                                       | none                                                | service key only                                                                |
 
-`src/lib/email.ts` queues every message in `email_queue`. If Resend is configured and today's budget (90) is left, it sends immediately; otherwise the daily cron (`/api/cron/daily`, from `vercel.json`) sends by priority (welcome first) and rolls the remainder to the next day. The same cron touches `keepalive` so the free Supabase project never pauses.
+Everything is in `supabase/migrations/0001_init.sql`, commented. New tables go in new migration files.
 
-## Client-side scripts
+## Security in one paragraph
 
-Small modules in `src/scripts/`, each initialised through `src/scripts/page.js` so they survive Astro's client-side page transitions. No client framework; TipTap is loaded only on the editor page.
+Row level security is on everywhere, and user tokens have read policies only: a member's token can read their own rows and published content, nothing more, and cannot write any table. Every write goes through the API with the service key after a role or ownership check, so validation and sanitising cannot be skipped by calling PostgREST directly. Draft uploads sit in a private bucket and are served through `/api/media/<key>` with short-lived signed URLs until the post is published. Public forms are rate limited by a Postgres function the API alone can call. The service key never leaves the server; `.env` is ignored by git.
 
-## Deployment
+## Client side
 
-`.github/workflows/deploy.yml` deploys every pull request to a Vercel preview and `main` to production. Environment variables live in Vercel (see `docs/SETUP.md`), never in the repo.
+Small modules in `src/scripts/`, each initialised through `src/scripts/page.js` so they survive Astro's client-side page transitions. TipTap loads only on the editor page. No client framework.
