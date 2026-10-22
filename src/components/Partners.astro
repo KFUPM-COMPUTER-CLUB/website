@@ -2,8 +2,11 @@
 // Friends of the club, laid out as a centred tree of logos. Content comes from the partners table
 // (or src/data/partners.json as seed). The click goes to the post that shows the collaboration
 // ("source") or the organisation's site; the "what" field is the hover text.
-import { getPartners } from '../lib/content';
+import { getPartners, getSettings } from '../lib/content';
 const all = await getPartners();
+// The button goes to the club's link page (Admin → Settings → Links → Partner with us); falls back to the Community page.
+const partnerHref = (await getSettings()).links.partner || '/community';
+const partnerExt = partnerHref.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {};
 const friends = all.filter((c) => c.kind !== 'visited');
 const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUrl || e.url || undefined;
 ---
@@ -30,7 +33,7 @@ const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUr
     </ul>
 
     <div class="partners__ask reveal" id="partner">
-      <a class="btn btn--light" data-magnet href="/officers">Partner with us <span aria-hidden="true">→</span></a>
+      <a class="btn btn--light" data-magnet href={partnerHref} {...partnerExt}>Partner with us <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>

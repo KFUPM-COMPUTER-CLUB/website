@@ -5,7 +5,7 @@ if (Astro.locals.role !== 'admin') return new Response('Admins only', { status: 
 const { data } = await serviceClient().from('settings').select('key,value');
 const v: Record<string, any> = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
 const site = v.site || {}, links = v.links || {}, banner = v.banner || {}, groups: any[] = Array.isArray(v.whatsapp_groups) ? v.whatsapp_groups : [], tpl = v.email_templates || {}, made: any[] = Array.isArray(v.made_by) ? v.made_by : [];
-const LINKS = [['join', 'Join form (optional, overrides the built-in join page)'], ['instagram', 'Instagram'], ['x', 'X'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['solvers', 'Flag solvers endpoint (optional)']];
+const LINKS = [['join', 'Join form (optional, overrides the built-in join page)'], ['partner', 'Partner with us button (home page)'], ['instagram', 'Instagram'], ['x', 'X'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['solvers', 'Flag solvers endpoint (optional)']];
 ---
 <AdminLayout title="Settings">
   <form class="form card" id="site" method="post" action="/api/admin/settings"><input type="hidden" name="key" value="site" />
