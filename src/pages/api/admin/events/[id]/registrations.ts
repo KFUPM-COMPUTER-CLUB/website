@@ -5,7 +5,10 @@ import { atLeast } from '../../../../../lib/types';
 
 export const prerender = false;
 // A cell starting with = + - @ runs as a formula in Excel, so it gets a leading apostrophe.
-const esc = (v: unknown) => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
+const esc = (v: unknown) => {
+  const s = String(v ?? '');
+  return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+};
 /* Officer tools for one event's reservations, used by /admin/events/<id>/registrations.
  * GET is the CSV export. Officers get names only; email and phone are admin columns, the same split
  * as the page itself, because contact details are what members were promised stays with admins.

@@ -8,7 +8,10 @@ const ROLES = ['member', 'editor', 'reviewer', 'officer', 'admin'];
 const csv = (rows: Record<string, unknown>[]) => {
   const cols = Object.keys(rows[0] || { id: '' });
   // A cell starting with = + - @ runs as a formula in Excel, so it gets a leading apostrophe.
-  const esc = (v: unknown) => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
+  const esc = (v: unknown) => {
+    const s = String(v ?? '');
+    return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+  };
   return [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\r\n');
 };
 
