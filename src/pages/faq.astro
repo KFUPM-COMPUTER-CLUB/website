@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../data/site.json';
+import CopyEmail from '../components/CopyEmail.astro';
+const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
+const joinHref = isReal(site.links.join) ? site.links.join : '/about';
+---
+
+<BaseLayout title="Questions" description="Common questions about joining and taking part in the KFUPM Computer Club.">
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Frequently asked questions</span>
+      <h1 class="h-display">Questions people ask us.</h1>
+      <p class="lead">Short answers. If yours is not here, ask on X or at any event.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container" style="max-width:860px">
+      <div class="faq reveal">
+        {site.faq.map((f, i) => (
+          <details open={i === 0}><summary>{f.q}</summary><div class="faq__a"><p>{f.a}</p></div></details>
+        ))}
+      </div>
+      <div class="hero__actions" style="margin-top:40px">
+        <a class="btn" href={joinHref} target={joinHref.startsWith('http') ? '_blank' : undefined} rel="noopener">Join the club <span aria-hidden="true">→</span></a>
+        {isReal(site.email) && <a class="btn btn--ghost" href={`mailto:${site.email}`}>Email us</a>}
+        {isReal(site.email) && <CopyEmail email={site.email} label="Club email" />}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

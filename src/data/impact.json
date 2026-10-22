@@ -1,0 +1,178 @@
+{
+  "_note": "Prize pools as ANNOUNCED in @KFUPM_CC posts on X (not confirmed payouts). Semesters follow the KFUPM calendar: Fall = Aug-Dec, Spring = Jan-May. Each event links to its source post. \"photo\" is the backdrop used for that semester in the show reel (a club photo from that semester, not necessarily the prize event).",
+  "semesters": [
+    {
+      "term": "Spring 2023",
+      "total_sar": 24000,
+      "events": [
+        {
+          "name": "Competitive Programming Competition",
+          "prize_sar": 12000,
+          "detail": "split across 10 winners",
+          "source": "https://x.com/KFUPM_CC/status/1622254687096299520"
+        },
+        {
+          "name": "KFUPM Innovation Hackathon",
+          "prize_sar": 12000,
+          "detail": "3 days, 25 hours of coding",
+          "source": "https://x.com/KFUPM_CC/status/1625610866409218078"
+        }
+      ],
+      "photo": "2023-02-19_1627334418477027328.jpg"
+    },
+    {
+      "term": "Fall 2023",
+      "total_sar": 9000,
+      "events": [
+        {
+          "name": "Typing Speed Competition",
+          "prize_sar": 3000,
+          "source": "https://x.com/KFUPM_CC/status/1718948992136986950"
+        },
+        {
+          "name": "Flutter Weekend Hackathon (with GDSC)",
+          "prize_sar": 6000,
+          "source": "https://x.com/KFUPM_CC/status/1728791511259598914"
+        }
+      ],
+      "photo": "2023-12-03_1731292973663457737.jpg"
+    },
+    {
+      "term": "Spring 2024",
+      "total_sar": 25000,
+      "events": [
+        {
+          "name": "AWS DeepRacer (with JRCAI and GDSC)",
+          "prize_sar": 25000,
+          "detail": "AI and ML workshops plus virtual and physical races",
+          "source": "https://x.com/KFUPM_CC/status/1782484563270258838"
+        }
+      ],
+      "photo": "2024-05-07_1787837468470812860.jpg"
+    },
+    {
+      "term": "Fall 2024",
+      "total_sar": 12000,
+      "events": [
+        {
+          "name": "SWE 363 Best Project Competition",
+          "prize_sar": 6000,
+          "source": "https://x.com/KFUPM_CC/status/1858153764055552301"
+        },
+        {
+          "name": "Web Penetration Testing Bootcamp CTF",
+          "prize_sar": 6000,
+          "source": "https://x.com/KFUPM_CC/status/1864396918228422715"
+        }
+      ],
+      "photo": "2024-12-04_1864396918228422715.jpg"
+    },
+    {
+      "term": "Spring 2025",
+      "total_sar": 42000,
+      "total_is_minimum": true,
+      "events": [
+        {
+          "name": "SWE 363 Showcases",
+          "prize_sar": 6000,
+          "detail": "up to 6,000; check it isn't the same contest as Fall 2024",
+          "source": "https://x.com/KFUPM_CC/status/1890809340430360979"
+        },
+        {
+          "name": "Techathon",
+          "prize_sar": 30000,
+          "detail": "30,000+; 60+ teams from Saudi universities, 24 reached the on-site final",
+          "source": "https://x.com/KFUPM_CC/status/1900955281497919890"
+        },
+        {
+          "name": "The Hunger Prompts",
+          "prize_sar": 6000,
+          "detail": "up to 6,000",
+          "source": "https://x.com/KFUPM_CC/status/1914037803802923332"
+        }
+      ],
+      "photo": "2025-04-20_1913920617407009239.jpg"
+    },
+    {
+      "term": "Fall 2025",
+      "total_sar": 23500,
+      "total_is_minimum": true,
+      "events": [
+        {
+          "name": "Arduino Challenge",
+          "prize_sar": 3000,
+          "source": "https://x.com/KFUPM_CC/status/1993703688938889341"
+        },
+        {
+          "name": "ByteBank FinTech Hackathon (with IAU AI & Robotics Club)",
+          "prize_sar": 10000,
+          "detail": "10,000+",
+          "source": "https://x.com/KFUPM_CC/status/1996545405811634210"
+        },
+        {
+          "name": "Typing Speed Competition (with Actuarial Club)",
+          "prize_sar": 4500,
+          "source": "https://x.com/KFUPM_CC/status/1997685427814408693"
+        },
+        {
+          "name": "Treasure Hunt (with CIE Club)",
+          "prize_sar": 6000,
+          "source": "https://x.com/KFUPM_CC/status/1998388715106762864"
+        },
+        {
+          "name": "KFUPM CTF 2025",
+          "prize_sar": null,
+          "detail": "prize amount not stated in the post",
+          "source": "https://x.com/KFUPM_CC/status/1991507986024386931"
+        }
+      ],
+      "photo": "2025-12-10_1998825273383399868.jpg"
+    },
+    {
+      "term": "Spring 2026",
+      "total_sar": 52000,
+      "events": [
+        {
+          "name": "LeetCode / Algorithms Competition",
+          "prize_sar": 6000,
+          "detail": "two posts mention 6,000 each; check whether it was one contest or two",
+          "source": "https://x.com/KFUPM_CC/status/2021864371467513893"
+        },
+        {
+          "name": "Streamathon (powered by Stream & Replit)",
+          "prize_sar": 40000,
+          "detail": "biggest prize pool so far",
+          "source": "https://x.com/KFUPM_CC/status/2040851390625456417"
+        },
+        {
+          "name": "Data Science Bootcamp + Competition",
+          "prize_sar": 6000,
+          "source": "https://x.com/KFUPM_CC/status/2047215307916234837"
+        }
+      ],
+      "photo": "2026-09-08_2097325969014984962.jpg"
+    },
+    {
+      "term": "Fall 2026 (so far)",
+      "total_sar": null,
+      "events": [
+        {
+          "name": "Kifada 6367",
+          "prize_sar": null,
+          "detail": "prizes not stated",
+          "source": "https://x.com/KFUPM_CC/status/2099473268461760540"
+        }
+      ]
+    }
+  ],
+  "headline_numbers": {
+    "announced_prizes_since_2023_sar": "187,500+",
+    "biggest_single_prize_pool_sar": 40000,
+    "techathon_teams": "60+ teams, 24 finalists",
+    "kaust_connect_attendees": "400+ students from KFUPM, IAU and KFU",
+    "black_hat_mea_2025": "connected with 25+ organizations",
+    "x_followers": 2048,
+    "linkedin_followers": 1659,
+    "on_x_since": "November 2020"
+  }
+}

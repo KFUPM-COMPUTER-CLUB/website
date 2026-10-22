@@ -1,0 +1,68 @@
+---
+/* End of the site challenge. Checks the pasted flag in the browser (only a digest ships), then shows
+   the solvers list and a form to join it. Kept out of search results. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/flag.css'; // page-scoped; bundled after global.css
+import site from '../data/site.json';
+import solvers from '../data/solvers.json';
+
+const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
+const endpoint = isReal(site.links.solvers) ? site.links.solvers : '';
+const repo = isReal(site.links.github) ? site.links.github.replace(/\/+$/, '') : 'https://github.com/KFUPM-COMPUTER-CLUB/website';
+const cfg = JSON.stringify({ endpoint, issue: `${repo}/issues/new` }).replace(/</g, '\\u003c');
+const fmt = (iso) => { const [y, m, d] = String(iso).split('-').map(Number); return y && m && d ? new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+---
+
+<BaseLayout title="Flag" description="A door for people who read the console, the source and the terminal." noindex={true}>
+  <section class="flag" data-bg="#0B1A33" data-flag>
+    <div class="container flag__inner">
+      <span class="eyebrow">Capture the flag</span>
+
+      <div data-flag-gate>
+        <h1 class="h1">You found the door.</h1>
+        <p class="lead">Paste the flag to open it.</p>
+        <form class="flag__form" data-flag-form>
+          <label class="flag__label" for="flag-key">Flag</label>
+          <input id="flag-key" class="flag__input" type="text" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" data-flag-input />
+          <button class="btn" type="submit">Check</button>
+        </form>
+        <p class="flag__result" aria-live="polite" data-flag-result></p>
+      </div>
+
+      <div data-flag-won hidden>
+        <h1 class="h1" tabindex="-1" data-flag-title>Congratulations, solver.</h1>
+        <p class="lead">You read the console, the source and the terminal. That is exactly how we like it.</p>
+
+        <h2 class="flag__h">Solvers</h2>
+        {solvers.length ? (
+          <ol class="flag__solvers">
+            {solvers.map((s) => (
+              <li><span class="flag__name">{s.name}</span><span class="flag__meta">{[s.handle, fmt(s.date)].filter(Boolean).join(' · ')}</span></li>
+            ))}
+          </ol>
+        ) : (
+          <p class="flag__empty">No solvers yet. Be the first.</p>
+        )}
+
+        <h2 class="flag__h">Add your name</h2>
+        <form class="flag__form flag__form--solver" data-solver-form>
+          <div class="flag__field">
+            <label class="flag__label" for="solver-name">Name</label>
+            <input id="solver-name" class="flag__input" type="text" required maxlength="40" autocomplete="name" data-solver-name />
+          </div>
+          <div class="flag__field">
+            <label class="flag__label" for="solver-handle">Handle, optional</label>
+            <input id="solver-handle" class="flag__input" type="text" maxlength="40" placeholder="X or GitHub" autocomplete="off" autocapitalize="off" spellcheck="false" data-solver-handle />
+          </div>
+          <button class="btn" type="submit" data-solver-submit>Add your name</button>
+        </form>
+        <p class="flag__result" aria-live="polite" data-solver-result></p>
+      </div>
+    </div>
+    <script type="application/json" data-flag-cfg set:html={cfg}></script>
+  </section>
+</BaseLayout>
+
+<script>
+  import '../scripts/flag.js';
+</script>

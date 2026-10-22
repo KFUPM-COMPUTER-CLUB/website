@@ -1,0 +1,176 @@
+{
+  "_note": "Collected from @KFUPM_CC posts on X (2020-2026). The click opens the club post that shows the collaboration (\"source\"); \"url\" is the organisation's site, kept for reference. To show a logo, drop the file into src/assets/partners/ and set \"logo\"; set \"mark\": true when the file is a square symbol or avatar so the name is printed beside it. Files named x-<handle>.jpg are the partner's X profile picture.",
+  "companies": [
+    {
+      "name": "Stream",
+      "what": "Streamathon hackathon, 40,000 SAR in prizes (Apr 2026), with Replit",
+      "source": "https://x.com/KFUPM_CC/status/2040851390625456417",
+      "url": "https://getstream.io",
+      "logo": "stream.png",
+      "mark": false
+    },
+    {
+      "name": "Replit",
+      "what": "Streamathon hackathon, 40,000 SAR in prizes (Apr 2026), with Stream",
+      "source": "https://x.com/KFUPM_CC/status/2040851390625456417",
+      "url": "https://replit.com",
+      "logo": "replit.svg",
+      "mark": true
+    },
+    {
+      "name": "Google Cloud",
+      "logo": "google-cloud.svg",
+      "what": "Intelligent Planet Hackathon at KFUPM, Feb 2026",
+      "source": "https://x.com/KFUPM_CC/status/2016242626991702024",
+      "url": "https://cloud.google.com",
+      "mark": false
+    },
+    {
+      "name": "Amazon Web Services",
+      "logo": "aws.svg",
+      "what": "AWS DeepRacer League final, May 2024",
+      "source": "https://x.com/KFUPM_CC/status/1785702174598553829",
+      "url": "",
+      "mark": false
+    },
+    {
+      "name": "Accenture",
+      "logo": "accenture.svg",
+      "what": "Discover Accenture, Dec 2024, and an office visit in Al Khobar, Oct 2025",
+      "source": "https://x.com/KFUPM_CC/status/1979775285063995461",
+      "url": "https://www.accenture.com",
+      "mark": false
+    },
+    {
+      "name": "stc",
+      "logo": "stc.svg",
+      "what": "KFUPM IoT Day, Mar 2023",
+      "source": "https://x.com/KFUPM_CC/status/1637056404384096256",
+      "url": "https://www.stc.com.sa",
+      "mark": false
+    },
+    {
+      "name": "KAUST Academy",
+      "logo": "x-kaust_academy.jpg",
+      "what": "KAUST AI program session, Sep 2024, and KAUST Connect, Oct 2025",
+      "source": "https://x.com/KFUPM_CC/status/1979208323674013989",
+      "mark": true,
+      "url": "https://academy.kaust.edu.sa"
+    },
+    {
+      "name": "Thakaa Center",
+      "logo": "thakaa.png",
+      "what": "Robotic Process Automation workshop, Apr 2023",
+      "source": "https://x.com/KFUPM_CC/status/1644735964466520064",
+      "url": "https://thakaa.sa",
+      "mark": false
+    },
+    {
+      "name": "Meet Technology",
+      "logo": "x-meettechnology.jpg",
+      "what": "Intro to Cloud Computing, Jan 2025",
+      "source": "https://x.com/KFUPM_CC/status/1883573196701757526",
+      "url": "https://meet-technology.com",
+      "mark": true
+    },
+    {
+      "name": "3D Solutions",
+      "logo": "3d-solutions.png",
+      "what": "AWS DeepRacer League final, May 2024",
+      "source": "https://x.com/KFUPM_CC/status/1785702174598553829",
+      "url": "",
+      "mark": true,
+      "square": true
+    }
+  ],
+  "kfupm_units": [
+    {
+      "name": "JRCAI",
+      "source": "https://x.com/KFUPM_CC/status/1760209575972606280",
+      "logo": "jrcai.png",
+      "url": "",
+      "mark": false,
+      "tall": true
+    },
+    {
+      "name": "KIKX",
+      "source": "https://x.com/KFUPM_CC/status/1763210446041964717",
+      "logo": "x-kfupm_kikx.jpg",
+      "url": "https://kikx.kfupm.edu.sa",
+      "mark": true
+    },
+    {
+      "name": "Voluntary Work Unit",
+      "source": "https://x.com/KFUPM_CC/status/1624101136935399446",
+      "logo": "x-kfupmvolunteers.jpg",
+      "url": "",
+      "mark": true
+    }
+  ],
+  "student_clubs": [
+    {
+      "name": "GDSC KFUPM",
+      "source": "https://x.com/KFUPM_CC/status/1770923578986316230",
+      "logo": "x-gdsc_kfupm.jpg",
+      "url": "",
+      "mark": true
+    },
+    {
+      "name": "CIE Club",
+      "source": "https://x.com/KFUPM_CC/status/1998388715106762864",
+      "logo": "x-cieclub.jpg",
+      "url": "",
+      "mark": true
+    },
+    {
+      "name": "Actuarial Club",
+      "source": "https://x.com/KFUPM_CC/status/1997685427814408693",
+      "logo": "x-actuarial_kfupm.jpg",
+      "url": "",
+      "mark": true
+    },
+    {
+      "name": "FAEC Club",
+      "source": "https://x.com/KFUPM_CC/status/1991944800967279101",
+      "logo": "x-kfupm_faec.jpg",
+      "url": "",
+      "mark": true
+    },
+    {
+      "name": "Electrical Engineering Club",
+      "source": "https://x.com/KFUPM_CC/status/1637056404384096256",
+      "logo": "x-eec_kfupm.jpg",
+      "url": "",
+      "mark": true
+    },
+    {
+      "name": "Photography Club",
+      "source": "https://x.com/KFUPM_CC/status/1772041072769679652",
+      "logo": "photography-club.jpg",
+      "url": "",
+      "mark": true,
+      "handle": "kfupm_photoclub"
+    },
+    {
+      "name": "AI & Robotics Club, IAU",
+      "source": "https://x.com/KFUPM_CC/status/1996545405811634210",
+      "logo": "x-airobotclub_iau.jpg",
+      "url": "",
+      "mark": true
+    }
+  ],
+  "visited": [
+    {
+      "name": "Black Hat MEA 2025",
+      "what": "Club delegation attended, Riyadh",
+      "source": "https://x.com/KFUPM_CC/status/1997329598145544489",
+      "url": "https://blackhatmea.com"
+    },
+    {
+      "name": "LEAP",
+      "what": "Club trip",
+      "source": "",
+      "url": "https://onegiantleap.com"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { googleUrl, outlookUrl, icsHref, plain } from '../lib/calendar.js';
+
+const photos = import.meta.glob('../assets/photos/*.jpg', { eager: true });
+const photo = (name) => (name ? photos[`../assets/photos/${name}`]?.default : undefined);
+
+const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+const all = (await getCollection('events')).map(plain);
+const upcoming = all.filter((e) => (e.endDate ?? e.date).valueOf() >= today.valueOf()).sort((a, b) => a.date.valueOf() - b.date.valueOf());
+const past = all.filter((e) => (e.endDate ?? e.date).valueOf() < today.valueOf()).sort((a, b) => b.date.valueOf() - a.date.valueOf());
+const types = [...new Set(all.map((e) => e.type))].sort();
+
+const term = (d) => { const m = d.getUTCMonth(), y = d.getUTCFullYear(); return m >= 8 ? `Fall ${y}` : m <= 4 ? `Spring ${y}` : `Summer ${y}`; };
+const groups = (list) => { const out = []; for (const e of list) { const t = term(e.date); const g = out.find((x) => x.term === t); g ? g.items.push(e) : out.push({ term: t, items: [e] }); } return out; };
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const day = (d) => `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`;
+const when = (e) => (e.endDate ? `${day(e.date)} – ${day(e.endDate)}` : day(e.date)) + (e.time ? ` · ${e.time}` : '');
+const iso = (d) => d.toISOString().slice(0, 10);
+// Thumbnails share a view-transition name with the same photo on the home page, so it morphs into place.
+const seen = new Set();
+const morph = (file) => { if (!file) return undefined; const n = `photo-${file.replace(/\.[a-z]+$/i, '')}`; if (seen.has(n)) return undefined; seen.add(n); return n; };
+const calData = JSON.stringify(all.map((e) => ({ d: iso(e.date), e: e.endDate ? iso(e.endDate) : undefined, t: e.title, id: e.id })));
+---
+
+<BaseLayout title="Timeline" description="Every KFUPM Computer Club event, upcoming and past, with one-click calendar links.">
+  <section class="page-head page-head--compact">
+    <div class="container">
+      <h1 class="ccmark ccmark--text" aria-label="CC Events"><b>CC</b><span>Events</span></h1>
+      <p class="lead">What's coming and what happened. One click puts an event in your calendar.</p>
+    </div>
+  </section>
+
+  <section class="section events">
+    <div class="container events__grid">
+      <div class="events__list">
+        {[{ title: 'Upcoming', list: upcoming, up: true }, { title: 'Past', list: past, up: false }].map((sec) => (
+          <div class="events__section" data-section>
+            <h2 class="h2">{sec.title}</h2>
+            {sec.list.length === 0 && <p class="lead lead--muted">Nothing scheduled yet. Follow the club on X for the next announcement.</p>}
+            {groups(sec.list).map((g) => (
+              <div class="term" data-term>
+                <div class="term__label mono"><i aria-hidden="true"></i>{g.term}</div>
+                {g.items.map((e) => (
+                  <article class="ev" id={`ev-${e.id}`} data-type={e.type} data-text={`${e.title} ${e.location} ${e.summary}`.toLowerCase()}>
+                    {photo(e.image) ? (
+                      e.detailsUrl ? <a class="ev__thumb-link" href={e.detailsUrl} target="_blank" rel="noopener" aria-label={`${e.title} on X`} transition:name={morph(e.image)}><Image class="ev__thumb" src={photo(e.image)} alt="" width={168} height={168} loading="lazy" /></a> : <Image class="ev__thumb" src={photo(e.image)} alt="" width={168} height={168} loading="lazy" />
+                    ) : <span class="ev__thumb ev__thumb--empty" aria-hidden="true">CC</span>}
+                    <div class="ev__body">
+                      <p class="ev__when mono"><time datetime={iso(e.date)}>{when(e)}</time></p>
+                      <h3 class="ev__title">{e.detailsUrl ? <a href={e.detailsUrl} target="_blank" rel="noopener">{e.title}</a> : e.title}</h3>
+                      <p class="ev__where mono">{e.location}</p>
+                      <p class="ev__summary">{e.summary}</p>
+                      {sec.up && (
+                        <p class="ev__cal">
+                          {e.url && <a class="ev__register" href={e.url} target="_blank" rel="noopener">Register ↗</a>}
+                          <span class="mono">Add to</span>
+                          <a href={googleUrl(e)} target="_blank" rel="noopener">Google</a>
+                          <a href={outlookUrl(e)} target="_blank" rel="noopener">Outlook</a>
+                          <a href={icsHref([e])} download={`${e.id}.ics`}>.ics</a>
+                        </p>
+                      )}
+                    </div>
+                    <span class="tag ev__tag">{e.type}</span>
+                  </article>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+              </div>
+
+      <aside class="events__side">
+        <div class="cal" data-events={calData}>
+          <div class="cal__head"><span class="mono">Calendar</span><a class="cal__ics" href="/calendar.ics" download="kfupm-computer-club.ics">Add iCal</a></div>
+          <div class="cal__nav"><strong class="cal__month"></strong><span><button type="button" class="cal__prev" aria-label="Previous month">‹</button><button type="button" class="cal__next" aria-label="Next month">›</button></span></div>
+          <div class="cal__grid" role="grid"></div>
+          <p class="cal__hint mono">Highlighted days have events. Click one to jump to it.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { onPage } from '../scripts/page.js';
+  // Mini calendar
+  onPage(() => {
+    const cal = document.querySelector('.cal');
+    if (!cal) return;
+    const events = JSON.parse(cal.dataset.events || '[]');
+    const byDay = new Map();
+    const addDay = (d, ev) => { if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(ev); };
+    for (const ev of events) {
+      const s = new Date(ev.d + 'T00:00:00Z'), e = new Date((ev.e || ev.d) + 'T00:00:00Z');
+      for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) addDay(d.toISOString().slice(0, 10), ev);
+    }
+    const grid = cal.querySelector('.cal__grid'), label = cal.querySelector('.cal__month');
+    const now = new Date(); let y = now.getFullYear(), m = now.getMonth();
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const render = () => {
+      label.textContent = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      const first = new Date(Date.UTC(y, m, 1)).getUTCDay(), days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+      let html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => `<span class="cal__dow">${d}</span>`).join('');
+      for (let i = 0; i < first; i++) html += '<span></span>';
+      for (let d = 1; d <= days; d++) {
+        const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const evs = byDay.get(key);
+        const cls = ['cal__day', evs ? 'has-ev' : '', key === todayIso ? 'is-today' : '', evs && key >= todayIso ? 'is-up' : ''].filter(Boolean).join(' ');
+        html += evs ? `<button type="button" class="${cls}" title="${evs.map((e) => e.t).join(', ').replace(/"/g, '&quot;')}" data-id="${evs[0].id}">${d}</button>` : `<span class="${cls}">${d}</span>`;
+      }
+      grid.innerHTML = html;
+    };
+    render();
+    cal.querySelector('.cal__prev').addEventListener('click', () => { m--; if (m < 0) { m = 11; y--; } render(); });
+    cal.querySelector('.cal__next').addEventListener('click', () => { m++; if (m > 11) { m = 0; y++; } render(); });
+    grid.addEventListener('click', (e) => { const b = e.target.closest('[data-id]'); if (!b) return; const el = document.getElementById(`ev-${b.dataset.id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('is-hit'); setTimeout(() => el.classList.remove('is-hit'), 1600); } });
+  });
+</script>

@@ -1,0 +1,28 @@
+---
+// Tilted polaroids of club breakthrough moments, straddling the seam between screens.
+// Desktop: scattered and parallaxed; hover lifts the card and shows the caption.
+// Mobile: stacked, caption under each photo. Every card links to the original post.
+import { Image } from 'astro:assets';
+import highlights from '../data/highlights.json';
+const photos = import.meta.glob('../assets/photos/*.jpg', { eager: true });
+const fmt = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const items = highlights.map((h) => ({ ...h, img: photos[`../assets/photos/${h.photo}`]?.default })).filter((h) => h.img);
+// Photos that also appear on the timeline morph into place there; names must be unique per page.
+const seen = new Set();
+const morph = (file) => { const n = `photo-${file.replace(/\.[a-z]+$/i, '')}`; if (seen.has(n)) return undefined; seen.add(n); return n; };
+---
+
+<div class="collage" aria-label="Club highlights">
+  {items.map((h, i) => (
+    <a class={`polaroid polaroid--${i + 1}`} href={h.post} target="_blank" rel="noopener" transition:name={morph(h.photo)}>
+      <Image src={h.img} alt={h.title} width={640} height={480} loading={i < 3 ? 'eager' : 'lazy'} class="polaroid__photo" />
+      <div class="polaroid__cap"><span>{fmt(h.date)}</span><b>{h.title}</b></div>
+      <div class="polaroid__card" aria-hidden="true">
+        <span class="mono">{fmt(h.date)}</span>
+        <strong>{h.title}</strong>
+        <p>{h.line}</p>
+        <em>Open the post ↗</em>
+      </div>
+    </a>
+  ))}
+</div>

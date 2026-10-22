@@ -21,9 +21,10 @@ const events = defineCollection({
   schema: z.object({
     id: z.string(),
     title: z.string(),
-    type: z.enum(['Workshop', 'Talk', 'Hackathon', 'Competition', 'Social', 'Other']),
+    type: z.enum(['Workshop', 'Talk', 'Hackathon', 'Competition', 'Social', 'Trip', 'Exhibition', 'Other']),
     date: z.coerce.date(),
-    time: z.string(),
+    time: z.string().default(''),
+    endDate: z.coerce.date().optional(),
     location: z.string(),
     summary: z.string().max(240),
     image: z.string().optional(),
@@ -41,20 +42,11 @@ const team = defineCollection({
     role: z.string(),
     photo: z.string(),
     linkedin: z.string().optional(),
+    major: z.string().optional(),
+    committee: z.string().optional(),
+    term: z.string().optional(),
     order: z.number(),
   }),
 });
 
-const newsletter = defineCollection({
-  loader: file('src/data/newsletter.json'),
-  schema: z.object({
-    id: z.string(),
-    issue: z.string(),
-    title: z.string(),
-    date: z.coerce.date(),
-    summary: z.string(),
-    url: z.string(),
-  }),
-});
-
-export const collections = { posts, events, team, newsletter };
+export const collections = { posts, events, team };

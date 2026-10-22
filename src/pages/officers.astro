@@ -1,0 +1,49 @@
+---
+import { Image } from 'astro:assets';
+import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../data/site.json';
+
+const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+const pad = (n) => String(n).padStart(3, '0');
+---
+
+<BaseLayout title="Officers" description="The students running the KFUPM Computer Club this term.">
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Officers</span>
+      <h1 class="h-display">The people running it.</h1>
+      <p class="lead">Students, like you. Each card is one officer: who they are, what they lead, and where to reach them.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="idcards">
+        {team.map(({ data: m }) => (
+          <article class="idcard reveal">
+            <div class="idcard__top">
+              <span class="idcard__brand"><Image src={logoSmDark} alt="" width={32} densities={[1, 2, 3]} /> {site.name}</span>
+              <span class="mono">Officer{m.term && ` · ${m.term}`}</span>
+            </div>
+            <div class="idcard__body">
+              <img class="idcard__photo" src={m.photo} alt={m.name} width="320" height="400" loading="lazy" />
+              <div class="idcard__info">
+                <h2>{m.name}</h2>
+                <p class="idcard__role">{m.role}</p>
+                <dl>
+                  {m.committee && <div><dt>Committee</dt><dd>{m.committee}</dd></div>}
+                  {m.major && <div><dt>Major</dt><dd>{m.major}</dd></div>}
+                  <div><dt>ID</dt><dd>CC-{pad(m.order)}</dd></div>
+                </dl>
+                {m.linkedin && <a class="link-arrow" href={m.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>}
+              </div>
+            </div>
+            <div class="idcard__strip"><span class="idcard__barcode" aria-hidden="true"></span><span class="mono">cckfupm.com</span></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

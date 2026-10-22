@@ -1,0 +1,43 @@
+/* Terminal overlay and the header button that opens it.
+   The sheet uses the fixed dark palette (navy, blue, light grey), not the theme engine. */
+
+/* Header button: a 40px ghost square in the mono font, matching the Menu button. */
+.term-open { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line-strong); background: var(--card); color: inherit; font: 700 13px/1 var(--font-mono); cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+.term-open:hover { border-color: var(--text); }
+
+/* Bottom sheet */
+.terminal { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; display: flex; flex-direction: column; height: min(46vh, 440px); max-height: 46vh; background: #0B1A33; color: #E5E7EB; border-top: 1px solid #2563EB; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45); font: 400 13px/1.6 var(--font-mono); transform: translateY(100%); transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.terminal[hidden] { display: none; }
+.terminal.is-open { transform: none; }
+
+.terminal__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: none; padding: 7px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.14); color: #A1A1AA; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.terminal__title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.terminal__close { flex: none; height: 26px; padding: 0 10px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: #A1A1AA; font: 600 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.terminal__close:hover { color: #fff; border-color: #60A5FA; }
+
+/* Output: pre-wrap so lines keep their spacing but never overflow sideways. */
+.terminal__out { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 10px 14px 4px; white-space: pre-wrap; overflow-wrap: anywhere; overscroll-behavior: contain; }
+.terminal__row { margin: 0; }
+.terminal__row--cmd { color: #60A5FA; }
+.terminal__row--err { color: #F87171; }
+.terminal__row--sys { color: #A1A1AA; }
+
+/* Prompt line: a real input with its caret hidden; the block cursor is drawn after the text. */
+.terminal__line { display: flex; align-items: center; gap: 8px; flex: none; margin: 0; padding: 6px 14px 10px; }
+.terminal__line:focus-within { background: rgba(255, 255, 255, 0.04); }
+.terminal__prompt { flex: none; color: #60A5FA; white-space: nowrap; }
+.terminal__field { position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.terminal__input { display: block; width: 100%; margin: 0; padding: 2px 0; border: 0; background: transparent; color: inherit; font: inherit; caret-color: transparent; outline: none; }
+.terminal__mirror { position: absolute; left: 0; top: 0; visibility: hidden; white-space: pre; pointer-events: none; font: inherit; }
+.terminal__cursor { position: absolute; top: 50%; left: var(--cx, 0px); width: 0.6em; height: 1.2em; transform: translateY(-50%); background: #60A5FA; opacity: 0; pointer-events: none; }
+.terminal__field:focus-within .terminal__cursor { opacity: 0.9; animation: term-blink 1s step-end infinite; }
+@keyframes term-blink { 50% { opacity: 0; } }
+
+@media (max-width: 767px) {
+  .terminal { font-size: 14px; }
+  .terminal__field { font-size: 16px; } /* keeps iOS from zooming the page when the input is focused */
+}
+@media (prefers-reduced-motion: reduce) {
+  .terminal { transition: none; }
+  .terminal__field:focus-within .terminal__cursor { animation: none; }
+}

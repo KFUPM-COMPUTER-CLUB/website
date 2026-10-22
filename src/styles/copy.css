@@ -1,0 +1,6 @@
+/* Copy-to-clipboard button with a small confirmation tip above it. */
+.copy { position: relative; display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: 500 13px/1.4 var(--font-mono); letter-spacing: 0.02em; text-decoration: underline dotted var(--blue); text-decoration-thickness: 1px; text-underline-offset: 0.3em; cursor: copy; }
+.copy:hover { color: var(--blue); }
+.copy__tip { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translate(-50%, 4px); padding: 6px 10px; background: #0B1A33; color: #fff; border: 1px solid #2563EB; font: 600 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s, transform 0.15s; }
+.copy.is-copied .copy__tip { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .copy__tip { transition: none; transform: translate(-50%, 0); } }

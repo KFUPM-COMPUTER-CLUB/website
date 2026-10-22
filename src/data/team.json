@@ -1,8 +1,62 @@
 [
-  { "id": "sample-member-1", "name": "Sample Member", "role": "President", "photo": "/images/team/placeholder.jpg", "order": 1 },
-  { "id": "sample-member-2", "name": "Sample Member", "role": "Vice President", "photo": "/images/team/placeholder.jpg", "order": 2 },
-  { "id": "sample-member-3", "name": "Sample Member", "role": "Technical Lead", "photo": "/images/team/placeholder.jpg", "order": 3 },
-  { "id": "sample-member-4", "name": "Sample Member", "role": "Media Lead", "photo": "/images/team/placeholder.jpg", "order": 4 },
-  { "id": "sample-member-5", "name": "Sample Member", "role": "Events Coordinator", "photo": "/images/team/placeholder.jpg", "order": 5 },
-  { "id": "sample-member-6", "name": "Sample Member", "role": "Newsletter Editor", "photo": "/images/team/placeholder.jpg", "order": 6 }
+  {
+    "id": "sample-member-1",
+    "name": "Sample Member",
+    "role": "President",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 1,
+    "major": "Computer Science",
+    "committee": "Leadership",
+    "term": "2026–27"
+  },
+  {
+    "id": "sample-member-2",
+    "name": "Sample Member",
+    "role": "Vice President",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 2,
+    "major": "Software Engineering",
+    "committee": "Leadership",
+    "term": "2026–27"
+  },
+  {
+    "id": "sample-member-3",
+    "name": "Sample Member",
+    "role": "Technical Lead",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 3,
+    "major": "Computer Engineering",
+    "committee": "Technical",
+    "term": "2026–27"
+  },
+  {
+    "id": "sample-member-4",
+    "name": "Sample Member",
+    "role": "Media Lead",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 4,
+    "major": "Information Systems",
+    "committee": "Media",
+    "term": "2026–27"
+  },
+  {
+    "id": "sample-member-5",
+    "name": "Sample Member",
+    "role": "Events Coordinator",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 5,
+    "major": "Computer Science",
+    "committee": "Events",
+    "term": "2026–27"
+  },
+  {
+    "id": "sample-member-6",
+    "name": "Sample Member",
+    "role": "Blog Editor",
+    "photo": "/images/team/placeholder.jpg",
+    "order": 6,
+    "major": "Computer Science",
+    "committee": "Blog",
+    "term": "2026–27"
+  }
 ]
