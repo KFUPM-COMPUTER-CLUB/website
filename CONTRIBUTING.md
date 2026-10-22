@@ -40,7 +40,7 @@ Then open the preview deployment and click through what you changed at laptop an
 
 1. Never edit `supabase/migrations/0001_init.sql` once it has been run on the project. Add `supabase/migrations/0002_<topic>.sql`, idempotent (`create table if not exists`, `add column if not exists`, `drop policy if exists` before `create policy`).
 2. Enable row level security, write read policies, and grant `select` to `anon, authenticated` explicitly: the project does not expose new tables by itself. Do not write policies for user tokens; every write goes through the API with the service key (`src/lib/api.ts`).
-3. Run the file in the Supabase SQL editor (a maintainer does this for the shared project) and say so in the pull request.
+3. Merging applies it: the `migrate` workflow runs every new file against the shared project and records it in `schema_migrations`. Nothing to run by hand; check the workflow run after the merge.
 4. Read the new data through `src/lib/content.ts` with a seed fallback where it makes sense.
 
 ### An email

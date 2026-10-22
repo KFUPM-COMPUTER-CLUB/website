@@ -1,0 +1,40 @@
+# Applies new database migrations to the Supabase project on every merge to main, and by hand from
+# the Actions tab. See scripts/migrate.sh for what "applies" means.
+#
+# Requires one repository secret: SUPABASE_DB_URL, the "Session pooler" connection string from
+# Supabase -> Connect (Settings -> Secrets and variables -> Actions). If the secret is missing the
+# job skips with a warning instead of failing, so a fork without a database still has green checks.
+
+name: migrate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/migrate.sh'
+      - '.github/workflows/migrate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Apply pending migrations
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::warning::The SUPABASE_DB_URL secret is missing. A maintainer must add it (Settings -> Secrets and variables -> Actions). Skipping."
+            exit 0
+          fi
+          bash scripts/migrate.sh | tee -a "$GITHUB_STEP_SUMMARY"
