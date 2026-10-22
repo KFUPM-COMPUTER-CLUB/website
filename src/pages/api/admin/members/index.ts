@@ -7,7 +7,8 @@ export const prerender = false;
 const ROLES = ['member', 'editor', 'reviewer', 'officer', 'admin'];
 const csv = (rows: Record<string, unknown>[]) => {
   const cols = Object.keys(rows[0] || { id: '' });
-  const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  // A cell starting with = + - @ runs as a formula in Excel, so it gets a leading apostrophe.
+  const esc = (v: unknown) => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
   return [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\r\n');
 };
 

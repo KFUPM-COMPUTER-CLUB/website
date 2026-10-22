@@ -32,7 +32,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (!post) throw new ApiError('Not found.', 404);
   const patch: Record<string, unknown> = { status };
   if (status === 'published' && !post.published_at) patch.published_at = new Date().toISOString();
-  await sb.from('posts').update(patch).eq('id', post.id);
+  const { error } = await sb.from('posts').update(patch).eq('id', post.id);
+  if (error) throw new ApiError(error.message, 500); // before media moves or the author is told
   if (status === 'published') await publishPostMedia(post.id);
   await sb.from('post_reviews').insert({ post_id: post.id, reviewer_id: reviewer.id, comment, status_set: status });
   await audit(reviewer.id, 'status', 'posts', post.id, { status: post.status }, { status, comment });

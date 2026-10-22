@@ -4,7 +4,8 @@ import { serviceClient } from '../../../../../lib/supabase';
 import { atLeast } from '../../../../../lib/types';
 
 export const prerender = false;
-const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+// A cell starting with = + - @ runs as a formula in Excel, so it gets a leading apostrophe.
+const esc = (v: unknown) => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
 /* Officer tools for one event's reservations, used by /admin/events/<id>/registrations.
  * GET is the CSV export. Officers get names only; email and phone are admin columns, the same split
  * as the page itself, because contact details are what members were promised stays with admins.

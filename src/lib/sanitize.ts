@@ -7,7 +7,7 @@ import { supabaseUrl } from './env';
 
 /* Our own files: public bucket URLs, or /api/media/<key> for draft files served through signed URLs. */
 const storage = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : null;
-const isStorageUrl = (u: string) => u.startsWith('/api/media/') || (!!storage && u.startsWith(storage));
+const isStorageUrl = (u: string) => /^\/api\/media\/[\w.-]+(\?w=\w+)?$/.test(u) || (!!storage && u.startsWith(storage));
 
 export function sanitizePost(html: string) {
   return sanitizeHtml(html || '', {

@@ -8,8 +8,9 @@ import sharp from 'sharp';
 import { serviceClient, publicUrl } from './supabase';
 import { ApiError } from './api';
 
-const IMAGE_MAX = 8 * 1024 * 1024,
-  PDF_MAX = 10 * 1024 * 1024;
+// Vercel refuses any function request body over 4.5 MB before our code runs, so stay under it.
+const IMAGE_MAX = 4 * 1024 * 1024,
+  PDF_MAX = 4 * 1024 * 1024;
 const WIDTHS = [480, 960, 1600];
 /* The browser-supplied MIME type is just a claim; the first bytes are not. */
 const sniff = (b: Uint8Array) => {
@@ -36,7 +37,7 @@ const key = (ext: string) => `${new Date().toISOString().slice(0, 10)}-${crypto.
 const safeName = (n: string) => n.replace(/[^\w.\- ]+/g, '').slice(0, 80) || 'file';
 
 export async function storeImage(file: File, alt: string, uploaderId: string | null, tags: string[] = []) {
-  if (file.size > IMAGE_MAX) throw new ApiError('Images must be under 8 MB.');
+  if (file.size > IMAGE_MAX) throw new ApiError('Images must be under 4 MB.');
   const buf = new Uint8Array(await file.arrayBuffer());
   const type = sniff(buf);
   if (!type || type === 'application/pdf') throw new ApiError('That file is not a JPEG, PNG, WebP or GIF image.');
@@ -94,7 +95,7 @@ export async function storeImage(file: File, alt: string, uploaderId: string | n
 }
 
 export async function storePdf(file: File, uploaderId: string | null) {
-  if (file.size > PDF_MAX) throw new ApiError('PDFs must be under 10 MB.');
+  if (file.size > PDF_MAX) throw new ApiError('PDFs must be under 4 MB.');
   const buf = new Uint8Array(await file.arrayBuffer());
   if (sniff(buf) !== 'application/pdf') throw new ApiError('That file is not a PDF.');
   const k = key('.pdf');
@@ -131,7 +132,7 @@ export async function storePdf(file: File, uploaderId: string | null) {
  * rely on that. */
 
 export async function storeDraftImage(file: File, alt: string, uploaderId: string, postId: string) {
-  if (file.size > IMAGE_MAX) throw new ApiError('Images must be under 8 MB.');
+  if (file.size > IMAGE_MAX) throw new ApiError('Images must be under 4 MB.');
   const buf = new Uint8Array(await file.arrayBuffer());
   const type = sniff(buf);
   if (!type || type === 'application/pdf') throw new ApiError('That file is not a JPEG, PNG, WebP or GIF image.');
@@ -183,7 +184,7 @@ export async function storeDraftImage(file: File, alt: string, uploaderId: strin
 }
 
 export async function storeDraftPdf(file: File, uploaderId: string, postId: string) {
-  if (file.size > PDF_MAX) throw new ApiError('PDFs must be under 10 MB.');
+  if (file.size > PDF_MAX) throw new ApiError('PDFs must be under 4 MB.');
   const buf = new Uint8Array(await file.arrayBuffer());
   if (sniff(buf) !== 'application/pdf') throw new ApiError('That file is not a PDF.');
   const k = key('.pdf');

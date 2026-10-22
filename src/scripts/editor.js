@@ -46,7 +46,7 @@ const LANGS = [
   ['go', 'Go'],
   ['rust', 'Rust'],
 ];
-const PDF_MAX = 10 * 1024 * 1024;
+const PDF_MAX = 4 * 1024 * 1024; // Vercel caps request bodies at 4.5 MB
 const fmtSize = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
 const hhmm = () => {
   const d = new Date();
@@ -308,6 +308,7 @@ onPage(() => {
     return i;
   };
   async function upload(file, kind, alt) {
+    if (file.size > 4 * 1024 * 1024) throw new Error(`${file.name} is over 4 MB.`); // Vercel's body limit is 4.5 MB
     const fd = new FormData();
     fd.append('file', file, file.name);
     if (kind === 'image') fd.append('alt', alt);
@@ -352,7 +353,7 @@ onPage(() => {
       pdfInput.value = '';
       if (!file) return;
       if (!/\.pdf$/i.test(file.name)) return setStatus('Only .pdf files can be attached.', 'error');
-      if (file.size > PDF_MAX) return setStatus(`${file.name} is ${fmtSize(file.size)}; the limit is 10 MB.`, 'error');
+      if (file.size > PDF_MAX) return setStatus(`${file.name} is ${fmtSize(file.size)}; the limit is 4 MB.`, 'error');
       setStatus(`Uploading ${file.name}…`, 'busy');
       try {
         const d = await upload(file, 'pdf');

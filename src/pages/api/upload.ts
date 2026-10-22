@@ -33,8 +33,8 @@ export const POST: APIRoute = handle(async (ctx) => {
     if (!alt) throw new ApiError('Describe the image (alt text) first.');
     return json({ ok: true, kind: 'image', ...(await storeDraftImage(file, alt, user.id, postId)) });
   }
-  if (!atLeast(ctx.locals.role, 'officer') && kind === 'pdf')
-    throw new ApiError('PDFs are uploaded from the post editor.', 403);
+  // Without a post, the file goes to the public library: officers only.
+  if (!atLeast(ctx.locals.role, 'officer')) throw new ApiError('Files are uploaded from the post editor.', 403);
   if (kind === 'pdf') return json({ ok: true, kind: 'pdf', ...(await storePdf(file, user.id)) });
   const alt = str(b.alt, 200);
   if (!alt) throw new ApiError('Describe the image (alt text) first.');
