@@ -1,9 +1,11 @@
 ## Summary
-<!-- One or two sentences describing the change and why it is needed. -->
+
+<!-- One or two sentences: what changed and why. -->
 
 Closes #
 
 ## Type of change
+
 - [ ] Feature
 - [ ] Fix
 - [ ] Design
@@ -11,19 +13,18 @@ Closes #
 - [ ] Documentation or maintenance
 
 ## Screenshots
-<!-- Required for any visual change. Phone width (360 px) and laptop width. -->
+
+<!-- Required for anything visual: laptop width and phone width (390 px). -->
 
 | Before | After |
-|---|---|
-|  |  |
+| ------ | ----- |
+|        |       |
 
 ## Checklist
-- [ ] `npm run build` completes locally without errors
-- [ ] The change has been verified on the preview deployment
-- [ ] The change has been verified at phone width (360 px)
-- [ ] The pull request changes only what the issue describes
-- [ ] No `REPLACE`, `TODO`, credentials, or tokens remain in the change
 
-### Articles only
-- [ ] The article is a single `.md` file in `src/content/posts/` with every required frontmatter field
-- [ ] Images are my own or used with permission, under 200 KB, and have alternative text
+- [ ] `npm run lint`, `npm run check` and `npm run build` pass locally
+- [ ] Verified on the preview deployment, at phone width too
+- [ ] Pages still work in seed mode (`npm run dev` without `.env`)
+- [ ] Database changes are in a new `supabase/migrations/000N_*.sql` file (never edited `0001_init.sql`), with RLS and grants
+- [ ] No secrets, tokens or personal data in the change
+- [ ] No AI co-author lines in commits or this description
