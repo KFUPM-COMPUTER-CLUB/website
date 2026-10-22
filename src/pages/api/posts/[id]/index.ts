@@ -15,7 +15,7 @@ import { serviceClient } from '../../../../lib/supabase';
 import { sanitizePost, plainText } from '../../../../lib/sanitize';
 import { atLeast } from '../../../../lib/types';
 import { bust } from '../../../../lib/content';
-import { deletePostMedia } from '../../../../lib/upload';
+import { deletePostMedia, publishPostMedia } from '../../../../lib/upload';
 
 export const prerender = false;
 const CATEGORIES = ['News', 'Event recap', 'Tutorial', 'Project', 'Experience', 'Opinion', 'Announcement'];
@@ -80,6 +80,8 @@ export const PATCH: APIRoute = handle(async (ctx) => {
     .single();
   if (error) throw new ApiError(error.message, 500);
   if (post.status === 'published') {
+    // An image added while editing a live post is stored as a draft file; publish it with the post.
+    await publishPostMedia(post.id);
     bust();
     await audit(
       user.id,
@@ -99,8 +101,10 @@ export const DELETE: APIRoute = handle(async (ctx) => {
   const admin = atLeast(ctx.locals.role, 'admin');
   if (!(admin || (own && ['draft', 'changes_requested'].includes(post.status))))
     throw new ApiError('Only drafts can be deleted.', 403);
+  // Row first: if it fails, the files must still be there for the post that remains.
+  const { error } = await serviceClient().from('posts').delete().eq('id', post.id);
+  if (error) throw new ApiError(error.message, 500);
   await deletePostMedia(post.id);
-  await serviceClient().from('posts').delete().eq('id', post.id);
   await audit(user.id, 'delete', 'posts', post.id, post, null);
   if (post.status === 'published') bust();
   return wantsHtml(ctx.request) ? ctx.redirect('/me/posts?ok=Post+deleted.', 303) : ok();

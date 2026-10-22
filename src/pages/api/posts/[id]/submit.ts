@@ -36,7 +36,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   }
   if (!post.title || post.title === 'Untitled' || !post.content_html || post.content_html.length < 40)
     throw new ApiError('Add a title and some content before submitting.');
-  await sb.from('posts').update({ status: 'submitted' }).eq('id', post.id);
+  const { error } = await sb.from('posts').update({ status: 'submitted' }).eq('id', post.id);
+  if (error) throw new ApiError(error.message, 500);
   await audit(user.id, 'status', 'posts', post.id, { status: post.status }, { status: 'submitted' });
   return wantsHtml(ctx.request)
     ? ctx.redirect('/me/posts?ok=Submitted for review. You will get an email when a reviewer answers.', 303)

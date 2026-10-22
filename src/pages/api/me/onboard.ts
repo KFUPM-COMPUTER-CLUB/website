@@ -47,6 +47,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   const linkedin = str(b.linkedin, 200);
   if (linkedin && !isUrl(linkedin)) throw new ApiError('LinkedIn must be a full URL.');
   const sb = serviceClient();
+  // The welcome email (with the group links) goes out once, on the first onboarding only.
+  const firstTime = !ctx.locals.profile?.onboarded;
   const { data: taken } = await sb.from('profiles').select('id').eq('handle', handle).neq('id', user.id).maybeSingle();
   if (taken) throw new ApiError('That handle is taken. Pick another.');
   let avatar_url: string | undefined;
@@ -71,7 +73,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   const { data: profile, error } = await sb.from('profiles').upsert(row).select('*').single();
   if (error)
     throw new ApiError(error.message.includes('handle') ? 'That handle is taken. Pick another.' : error.message);
-  await notifyWelcome(profile);
+  if (firstTime) await notifyWelcome(profile);
   const next = safeNext(b.next, '/me');
   return wantsHtml(ctx.request)
     ? ctx.redirect(`${next}${next.includes('?') ? '&' : '?'}welcome=1`, 303)
