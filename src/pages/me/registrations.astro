@@ -48,7 +48,7 @@ const when = (e: any) =>
                 <td class="mono">{when(r.events)}</td>
                 <td>{r.events.location}</td>
                 <td>
-                  <form method="post" action={`/api/events/${r.events.id}/register`}>
+                  <form data-astro-reload method="post" action={`/api/events/${r.events.id}/register`}>
                     <input type="hidden" name="_action" value="show" />
                     <button class={`btn btn--tiny ${r.show_on_profile ? '' : 'btn--ghost'}`} type="submit">
                       {r.show_on_profile ? 'Shown' : 'Hidden'}
@@ -56,7 +56,7 @@ const when = (e: any) =>
                   </form>
                 </td>
                 <td>
-                  <form method="post" action={`/api/events/${r.events.id}/register`}>
+                  <form data-astro-reload method="post" action={`/api/events/${r.events.id}/register`}>
                     <input type="hidden" name="cancel" value="1" />
                     <button class="btn btn--tiny btn--ghost" type="submit">
                       Cancel
@@ -86,7 +86,7 @@ const when = (e: any) =>
             {r.events?.title} · <span class="mono">{r.events ? when(r.events) : ''}</span>{' '}
             {r.attended && <span class="chip chip--published">attended</span>}{' '}
             {r.events && (
-              <form style="display:inline" method="post" action={`/api/events/${r.events.id}/register`}>
+              <form data-astro-reload style="display:inline" method="post" action={`/api/events/${r.events.id}/register`}>
                 <input type="hidden" name="_action" value="show" />
                 <button class="btn btn--tiny btn--ghost" type="submit">
                   {r.show_on_profile ? 'Shown on profile · hide' : 'Show on profile'}

@@ -50,7 +50,7 @@ const undoable = (e: any) =>
             </td>
             <td>
               {undoable(e) && (
-                <form method="post" action={`/api/admin/audit/${e.id}/undo`}>
+                <form data-astro-reload method="post" action={`/api/admin/audit/${e.id}/undo`}>
                   <button class="btn btn--tiny btn--ghost" type="submit">
                     Undo
                   </button>

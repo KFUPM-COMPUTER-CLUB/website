@@ -109,7 +109,7 @@ const one = detail ? rows.find((r: any) => r.id === detail) : null;
               {p.phone}
             </td>
             <td>
-              <form class="inline-form" method="post" action="/api/admin/members">
+              <form data-astro-reload class="inline-form" method="post" action="/api/admin/members">
                 <input type="hidden" name="_action" value="role" />
                 <input type="hidden" name="user_id" value={p.id} />
                 <input type="hidden" name="q" value={q} />
@@ -135,7 +135,7 @@ const one = detail ? rows.find((r: any) => r.id === detail) : null;
               )}
             </td>
             <td style="white-space:nowrap">
-              <form method="post" action="/api/admin/members">
+              <form data-astro-reload method="post" action="/api/admin/members">
                 <input type="hidden" name="_action" value="suspend" />
                 <input type="hidden" name="user_id" value={p.id} />
                 <input type="hidden" name="q" value={q} />
@@ -143,7 +143,7 @@ const one = detail ? rows.find((r: any) => r.id === detail) : null;
                   {p.suspended ? 'Reinstate' : 'Suspend'}
                 </button>
               </form>
-              <form
+              <form data-astro-reload
                 method="post"
                 action="/api/admin/members"
                 onsubmit="return confirm('Delete this account and all its data?')"

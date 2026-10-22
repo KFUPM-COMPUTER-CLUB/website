@@ -26,7 +26,7 @@ const LINKS = [
 ---
 
 <AdminLayout title="Settings">
-  <form class="form card" id="site" method="post" action="/api/admin/settings">
+  <form data-astro-reload class="form card" id="site" method="post" action="/api/admin/settings">
     <input type="hidden" name="key" value="site" />
     <h2 class="h3">Club</h2>
     <div class="form__row">
@@ -65,7 +65,7 @@ const LINKS = [
       Save club
     </button>
   </form>
-  <form class="form card" id="links" method="post" action="/api/admin/settings" style="margin-top:16px">
+  <form data-astro-reload class="form card" id="links" method="post" action="/api/admin/settings" style="margin-top:16px">
     <input type="hidden" name="key" value="links" />
     <h2 class="h3">Links</h2>
     {LINKS.map(([k, label]) => (
@@ -78,7 +78,7 @@ const LINKS = [
       Save links
     </button>
   </form>
-  <form class="form card" id="whatsapp_groups" method="post" action="/api/admin/settings" style="margin-top:16px">
+  <form data-astro-reload class="form card" id="whatsapp_groups" method="post" action="/api/admin/settings" style="margin-top:16px">
     <input type="hidden" name="key" value="whatsapp_groups" />
     <h2 class="h3">Members-only group links</h2>
     <p class="hint">
@@ -101,7 +101,7 @@ const LINKS = [
       Save groups
     </button>
   </form>
-  <form class="form card" id="banner" method="post" action="/api/admin/settings" style="margin-top:16px">
+  <form data-astro-reload class="form card" id="banner" method="post" action="/api/admin/settings" style="margin-top:16px">
     <input type="hidden" name="key" value="banner" />
     <h2 class="h3">Announcement banner</h2>
     <div class="field">
@@ -119,7 +119,7 @@ const LINKS = [
       Save banner
     </button>
   </form>
-  <form class="form card" id="email_templates" method="post" action="/api/admin/settings" style="margin-top:16px">
+  <form data-astro-reload class="form card" id="email_templates" method="post" action="/api/admin/settings" style="margin-top:16px">
     <input type="hidden" name="key" value="email_templates" />
     <h2 class="h3">Email templates</h2>
     <p class="hint">
@@ -148,7 +148,7 @@ const LINKS = [
       Save templates
     </button>
   </form>
-  <form class="form card" id="made_by" method="post" action="/api/admin/settings" style="margin-top:16px">
+  <form data-astro-reload class="form card" id="made_by" method="post" action="/api/admin/settings" style="margin-top:16px">
     <input type="hidden" name="key" value="made_by" />
     <h2 class="h3">Made by (footer credit)</h2>
     {[...made, {}].map((m: any) => (

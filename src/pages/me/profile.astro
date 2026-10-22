@@ -14,7 +14,7 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
 ---
 
 <MeLayout title="Profile" lead="What people see on your public profile, plus the details only admins see.">
-  <form class="form" method="post" action="/api/me/profile" enctype="multipart/form-data">
+  <form data-astro-reload class="form" method="post" action="/api/me/profile" enctype="multipart/form-data">
     <div class="profile__head">
       {p.avatar_url ? (
         <img class="avatar avatar--lg" src={p.avatar_url} alt="" />
@@ -100,13 +100,13 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
     </p>
     <div class="links-row">
       {!providers.includes('github') && (
-        <a class="btn btn--small btn--ghost" href="/auth/link?provider=github">
+        <a data-astro-reload class="btn btn--small btn--ghost" href="/auth/link?provider=github">
           Link GitHub
         </a>
       )}
       {!providers.includes('google') &&
         (googleEnabled() ? (
-          <a class="btn btn--small btn--ghost" href="/auth/link?provider=google">
+          <a data-astro-reload class="btn btn--small btn--ghost" href="/auth/link?provider=google">
             Link Google
           </a>
         ) : (
@@ -120,14 +120,14 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
     <p class="hint">
       Removes your profile, drafts, posts and reservations. Published posts are removed too. This cannot be undone.
     </p>
-    <form class="inline-form" method="post" action="/api/me/delete">
+    <form data-astro-reload class="inline-form" method="post" action="/api/me/delete">
       <input class="input" name="confirm" placeholder='type "delete"' style="max-width:200px" required />
       <button class="btn btn--small btn--danger" type="submit">
         Delete account
       </button>
     </form>
   </div>
-  <form method="post" action="/auth/logout" style="margin-top:24px">
+  <form data-astro-reload method="post" action="/auth/logout" style="margin-top:24px">
     <button class="btn btn--small btn--ghost" type="submit">
       Sign out
     </button>
