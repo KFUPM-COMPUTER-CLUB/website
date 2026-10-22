@@ -17,19 +17,17 @@
   <img alt="Vercel" src="https://img.shields.io/badge/Vercel-ISR-000000?logo=vercel&logoColor=white">
 </p>
 
-## What's inside
+## Features
 
-- 🗓️ **Timeline** of every event, with an upcoming / past view and a mini calendar
-- ✍️ **Blog with review**: members write in a rich editor, reviewers approve, then it goes live
-- 👥 **Community**: the board, member count, contributors and public member profiles
-- 🛠️ **Admin panel**: events, home page, partners, FAQ, media, settings and the blog queue, with undo
-- 📅 **Add to calendar**: Google, Outlook and `.ics` for every event, plus a club-wide feed
-- 🔐 **Member accounts**: GitHub or Google sign-in, onboarding, event reservations, group links
-- 🚩 **CTF flag** hidden in the site, with a solvers wall and a terminal mode for the curious
-
-<p align="center">
-  <a href="https://cckfupm.vercel.app"><img src="docs/screenshot.jpg" alt="The home page" width="900"></a>
-</p>
+| Area            | What it does                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| **Timeline**    | Every club event in one place, split into upcoming and past, with a mini calendar                  |
+| **Blog**        | Members write in a rich editor; reviewers approve each post before it is published                 |
+| **Community**   | The board, member count, contributors and public member profiles                                   |
+| **Admin panel** | Events, home page, partners, FAQ, media, settings and the review queue, with an audit log and undo |
+| **Calendar**    | One-click add to Google or Outlook, `.ics` files and a club-wide feed                              |
+| **Accounts**    | Sign-in with Google or GitHub, onboarding, event reservations and members-only group links         |
+| **Challenge**   | A capture-the-flag puzzle hidden in the site, with a solvers wall and a terminal mode              |
 
 ## Tech stack
 
