@@ -3,7 +3,7 @@
  * outside form fields, or from any element with data-term-open; closes with Escape, "exit" or its close
  * button, and hands focus back to whatever had it. History lives in sessionStorage; Tab completes
  * command names; Ctrl+L clears. A few commands are not listed by help: they are part of the site
- * challenge (ls -a, cat .flag), so do not tidy them away. */
+ * challenge (ls -a, cat .flag), so do not tidy them away. Same for the "sudo rm -rf /" easter egg. */
 import { onPage, reduceMotion, listen, bag, siteHref } from './page.js';
 
 const FLAG_B64 = 'Q0N7d2gzcjNfY3VyMTB1c19tMW5kc19idTFsZH0='; // the flag, base64; decoding it is the last step
@@ -11,6 +11,17 @@ const HIST_KEY = 'cc_term_hist',
   HIST_MAX = 50,
   OUT_MAX = 400;
 const PROMPT = 'guest@cckfupm:~$';
+
+/* Easter egg: the "wipe everything" command fakes a wipe, then closes the tab. */
+const WIPE_COMMANDS = new Set(['sudo rm -rf /', 'sudo rm -rf / --no-preserve-root']);
+const WIPE_LINES = [
+  'rm: removing /home ...',
+  'rm: removing /usr ...',
+  'rm: removing /var/www/cckfupm ...',
+  'rm: removing /etc ...',
+  'rm: removing /boot ...',
+  'kernel panic - not syncing: attempted to kill init!',
+];
 
 const COMMANDS = [
   ['help', 'list the commands'],
@@ -289,6 +300,26 @@ onPage(() => {
     else navTimer = setTimeout(() => go(url), 350);
   };
 
+  /* Print fake rm output line by line, then try to close the tab. Browsers only let a script close tabs
+   * it opened, so if the tab is still here a moment later, blank it instead. */
+  const cmdWipe = () => {
+    input.disabled = true;
+    let i = 0;
+    const step = () => {
+      if (i < WIPE_LINES.length) {
+        err(WIPE_LINES[i++]);
+        navTimer = setTimeout(step, reduce ? 0 : 160);
+        return;
+      }
+      const bye = () => {
+        window.close();
+        navTimer = setTimeout(() => location.replace('about:blank'), 250);
+      };
+      navTimer = setTimeout(bye, reduce ? 0 : 500);
+    };
+    step();
+  };
+
   const run = (raw) => {
     const line = raw.trim();
     print(`${PROMPT} ${line}`, 'cmd');
@@ -326,6 +357,7 @@ onPage(() => {
       case 'cat':
         return cmdCat(args);
       case 'sudo':
+        if (WIPE_COMMANDS.has(line.split(/\s+/).join(' '))) return cmdWipe();
         return err('guest is not in the sudoers file. This incident will be reported.');
       case '404':
         err('segfault (core dumped)');
