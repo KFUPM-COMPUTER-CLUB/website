@@ -20,7 +20,19 @@ export default defineConfig({
   // sanitize-html is CommonJS but requires htmlparser2, which is ESM-only since v10. Left external, the
   // function crashes at runtime with ERR_REQUIRE_ESM (blog submit and review). Bundling them lets Vite
   // turn the require() into an import.
-  vite: { ssr: { noExternal: ['sanitize-html', 'htmlparser2', 'domhandler', 'domutils', 'dom-serializer', 'domelementtype', 'entities'] } },
+  vite: {
+    ssr: {
+      noExternal: [
+        'sanitize-html',
+        'htmlparser2',
+        'domhandler',
+        'domutils',
+        'dom-serializer',
+        'domelementtype',
+        'entities',
+      ],
+    },
+  },
   redirects: { '/officers': '/community' },
   // All optional on purpose: without keys the site runs from seed data (see src/lib/env.ts).
   // Keep this schema, src/lib/env.ts and .env.example in step.
