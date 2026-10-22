@@ -446,3 +446,14 @@ create policy "media public read" on storage.objects for select using (bucket_id
 -- The drafts bucket is private: files are served through /api/media/<key> with signed URLs until the
 -- post is published, when they move to the public buckets. Uploads go through the site's API with the
 -- service key, so no insert policy for users is needed.
+
+-- ── Service role ────────────────────────────────────────────────────────────
+-- The site's API writes with the service key. On projects where new tables are not exposed
+-- automatically, give the service role everything, now and for tables added later.
+grant usage on schema public to service_role;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant execute on all functions in schema public to service_role;
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on sequences to service_role;
+alter default privileges in schema public grant execute on functions to service_role;
