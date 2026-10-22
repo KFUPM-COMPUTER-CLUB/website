@@ -10,8 +10,8 @@ Replace `<project-ref>` with the reference of your Supabase project (the part be
 2. Open **SQL Editor → New query**, paste the whole file `supabase/migrations/0001_init.sql` from the repo, press **Run**. It must end with "Success". It is safe to run again later.
 3. **Project Settings → API** (or **Data API**). Copy:
    - Project URL → `PUBLIC_SUPABASE_URL`
-   - `anon` `public` key → `PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` `secret` key → `SUPABASE_SERVICE_ROLE_KEY` (server only, never share it)
+   - the publishable key (`sb_publishable_…`) → `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (older projects: the `anon` key as `PUBLIC_SUPABASE_ANON_KEY`)
+   - the secret key (`sb_secret_…`) → `SUPABASE_SECRET_KEY` (older projects: `service_role` as `SUPABASE_SERVICE_ROLE_KEY`); server only, never share it
 4. **Authentication → URL Configuration**:
    - Site URL: `https://cckfupm-website.vercel.app`
    - Redirect URLs, add all three:
@@ -37,8 +37,8 @@ Vercel → the `cckfupm-website` project → **Settings → Environment Variable
 | Name | Value |
 |---|---|
 | `PUBLIC_SUPABASE_URL` | the Project URL |
-| `PUBLIC_SUPABASE_ANON_KEY` | the anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | the service_role key (mark as sensitive) |
+| `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the publishable key (or `PUBLIC_SUPABASE_ANON_KEY` with the anon key) |
+| `SUPABASE_SECRET_KEY` | the secret key, marked sensitive (or `SUPABASE_SERVICE_ROLE_KEY` with the service_role key) |
 | `ADMIN_EMAILS` | your email(s), comma separated, e.g. `adib.alqurashi@gmail.com` (the GitHub account's primary email) |
 | `SITE_URL` | `https://cckfupm-website.vercel.app` |
 | `CRON_SECRET` | any long random string (Vercel sends it with the daily cron) |

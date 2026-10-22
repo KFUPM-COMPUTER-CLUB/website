@@ -1,10 +1,11 @@
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, PUBLIC_GOOGLE_SIGNIN } from 'astro:env/client';
-import { SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAILS, RESEND_API_KEY, EMAIL_FROM, CRON_SECRET, SITE_URL } from 'astro:env/server';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_GOOGLE_SIGNIN } from 'astro:env/client';
+import { SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SECRET_KEY, ADMIN_EMAILS, RESEND_API_KEY, EMAIL_FROM, CRON_SECRET, SITE_URL } from 'astro:env/server';
 
 /* Feature switches. Everything degrades cleanly when a key is missing. */
 export const supabaseUrl = PUBLIC_SUPABASE_URL || '';
-export const supabaseAnon = PUBLIC_SUPABASE_ANON_KEY || '';
-export const serviceKey = SUPABASE_SERVICE_ROLE_KEY || '';
+/* Supabase's newer key names (publishable / secret) work the same as anon / service_role. */
+export const supabaseAnon = PUBLIC_SUPABASE_ANON_KEY || PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
+export const serviceKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SECRET_KEY || '';
 export const dbReady = () => !!(supabaseUrl && supabaseAnon);
 export const serviceReady = () => dbReady() && !!serviceKey;
 export const googleEnabled = () => (PUBLIC_GOOGLE_SIGNIN || '').toLowerCase() === 'true';

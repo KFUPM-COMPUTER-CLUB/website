@@ -1,5 +1,5 @@
 import { kt as defineMiddleware, t as sequence } from "./chunks/sequence_CcNeFUgX.mjs";
-import { a as adminEmails, c as serviceReady, i as sessionClient, o as dbReady, r as serviceClient } from "./chunks/supabase_BYajXEmb.mjs";
+import { a as adminEmails, c as serviceReady, i as sessionClient, o as dbReady, r as serviceClient } from "./chunks/supabase_BKsAzIKQ.mjs";
 import { t as atLeast } from "./chunks/types_DpuWdFt1.mjs";
 //#region src/middleware.ts
 var PERSONAL = /^\/(me|admin|onboarding|auth|api|join)(\/|$)/;

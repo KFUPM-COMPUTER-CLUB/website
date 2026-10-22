@@ -30,10 +30,18 @@ const real = (v: unknown) => typeof v === 'string' && v.length > 0 && !v.include
 /* ── Riyadh time helpers (UTC+3, no daylight saving) ─────────────────── */
 export const RIYADH = 'Asia/Riyadh';
 const riyadh = (y: number, m: number, d: number, h = 0, min = 0) => new Date(Date.UTC(y, m - 1, d, h - 3, min));
+/* Time strings in the seed look like "", "14:00", "2:00 PM" or "8:00 PM – 9:30 PM"; the start is used. */
+export const parseClock = (time: string): { h: number; min: number } | null => {
+  const t = /(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(time || '');
+  if (!t) return null;
+  let h = Number(t[1]); const ap = (t[3] || '').toUpperCase();
+  if (ap === 'PM' && h < 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
+  return { h, min: Number(t[2]) };
+};
 export const parseRiyadh = (date: string, time = ''): Date => {
   const [y, m, d] = date.split('-').map(Number);
-  const t = /^(\d{1,2}):(\d{2})/.exec(time);
-  return t ? riyadh(y, m, d, Number(t[1]), Number(t[2])) : riyadh(y, m, d);
+  const c = parseClock(time);
+  return c ? riyadh(y, m, d, c.h, c.min) : riyadh(y, m, d);
 };
 export const riyadhDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: RIYADH, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); // YYYY-MM-DD
 export const fmtRiyadh = (d: Date, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: RIYADH, ...opts }).format(d);
@@ -75,7 +83,7 @@ export const getFaqIntro = async () => (await getSettings()).site;
 /* ── Events ────────────────────────────────────────────────────────────── */
 const seedEvents = (): EventItem[] => (eventsJson as any[]).map((e) => {
   const start = parseRiyadh(e.date, e.time || '');
-  const allDay = !/^\d{1,2}:\d{2}/.test(e.time || '');
+  const allDay = !parseClock(e.time || '');
   const end = e.endDate ? parseRiyadh(e.endDate) : null;
   return { id: e.id, slug: e.id, title: e.title, type: e.type, start, end, allDay, location: e.location || '', summary: e.summary || '', coverKey: e.image || null, cover: null, xUrl: e.detailsUrl || null, registerUrl: real(e.registerUrl) ? e.registerUrl : null, capacity: null, registrationOpen: false, featured: !!e.featured, published: true };
 });

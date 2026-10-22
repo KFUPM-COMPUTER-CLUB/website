@@ -192,59 +192,59 @@
 		},
 		{
 			"src": "^(/404/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/about/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/blog/([^/]+?)/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/blog/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/calendar\\.ics)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/community/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/faq/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/flag/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/officers/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/rss\\.xml)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/styleguide/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/timeline/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/u/([^/]+?)/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^(/)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=11426ea5-3e45-48eb-a733-9500bcc339fc"
 		},
 		{
 			"src": "^/.*$",

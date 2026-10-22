@@ -19,8 +19,10 @@ export default defineConfig({
     schema: {
       PUBLIC_SUPABASE_URL: envField.string({ context: 'client', access: 'public', optional: true }),
       PUBLIC_SUPABASE_ANON_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
       PUBLIC_GOOGLE_SIGNIN: envField.string({ context: 'client', access: 'public', optional: true }),
       SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      SUPABASE_SECRET_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       ADMIN_EMAILS: envField.string({ context: 'server', access: 'secret', optional: true }),
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       EMAIL_FROM: envField.string({ context: 'server', access: 'secret', optional: true }),

@@ -6,7 +6,7 @@
  *   node scripts/import-seed.mjs --dry-run  # no writes; prints what would change
  *   node scripts/import-seed.mjs --force    # re-upload every image, overwrite admin-owned settings
  *
- * Needs PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Every row gets a deterministic id derived
+ * Needs PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY). Every row gets a deterministic id derived
  * from its seed identity, so a second run finds its own rows and only writes what changed. Rows
  * that admins own (alt text, author links, the links/banner/whatsapp/email settings) are never
  * overwritten without --force. */
@@ -185,7 +185,7 @@ export function markdownToHtml(md) {
 const fileEnv = existsSync(join(ROOT, '.env')) ? parseEnv(readFileSync(join(ROOT, '.env'), 'utf8')) : {};
 const env = (k) => process.env[k] ?? fileEnv[k] ?? '';
 let SUPABASE_URL = env('PUBLIC_SUPABASE_URL').replace(/\/+$/, '');
-const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY');
+const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
 const publicUrl = (path) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
 
 /* ── Logging and bookkeeping ───────────────────────────────────────────── */
