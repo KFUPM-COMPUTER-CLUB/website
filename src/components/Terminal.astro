@@ -1,0 +1,48 @@
+---
+/* Terminal overlay. Included once in BaseLayout; opened with ` or /, or from any [data-term-open].
+   The data it answers from is computed here at build time and inlined as JSON. */
+import events from '../data/events.json';
+import impact from '../data/impact.json';
+import partners from '../data/partners.json';
+import site from '../data/site.json';
+
+const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
+const names = (list) => (Array.isArray(list) ? list.map((p) => p.name).filter(Boolean) : []);
+
+const data = {
+  events: [...events]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((e) => ({ id: e.id, title: e.title, date: e.date, endDate: e.endDate || '', time: e.time || '', location: e.location || '' })),
+  impact: {
+    semesters: impact.semesters.map((s) => ({ term: s.term, total_sar: s.total_sar ?? null, min: !!s.total_is_minimum })),
+    total: impact.semesters.reduce((n, s) => n + (s.total_sar || 0), 0),
+    plus: impact.semesters.some((s) => s.total_is_minimum),
+  },
+  partners: { companies: names(partners.companies), friends: [...names(partners.kfupm_units), ...names(partners.student_clubs)] },
+  site: { name: site.name, intro: site.intro, description: site.description, join: isReal(site.links.join) ? site.links.join : '/about' },
+};
+// "<" is escaped so the JSON can never close its own script tag.
+const json = JSON.stringify(data).replace(/</g, '\\u003c');
+---
+
+<div class="terminal" role="dialog" aria-label="Terminal" hidden data-terminal>
+  <div class="terminal__bar">
+    <span class="terminal__title">guest@cckfupm — terminal</span>
+    <button type="button" class="terminal__close" data-term-close aria-label="Close terminal">esc</button>
+  </div>
+  <div class="terminal__out" role="log" aria-live="polite" data-term-out></div>
+  <form class="terminal__line" data-term-form>
+    <label class="terminal__prompt" for="term-input">guest@cckfupm:~$</label>
+    <span class="terminal__field">
+      <input id="term-input" class="terminal__input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" enterkeyhint="send" data-term-input />
+      <span class="terminal__mirror" aria-hidden="true" data-term-mirror></span>
+      <span class="terminal__cursor" aria-hidden="true" data-term-cursor></span>
+    </span>
+  </form>
+</div>
+<script type="application/json" data-term-data set:html={json}></script>
+
+<script>
+  import '../scripts/terminal.js';
+  import '../scripts/console-art.js';
+</script>

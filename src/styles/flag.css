@@ -1,0 +1,38 @@
+/* The /flag page: a compact dark room in the fixed navy palette.
+   The second selector outranks the layout's own section paint (.site-main > :not(.screen--one)). */
+.flag, .site-main > section.flag { --t: 1; min-height: 80vh; padding: calc(var(--header-h) + 88px) 0 96px; background: #0B1A33; color: #E5E7EB; }
+.flag__inner { max-width: 760px; }
+.flag .eyebrow { color: #60A5FA; }
+.flag .lead { color: #E5E7EB; max-width: 48ch; }
+.flag .h1:focus { outline: none; } /* focused by script after a solve; not a pointer target */
+
+.flag__h { margin: 40px 0 14px; font: 600 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: #60A5FA; }
+.flag__label { display: block; margin-bottom: 8px; font: 600 11px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: #A1A1AA; }
+.flag__input { display: block; width: 100%; height: 48px; margin: 0; padding: 0 14px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.04); color: #fff; font: 400 16px/1 var(--font-mono); transition: border-color 0.2s; }
+.flag__input:hover { border-color: rgba(255, 255, 255, 0.4); }
+.flag__input:focus { border-color: #60A5FA; }
+.flag__input::placeholder { color: #A1A1AA; }
+
+/* Door: label on its own line, then input and button side by side. */
+.flag__form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; max-width: 560px; margin-top: 28px; }
+.flag__form .flag__label { grid-column: 1 / -1; margin-bottom: 0; }
+.flag__form .btn { height: 48px; }
+.flag__result { display: block; min-height: 1.2em; margin: 14px 0 0; font: 500 13px/1.6 var(--font-mono); color: #60A5FA; }
+.flag__result:empty { margin: 0; min-height: 0; }
+
+/* Solver form: two fields, then the button. */
+.flag__form--solver { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; margin-top: 0; }
+.flag__field { min-width: 0; }
+.flag__field .flag__label { grid-column: auto; margin-bottom: 8px; }
+@media (max-width: 719px) {
+  .flag__form--solver { grid-template-columns: minmax(0, 1fr); }
+  .flag__form--solver .btn { justify-content: center; }
+}
+
+.flag__solvers { list-style: none; margin: 0; padding: 0; max-width: 560px; border-top: 1px solid rgba(255, 255, 255, 0.14); counter-reset: solver; }
+.flag__solvers li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.14); counter-increment: solver; }
+.flag__solvers li::before { content: counter(solver, decimal-leading-zero); flex: none; font: 600 11px/1.6 var(--font-mono); color: #60A5FA; }
+.flag__name { flex: 1 1 auto; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.flag__meta { flex: none; font: 400 12px/1.6 var(--font-mono); color: #A1A1AA; text-align: right; }
+.flag__empty { max-width: 560px; margin: 0; padding: 20px 0; border-block: 1px solid rgba(255, 255, 255, 0.14); color: #A1A1AA; }
+@media (max-width: 480px) { .flag__solvers li { flex-wrap: wrap; } .flag__meta { flex-basis: 100%; text-align: left; padding-left: 28px; } }

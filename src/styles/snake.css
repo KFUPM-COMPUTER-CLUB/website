@@ -1,0 +1,41 @@
+/* 404 page: the Snake board and its controls.
+ * The page is always dark, so the board uses the fixed dark palette rather than the theme tokens. */
+
+.snake__title { max-width: 16ch; }
+.snake__lead { max-width: 60ch; }
+
+/* Score row, board and pad stack on the left, the same width as the board. The script sets
+ * --snake-w once it knows the exact canvas size; until then the CSS width applies. */
+.snake__game { display: grid; justify-items: start; gap: 14px; margin: 40px 0 44px; }
+.snake__meta { display: flex; justify-content: space-between; gap: 24px; width: var(--snake-w, min(92vw, 440px, 100%)); }
+.snake__meta b { margin-left: 2px; color: #fff; font-weight: 700; }
+
+/* The board is the focus target. Square, responsive, hard blue shadow like the rest of the site. */
+.snake__board {
+  position: relative;
+  width: var(--snake-w, min(92vw, 440px, 100%));
+  aspect-ratio: 1;
+  background: #0B1A33;
+  border: 1px solid #2563EB;
+  box-shadow: 4px 4px 0 #2563EB;
+  touch-action: none;            /* swipes steer the snake instead of scrolling the page */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.snake__board:focus-visible { outline: 2px solid #60A5FA; outline-offset: 6px; }
+/* The script focuses the board on click or tap and marks it; no ring until the keyboard is used. */
+.snake__board[data-pointer]:focus-visible { outline: none; }
+/* Centred so the frame between --snake-w being set and the next layout never shows a seam. */
+.snake__canvas { position: absolute; inset: 0; margin: auto; display: block; touch-action: none; }
+
+/* On-screen arrows: coarse pointers only. */
+.snake__pad { display: none; grid-template-areas: ". up ." "left down right"; grid-template-columns: repeat(3, 44px); gap: 8px; }
+@media (pointer: coarse) { .snake__pad { display: grid; } }
+.snake__pad .btn { width: 44px; height: 44px; padding: 0; justify-content: center; font: 700 18px/1 var(--font-mono); }
+.snake__pad [data-dir="up"] { grid-area: up; }
+.snake__pad [data-dir="left"] { grid-area: left; }
+.snake__pad [data-dir="down"] { grid-area: down; }
+.snake__pad [data-dir="right"] { grid-area: right; }
+
+.snake__actions { display: flex; flex-wrap: wrap; gap: 14px; }
