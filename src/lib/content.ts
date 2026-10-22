@@ -18,11 +18,13 @@ import type {
   Partner,
   Officer,
   FaqItem,
+  Committee,
   Settings,
   PostSummary,
   PostFull,
 } from './types';
 import siteJson from '../data/site.json';
+import committeesJson from '../data/committees.json';
 import eventsJson from '../data/events.json';
 import highlightsJson from '../data/highlights.json';
 import storiesJson from '../data/stories.json';
@@ -466,6 +468,50 @@ export function getFaq(): Promise<FaqItem[]> {
       }));
     const { data } = await db().from('faq').select('*').eq('visible', true).order('sort');
     return (data || []).map((r: any) => ({ id: r.id, q: r.q_en, a: r.a_en, qAr: r.q_ar, aAr: r.a_ar, sort: r.sort }));
+  });
+}
+
+/* ── Committees ────────────────────────────────────────────────────────── */
+/* Items are one per line in the table so the generic admin textarea can edit them. */
+const splitLines = (s: unknown) =>
+  String(s || '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+export function getCommittees(): Promise<Committee[]> {
+  return cached('committees', async () => {
+    if (!dbReady())
+      return (committeesJson as any[]).map((c, i) => ({
+        id: `seed-${i}`,
+        name: c.name,
+        leads: c.leads || '',
+        items: c.items || [],
+        note: c.note || null,
+        sort: i,
+        grantsRole: (c.grantsRole || 'member') as Committee['grantsRole'],
+        members: [],
+      }));
+    const [{ data }, { data: people }] = await Promise.all([
+      db().from('committees').select('*').eq('visible', true).order('sort'),
+      // Members who are in a committee, for the cards. Empty until 0003_committee_members.sql has run.
+      db()
+        .from('profiles_public')
+        .select('committee_id,name,handle,avatar_url')
+        .not('committee_id', 'is', null)
+        .order('name'),
+    ]);
+    return (data || []).map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      leads: r.leads || '',
+      items: splitLines(r.items),
+      note: r.note || null,
+      sort: r.sort,
+      grantsRole: r.grants_role || 'member',
+      members: (people || [])
+        .filter((p: any) => p.committee_id === r.id)
+        .map((p: any) => ({ name: p.name, handle: p.handle, avatar_url: p.avatar_url })),
+    }));
   });
 }
 

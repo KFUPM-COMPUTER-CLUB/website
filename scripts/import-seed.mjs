@@ -674,6 +674,18 @@ export function mapSettings(site, impact) {
 export const mapFaq = (faq) =>
   faq.map((f, i) => ({ id: uuidFrom(`faq:${f.q}`), q_en: f.q, a_en: f.a, sort: i, visible: true }));
 
+export const mapCommittees = (committees) =>
+  committees.map((c, i) => ({
+    id: uuidFrom(`committee:${c.name}`),
+    name: c.name,
+    leads: c.leads || '',
+    items: (c.items || []).join('\n'),
+    note: c.note || null,
+    grants_role: c.grantsRole || 'member',
+    sort: i,
+    visible: true,
+  }));
+
 export function mapPost(file, src) {
   const slug = stripExt(file);
   const { data, body } = parseFrontmatter(src);
@@ -792,6 +804,7 @@ async function main() {
     protect: (cur) => PROTECTED_SETTINGS.includes(cur.key),
   });
   await sync('faq', mapFaq(site.faq || []), { label: (r) => r.q_en });
+  await sync('committees', mapCommittees(readJson('src/data/committees.json')), { label: (r) => r.name });
 
   // 11. Posts from markdown.
   const posts = listDir('src/data/posts')

@@ -49,7 +49,7 @@ export const GET: APIRoute = handle(async (ctx) => {
   });
 });
 
-/* _action = role | suspend | delete. An admin cannot suspend, delete or demote themselves, so the
+/* _action = role | committee | suspend | delete. An admin cannot suspend, delete or demote themselves, so the
  * club can never lock itself out; the first admins come from ADMIN_EMAILS anyway (see middleware).
  * Delete goes through Supabase Auth: removing the auth user cascades to the profile and from there
  * to roles and registrations. The audit entry is written first because the profile is gone after. */
@@ -61,7 +61,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (id === admin.id && (b._action === 'delete' || b._action === 'suspend'))
     throw new ApiError('You cannot do that to your own account.');
   const sb = serviceClient();
-  const { data: p } = await sb.from('profiles').select('id,name,email,suspended').eq('id', id).maybeSingle();
+  const { data: p } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
   if (!p) throw new ApiError('Not found.', 404);
   const back = `/admin/members?q=${encodeURIComponent(str(b.q, 60))}`;
   const done = (m: string) => {
@@ -77,6 +77,28 @@ export const POST: APIRoute = handle(async (ctx) => {
       await sb.from('user_roles').upsert({ user_id: id, role, granted_by: admin.id });
       await audit(admin.id, 'role', 'user_roles', id, { role: old?.role || 'member' }, { role });
       return done(`${p.name || p.email} is now ${role}.`);
+    }
+    case 'committee': {
+      // Membership is a profile field; the access it gives comes from the committee's grants_role.
+      const cid = str(b.committee_id, 40);
+      if (cid && !isUuid(cid)) throw new ApiError('Unknown committee.');
+      const { data: c } = cid
+        ? await sb.from('committees').select('id,name').eq('id', cid).maybeSingle()
+        : { data: null };
+      if (cid && !c) throw new ApiError('Unknown committee.');
+      await sb
+        .from('profiles')
+        .update({ committee_id: cid || null })
+        .eq('id', id);
+      await audit(
+        admin.id,
+        'update',
+        'profiles',
+        id,
+        { committee_id: p.committee_id || null },
+        { committee_id: cid || null },
+      );
+      return done(c ? `${p.name || p.email} is in ${c.name}.` : `${p.name || p.email} is in no committee.`);
     }
     case 'suspend': {
       await sb.from('profiles').update({ suspended: !p.suspended }).eq('id', id);

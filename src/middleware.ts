@@ -7,7 +7,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { dbReady, serviceReady, adminEmails } from './lib/env';
 import { sessionClient, serviceClient } from './lib/supabase';
-import { atLeast, type Role } from './lib/types';
+import { atLeast, ROLE_RANK, type Profile, type Role } from './lib/types';
 
 /* Routes that depend on who is asking. Everything else is public and cached, so it never
  * looks at the session (a cached page must not contain anyone's data). */
@@ -56,7 +56,21 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
         await serviceClient().from('user_roles').upsert({ user_id: user.id, role: 'admin' });
         role = 'admin';
       }
-      ctx.locals.profile = profile ?? null;
+      // A committee grants its members a minimum role (0003_committee_members.sql), so one setting covers
+      // a whole team. Own committee is always readable with the member's token; a missing column (migration
+      // not run yet) just means no committee.
+      let committee: Profile['committee'] = null;
+      if (profile?.committee_id) {
+        const { data: c } = await supabase
+          .from('committees')
+          .select('id,name,grants_role')
+          .eq('id', profile.committee_id)
+          .maybeSingle();
+        committee = (c as Profile['committee']) || null;
+        if (committee && role !== 'admin' && ROLE_RANK[committee.grants_role] > ROLE_RANK[role])
+          role = committee.grants_role;
+      }
+      ctx.locals.profile = profile ? { ...profile, committee } : null;
       ctx.locals.role = role;
       // /auth stays reachable so a suspended account can still sign out.
       if (profile?.suspended && !path.startsWith('/auth/'))

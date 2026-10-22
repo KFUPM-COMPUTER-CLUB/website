@@ -14,26 +14,32 @@ if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, {
 const db = publicClient();
 const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
 if (!p) return new Response(null, { status: 404 });
-const [{ data: posts }, { data: regs }, { data: officer }, { data: solved }, settings] = await Promise.all([
-  db
-    .from('posts')
-    .select('slug,title,excerpt,published_at,category')
-    .eq('author_id', p.id)
-    .eq('status', 'published')
-    .order('published_at', { ascending: false }),
-  db.rpc('profile_events', { p_user: p.id }),
-  db
-    .from('officer_terms')
-    .select('title,committee,term,is_current')
-    .eq('user_id', p.id)
-    .order('is_current', { ascending: false })
-    .limit(3),
-  db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
-  getSettings(),
-]);
+const [{ data: posts }, { data: regs }, { data: officer }, { data: solved }, settings, { data: committee }] =
+  await Promise.all([
+    db
+      .from('posts')
+      .select('slug,title,excerpt,published_at,category')
+      .eq('author_id', p.id)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false }),
+    db.rpc('profile_events', { p_user: p.id }),
+    db
+      .from('officer_terms')
+      .select('title,committee,term,is_current')
+      .eq('user_id', p.id)
+      .order('is_current', { ascending: false })
+      .limit(3),
+    db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
+    getSettings(),
+    // committee_id is on profiles_public from 0003_committee_members.sql; before that it is undefined.
+    p.committee_id
+      ? db.from('committees').select('name').eq('id', p.committee_id).maybeSingle()
+      : Promise.resolve({ data: null as { name: string } | null }),
+  ]);
 const current = (officer || []).find((o: any) => o.is_current);
 const badges = [
   current && `Officer · ${current.title}`,
+  committee?.name && `${committee.name} committee`,
   (officer || []).some((o: any) => !o.is_current) && 'Past officer',
   (posts?.length || 0) > 0 && 'Writer',
   (regs || []).some((r: any) => r.attended) && 'Attended events',

@@ -67,6 +67,12 @@ const welcome = Astro.url.searchParams.has('welcome');
       <b style="font-size:20px">{role}</b>
       <span>role</span>
     </div>
+    {profile?.committee && (
+      <div class="stat">
+        <b style="font-size:20px">{profile.committee.name}</b>
+        <span>committee</span>
+      </div>
+    )}
   </div>
   <div class="card" style="margin-top:16px">
     <h2 class="h3">My posts</h2>
