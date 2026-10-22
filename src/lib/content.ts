@@ -488,8 +488,18 @@ export function getCommittees(): Promise<Committee[]> {
         items: c.items || [],
         note: c.note || null,
         sort: i,
+        grantsRole: (c.grantsRole || 'member') as Committee['grantsRole'],
+        members: [],
       }));
-    const { data } = await db().from('committees').select('*').eq('visible', true).order('sort');
+    const [{ data }, { data: people }] = await Promise.all([
+      db().from('committees').select('*').eq('visible', true).order('sort'),
+      // Members who are in a committee, for the cards. Empty until 0003_committee_members.sql has run.
+      db()
+        .from('profiles_public')
+        .select('committee_id,name,handle,avatar_url')
+        .not('committee_id', 'is', null)
+        .order('name'),
+    ]);
     return (data || []).map((r: any) => ({
       id: r.id,
       name: r.name,
@@ -497,6 +507,10 @@ export function getCommittees(): Promise<Committee[]> {
       items: splitLines(r.items),
       note: r.note || null,
       sort: r.sort,
+      grantsRole: r.grants_role || 'member',
+      members: (people || [])
+        .filter((p: any) => p.committee_id === r.id)
+        .map((p: any) => ({ name: p.name, handle: p.handle, avatar_url: p.avatar_url })),
     }));
   });
 }

@@ -30,6 +30,9 @@ export type Profile = {
   onboarded: boolean;
   suspended: boolean;
   created_at: string;
+  committee_id?: string | null;
+  /* Attached by the middleware when the member is in a committee (0003_committee_members.sql). */
+  committee?: { id: string; name: string; grants_role: Role } | null;
 };
 export type PublicProfile = Pick<
   Profile,
@@ -126,7 +129,17 @@ export type Officer = {
 };
 export type FaqItem = { id: string; q: string; a: string; qAr: string | null; aAr: string | null; sort: number };
 /* A committee on /community. Leads are free text so the section works before the leads have accounts. */
-export type Committee = { id: string; name: string; leads: string; items: string[]; note: string | null; sort: number };
+export type Committee = {
+  id: string;
+  name: string;
+  leads: string;
+  items: string[];
+  note: string | null;
+  sort: number;
+  /* The minimum role every member of the committee gets; see src/middleware.ts. */
+  grantsRole: Role;
+  members: { name: string | null; handle: string | null; avatar_url: string | null }[];
+};
 /* The settings table merged over the seed defaults (content.ts getSettings). */
 export type Settings = {
   site: {

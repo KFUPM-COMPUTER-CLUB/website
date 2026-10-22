@@ -865,6 +865,10 @@ body.scrolled .scroll-hint { opacity: 0; }
 .committee__items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 15px; }
 .committee__note { margin: 0; color: var(--muted); font-size: 15px; }
 .committee__items + .committee__note { margin-top: 16px; }
+.committee__members { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+.committee__members li { padding: 6px 10px; border: 1px solid var(--line); font-size: 13px; color: var(--text-2); }
+.committee__members a { color: inherit; text-decoration: none; }
+.committee__members a:hover { color: var(--blue); }
 .idcard__photo--empty { display: grid; place-items: center; background: var(--card-2); color: var(--muted); font: 800 28px/1 var(--font-head); font-variation-settings: var(--wide); }
 .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
 .person { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); background: var(--card); text-decoration: none; }

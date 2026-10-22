@@ -681,6 +681,7 @@ export const mapCommittees = (committees) =>
     leads: c.leads || '',
     items: (c.items || []).join('\n'),
     note: c.note || null,
+    grants_role: c.grantsRole || 'member',
     sort: i,
     visible: true,
   }));

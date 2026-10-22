@@ -119,6 +119,13 @@ const pad = (n: number) => String(n).padStart(3, '0');
                 </ul>
               )}
               {c.note && <p class="committee__note">{c.note}</p>}
+              {c.members.length > 0 && (
+                <ul class="committee__members">
+                  {c.members.map((m) => (
+                    <li>{m.handle ? <a href={`/u/${m.handle}`}>{m.name}</a> : m.name}</li>
+                  ))}
+                </ul>
+              )}
             </article>
           ))}
         </div>
