@@ -1,10 +1,10 @@
 ---
-title: "Techathon 2025: four days, 60+ teams"
+title: 'Techathon 2025: four days, 60+ teams'
 date: 2025-04-27
-author: "CC Events Team"
-category: "Event recap"
-tags: ["hackathon", "techathon"]
-excerpt: "How a national hackathon ran at KFUPM, from the three-hour design phase to the final pitches, and who took the prizes."
+author: 'CC Events Team'
+category: 'Event recap'
+tags: ['hackathon', 'techathon']
+excerpt: 'How a national hackathon ran at KFUPM, from the three-hour design phase to the final pitches, and who took the prizes.'
 ---
 
 Techathon brought teams from universities across the Kingdom to Building 22. More than 60 teams applied, 24 reached the on-site final, and the prize pool passed 30,000 SAR.

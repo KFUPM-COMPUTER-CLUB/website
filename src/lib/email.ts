@@ -1,20 +1,23 @@
-/* Email: a small queue in front of Resend's free tier.
+/* Email: a small queue in front of Resend's free tier. Reached through notify.ts from the
+ * onboarding, registration and review routes, and directly from /api/cron/daily.
  *
  * Every message is written to public.email_queue first and sent from there, so nothing is lost
  * when Resend is missing, rate limited or down. Sends stay under the free tier (100 a day,
- * 3000 a month) with a margin; what does not fit today goes out on the next daily run
- * (/api/cron/daily). Days are counted on the Riyadh calendar (UTC+3, no daylight saving).
- * Server only: everything here uses the service key, and every function is a no-op that
- * never throws when the database or Resend is not configured. */
+ * 3000 a month) with a margin: DAILY_LIMIT is 90 so a retry or a test from the Resend dashboard
+ * never hits the hard cap. What does not fit today rolls to tomorrow and goes out on the next
+ * daily run, highest priority first (welcome mails before registration copies). Days are counted
+ * on the Riyadh calendar (UTC+3, no daylight saving). Server only: everything here uses the
+ * service key, and every function is a no-op that never throws when the database or Resend is
+ * not configured, so a missing email never fails the request that triggered it. */
 import { Resend } from 'resend';
 import { serviceReady, resendReady, resendKey, emailFrom, siteUrl } from './env';
 import { serviceClient } from './supabase';
 import { getWhatsappGroups, type Group } from './whatsapp';
 
-export const DAILY_LIMIT = 90;     // Resend free tier: 100 a day
+export const DAILY_LIMIT = 90; // Resend free tier: 100 a day
 export const MONTHLY_LIMIT = 3000; // and 3000 a month
-const MAX_ATTEMPTS = 3;            // a message that fails three times stays failed
-const SEND_GAP_MS = 550;           // Resend allows 2 requests a second
+const MAX_ATTEMPTS = 3; // a message that fails three times stays failed
+const SEND_GAP_MS = 550; // Resend allows 2 requests a second
 const TEMPLATE_TTL_MS = 60_000;
 
 export type EmailKind = 'welcome' | 'status' | 'registration' | 'other';
@@ -24,11 +27,21 @@ export type Template = { subject: string; html: string };
 export type Templates = Record<TemplateKind, Template>;
 export type Vars = Record<string, string | number | null | undefined>;
 export type SendResult = { sent: number; rolled: number; failed: number; error?: string };
-export type Quota = { sentToday: number; sentMonth: number; queued: number; failed: number; dailyLimit: number; monthlyLimit: number; warnDaily: boolean; warnMonthly: boolean; configured: boolean };
+export type Quota = {
+  sentToday: number;
+  sentMonth: number;
+  queued: number;
+  failed: number;
+  dailyLimit: number;
+  monthlyLimit: number;
+  warnDaily: boolean;
+  warnMonthly: boolean;
+  configured: boolean;
+};
 type QueueRow = { id: string; to_email: string; subject: string; html: string; attempts: number };
 const NOT_QUEUED = { queued: false, sent: false };
 
-/* ── Pure helpers (no database; covered by the unit test) ─────────────────── */
+/* ── Pure helpers (no database) ──────────────────────────────────────────── */
 
 const RIYADH_OFFSET_MS = 3 * 3_600_000;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -36,7 +49,9 @@ const ymd = (d: Date) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pa
 /* Today and tomorrow on the Riyadh calendar, plus the UTC instants where the Riyadh day and month began. */
 export function riyadhBounds(now = new Date()) {
   const local = new Date(now.getTime() + RIYADH_OFFSET_MS); // Riyadh wall clock, read with the UTC getters
-  const y = local.getUTCFullYear(), m = local.getUTCMonth(), d = local.getUTCDate();
+  const y = local.getUTCFullYear(),
+    m = local.getUTCMonth(),
+    d = local.getUTCDate();
   return {
     today: ymd(new Date(Date.UTC(y, m, d))),
     tomorrow: ymd(new Date(Date.UTC(y, m, d + 1))),
@@ -45,7 +60,8 @@ export function riyadhBounds(now = new Date()) {
   };
 }
 /* How many messages may go out now: the caller's cap, bounded by what is left of both limits. */
-export const budgetFor = (sentToday: number, sentMonth: number, max: number) => Math.max(0, Math.min(max, DAILY_LIMIT - sentToday, MONTHLY_LIMIT - sentMonth));
+export const budgetFor = (sentToday: number, sentMonth: number, max: number) =>
+  Math.max(0, Math.min(max, DAILY_LIMIT - sentToday, MONTHLY_LIMIT - sentMonth));
 
 const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const escapeHtml = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
@@ -64,13 +80,15 @@ export function fill(template: string, vars: Vars, mode: 'html' | 'text' = 'html
 /* The one layout every email uses: club name as heading, dark text on white, blue links, site URL in the footer. No images. */
 export function layout(body: string, site = siteUrl): string {
   const url = escapeHtml(site);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>KFUPM Computer Club</title><style>a{color:#2563EB}</style></head>`
-    + `<body style="margin:0;padding:0;background:#FFFFFF;color:#0B0B0F;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5">`
-    + `<div style="max-width:560px;margin:0 auto;padding:32px 24px">`
-    + `<h1 style="margin:0 0 24px;font-size:20px;font-weight:700;color:#0B1A33">KFUPM Computer Club</h1>`
-    + `<div style="color:#0B0B0F">${body}</div>`
-    + `<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #E5E7EB;font-size:13px;color:#52525B"><a href="${url}" style="color:#2563EB">${url}</a></p>`
-    + `</div></body></html>`;
+  return (
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>KFUPM Computer Club</title><style>a{color:#2563EB}</style></head>` +
+    `<body style="margin:0;padding:0;background:#FFFFFF;color:#0B0B0F;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5">` +
+    `<div style="max-width:560px;margin:0 auto;padding:32px 24px">` +
+    `<h1 style="margin:0 0 24px;font-size:20px;font-weight:700;color:#0B1A33">KFUPM Computer Club</h1>` +
+    `<div style="color:#0B0B0F">${body}</div>` +
+    `<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #E5E7EB;font-size:13px;color:#52525B"><a href="${url}" style="color:#2563EB">${url}</a></p>` +
+    `</div></body></html>`
+  );
 }
 
 /* Built-in copy. Admins override any field from /admin/settings (settings row "email_templates"); an empty field keeps the default. */
@@ -94,7 +112,11 @@ const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v : '');
 export function mergeTemplates(overrides: unknown): Templates {
   const o = (overrides && typeof overrides === 'object' ? overrides : {}) as Record<string, any>;
   const out = {} as Templates;
-  for (const k of KINDS) out[k] = { subject: text(o[k]?.subject) || DEFAULT_TEMPLATES[k].subject, html: text(o[k]?.html) || DEFAULT_TEMPLATES[k].html };
+  for (const k of KINDS)
+    out[k] = {
+      subject: text(o[k]?.subject) || DEFAULT_TEMPLATES[k].subject,
+      html: text(o[k]?.html) || DEFAULT_TEMPLATES[k].html,
+    };
   return out;
 }
 /* Fills a template: subject as plain text, body wrapped in the layout. {{siteUrl}} is always available. */
@@ -104,8 +126,12 @@ export function render(tpl: Template, vars: Vars, site = siteUrl): Template {
 }
 /* The WhatsApp group list for the welcome email, or a pointer to the member page when none is set. */
 export function whatsappList(groups: Group[], site = siteUrl): string {
-  const items = (groups || []).filter((g) => /^https?:\/\//i.test(g?.url || '')).map((g) => `<li><a href="${escapeHtml(g.url)}" style="color:#2563EB">${escapeHtml(g.label || g.url)}</a></li>`);
-  return items.length ? `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>` : `<p>The group links are on your <a href="${escapeHtml(site)}/me" style="color:#2563EB">member page</a>.</p>`;
+  const items = (groups || [])
+    .filter((g) => /^https?:\/\//i.test(g?.url || ''))
+    .map((g) => `<li><a href="${escapeHtml(g.url)}" style="color:#2563EB">${escapeHtml(g.label || g.url)}</a></li>`);
+  return items.length
+    ? `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>`
+    : `<p>The group links are on your <a href="${escapeHtml(site)}/me" style="color:#2563EB">member page</a>.</p>`;
 }
 const greet = (p: ProfileLike) => (p?.name || '').trim() || (p?.handle || '').trim() || 'there';
 const isEmail = (v: unknown): v is string => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
@@ -114,15 +140,25 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /* ── Templates from the database ─────────────────────────────────────────── */
 
+/* Admin overrides come from the private email_templates setting, so they are read with the service
+ * key and cached for a minute. Any failure falls back to the built-in copy rather than blocking a send. */
 let templateCache: { at: number; value: Promise<Templates> } | null = null;
 async function loadTemplates(): Promise<Templates> {
   if (templateCache && Date.now() - templateCache.at < TEMPLATE_TTL_MS) return templateCache.value;
   const value = (async () => {
     if (!serviceReady()) return mergeTemplates(null);
-    const { data, error } = await serviceClient().from('settings').select('value').eq('key', 'email_templates').maybeSingle();
+    const { data, error } = await serviceClient()
+      .from('settings')
+      .select('value')
+      .eq('key', 'email_templates')
+      .maybeSingle();
     if (error) throw new Error(error.message);
     return mergeTemplates(data?.value);
-  })().catch((e) => { templateCache = null; console.error('email templates', e); return mergeTemplates(null); });
+  })().catch((e) => {
+    templateCache = null;
+    console.error('email templates', e);
+    return mergeTemplates(null);
+  });
   templateCache = { at: Date.now(), value };
   return value;
 }
@@ -133,16 +169,43 @@ export async function renderTemplate(kind: TemplateKind, vars: Vars): Promise<Te
 /* ── Queue ───────────────────────────────────────────────────────────────── */
 
 /* Stores one message and tries to send it right away. Never throws: the row waits in the queue when it cannot go out now. */
-export async function enqueue({ to, subject, html, kind = 'other' }: { to: string; subject: string; html: string; kind?: EmailKind }): Promise<{ queued: boolean; sent: boolean }> {
+export async function enqueue({
+  to,
+  subject,
+  html,
+  kind = 'other',
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  kind?: EmailKind;
+}): Promise<{ queued: boolean; sent: boolean }> {
   if (!serviceReady()) return NOT_QUEUED;
-  if (!isEmail(to)) { console.error('email enqueue: bad address', to); return NOT_QUEUED; }
+  if (!isEmail(to)) {
+    console.error('email enqueue: bad address', to);
+    return NOT_QUEUED;
+  }
   try {
-    const row = { to_email: to.trim(), subject: subject.slice(0, 200), html, kind, priority: PRIORITY[kind] ?? PRIORITY.other, status: 'queued', scheduled_for: riyadhBounds().today };
+    const row = {
+      to_email: to.trim(),
+      subject: subject.slice(0, 200),
+      html,
+      kind,
+      priority: PRIORITY[kind] ?? PRIORITY.other,
+      status: 'queued',
+      scheduled_for: riyadhBounds().today,
+    };
     const { data, error } = await serviceClient().from('email_queue').insert(row).select('id').single();
-    if (error) { console.error('email enqueue', error.message); return NOT_QUEUED; }
+    if (error) {
+      console.error('email enqueue', error.message);
+      return NOT_QUEUED;
+    }
     const r = await drain(1);
     return { queued: true, sent: r.sentIds.includes(data.id) };
-  } catch (e) { console.error('email enqueue', e); return NOT_QUEUED; }
+  } catch (e) {
+    console.error('email enqueue', e);
+    return NOT_QUEUED;
+  }
 }
 
 /* Sends what is due, highest priority (lowest number) first, within today's budget. Returns the counts; see drain() for the rules. */
@@ -151,7 +214,8 @@ export async function sendPending(max = 50): Promise<SendResult> {
   return error ? { sent, rolled, failed, error } : { sent, rolled, failed };
 }
 
-const sentSince = (sb: ReturnType<typeof serviceClient>, iso: string) => count(sb, (q) => q.eq('status', 'sent').gte('sent_at', iso));
+const sentSince = (sb: ReturnType<typeof serviceClient>, iso: string) =>
+  count(sb, (q) => q.eq('status', 'sent').gte('sent_at', iso));
 async function count(sb: ReturnType<typeof serviceClient>, where: (q: any) => any): Promise<number> {
   const { count: n, error } = await where(sb.from('email_queue').select('id', { count: 'exact', head: true }));
   if (error) throw new Error(error.message);
@@ -171,101 +235,211 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
     const sb = serviceClient();
     const b = riyadhBounds();
     const [sentToday, sentMonth] = await Promise.all([sentSince(sb, b.dayStart), sentSince(sb, b.monthStart)]);
-    let dayLeft = DAILY_LIMIT - sentToday, monthLeft = MONTHLY_LIMIT - sentMonth;
+    let dayLeft = DAILY_LIMIT - sentToday,
+      monthLeft = MONTHLY_LIMIT - sentMonth;
     const budget = budgetFor(sentToday, sentMonth, max);
     if (budget > 0) {
-      const { data, error } = await sb.from('email_queue').select('id,to_email,subject,html,attempts').eq('status', 'queued').lte('scheduled_for', b.today).order('priority').order('created_at').limit(budget);
+      const { data, error } = await sb
+        .from('email_queue')
+        .select('id,to_email,subject,html,attempts')
+        .eq('status', 'queued')
+        .lte('scheduled_for', b.today)
+        .order('priority')
+        .order('created_at')
+        .limit(budget);
       if (error) throw new Error(error.message);
       const resend = new Resend(resendKey);
       const rows = (data || []) as QueueRow[];
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const attempts = (row.attempts || 0) + 1;
-        const { data: claimed } = await sb.from('email_queue').update({ attempts }).eq('id', row.id).eq('status', 'queued').eq('attempts', row.attempts || 0).select('id');
+        const { data: claimed } = await sb
+          .from('email_queue')
+          .update({ attempts })
+          .eq('id', row.id)
+          .eq('status', 'queued')
+          .eq('attempts', row.attempts || 0)
+          .select('id');
         if (!claimed?.length) continue; // another run took it
         if (i > 0) await sleep(SEND_GAP_MS);
         const failure = await deliver(resend, row);
         if (!failure) {
-          await sb.from('email_queue').update({ status: 'sent', sent_at: new Date().toISOString(), error: null }).eq('id', row.id);
-          out.sent++; out.sentIds.push(row.id); dayLeft--; monthLeft--;
+          await sb
+            .from('email_queue')
+            .update({ status: 'sent', sent_at: new Date().toISOString(), error: null })
+            .eq('id', row.id);
+          out.sent++;
+          out.sentIds.push(row.id);
+          dayLeft--;
+          monthLeft--;
         } else {
           const final = attempts >= MAX_ATTEMPTS;
-          await sb.from('email_queue').update({ error: failure, status: final ? 'failed' : 'queued', ...(final ? {} : { scheduled_for: b.tomorrow }) }).eq('id', row.id);
+          await sb
+            .from('email_queue')
+            .update({
+              error: failure,
+              status: final ? 'failed' : 'queued',
+              ...(final ? {} : { scheduled_for: b.tomorrow }),
+            })
+            .eq('id', row.id);
           out.failed++;
           console.error(`email ${row.id} attempt ${attempts}: ${failure}`);
         }
       }
     }
     if (Math.min(dayLeft, monthLeft) <= 0) {
-      const { count: n, error } = await sb.from('email_queue').update({ scheduled_for: b.tomorrow }, { count: 'exact' }).eq('status', 'queued').lte('scheduled_for', b.today);
+      const { count: n, error } = await sb
+        .from('email_queue')
+        .update({ scheduled_for: b.tomorrow }, { count: 'exact' })
+        .eq('status', 'queued')
+        .lte('scheduled_for', b.today);
       if (error) throw new Error(error.message);
       out.rolled = n || 0;
     }
     return out;
-  } catch (e) { console.error('email send', e); return { ...out, error: errorText(e) }; }
+  } catch (e) {
+    console.error('email send', e);
+    return { ...out, error: errorText(e) };
+  }
 }
 /* One Resend call. Returns null on success, else a short error text. A rate-limit reply is retried once after a pause. */
 async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<string | null> {
   try {
-    const { error } = await resend.emails.send({ from: emailFrom, to: row.to_email, subject: row.subject, html: row.html });
+    const { error } = await resend.emails.send({
+      from: emailFrom,
+      to: row.to_email,
+      subject: row.subject,
+      html: row.html,
+    });
     if (!error) return null;
-    if (error.name === 'rate_limit_exceeded' && !retried) { await sleep(1_200); return deliver(resend, row, true); }
+    if (error.name === 'rate_limit_exceeded' && !retried) {
+      await sleep(1_200);
+      return deliver(resend, row, true);
+    }
     return `${error.name}: ${error.message}`.slice(0, 500);
-  } catch (e) { return errorText(e); }
+  } catch (e) {
+    return errorText(e);
+  }
 }
 
 /* Counters for the admin dashboard. Sent counts follow the Riyadh day and month. */
 export async function quota(): Promise<Quota> {
-  const base: Quota = { sentToday: 0, sentMonth: 0, queued: 0, failed: 0, dailyLimit: DAILY_LIMIT, monthlyLimit: MONTHLY_LIMIT, warnDaily: false, warnMonthly: false, configured: resendReady() };
+  const base: Quota = {
+    sentToday: 0,
+    sentMonth: 0,
+    queued: 0,
+    failed: 0,
+    dailyLimit: DAILY_LIMIT,
+    monthlyLimit: MONTHLY_LIMIT,
+    warnDaily: false,
+    warnMonthly: false,
+    configured: resendReady(),
+  };
   if (!serviceReady()) return base;
   try {
     const sb = serviceClient();
     const b = riyadhBounds();
-    const [sentToday, sentMonth, queued, failed] = await Promise.all([sentSince(sb, b.dayStart), sentSince(sb, b.monthStart), count(sb, (q) => q.eq('status', 'queued')), count(sb, (q) => q.eq('status', 'failed'))]);
-    return { ...base, sentToday, sentMonth, queued, failed, warnDaily: sentToday >= 0.8 * DAILY_LIMIT, warnMonthly: sentMonth >= 0.8 * MONTHLY_LIMIT };
-  } catch (e) { console.error('email quota', e); return base; }
+    const [sentToday, sentMonth, queued, failed] = await Promise.all([
+      sentSince(sb, b.dayStart),
+      sentSince(sb, b.monthStart),
+      count(sb, (q) => q.eq('status', 'queued')),
+      count(sb, (q) => q.eq('status', 'failed')),
+    ]);
+    return {
+      ...base,
+      sentToday,
+      sentMonth,
+      queued,
+      failed,
+      warnDaily: sentToday >= 0.8 * DAILY_LIMIT,
+      warnMonthly: sentMonth >= 0.8 * MONTHLY_LIMIT,
+    };
+  } catch (e) {
+    console.error('email quota', e);
+    return base;
+  }
 }
 
-/* A daily write that keeps a free Supabase project from pausing for inactivity. */
+/* A daily write that keeps a free Supabase project from pausing for inactivity (they pause after about a week without traffic). */
 export async function pingKeepAlive(): Promise<boolean> {
   if (!serviceReady()) return false;
   try {
     const { error } = await serviceClient().from('keepalive').upsert({ id: 1, pinged_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
     return true;
-  } catch (e) { console.error('keepalive', e); return false; }
+  } catch (e) {
+    console.error('keepalive', e);
+    return false;
+  }
 }
 
 /* ── The three messages the site sends ───────────────────────────────────── */
 
 type ProfileLike = { email?: string | null; name?: string | null; handle?: string | null } | null | undefined;
 type PostLike = { title?: string | null; author_name?: string | null; authorName?: string | null } | null | undefined;
-type EventLike = { title?: string | null; when?: string | null; location?: string | null; start?: Date | string | null; allDay?: boolean } | null | undefined;
-const fmtWhen = (d: Date, allDay: boolean) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Riyadh', weekday: 'short', day: 'numeric', month: 'short', ...(allDay ? {} : { hour: 'numeric', minute: '2-digit' }) }).format(d);
+type EventLike =
+  | {
+      title?: string | null;
+      when?: string | null;
+      location?: string | null;
+      start?: Date | string | null;
+      allDay?: boolean;
+    }
+  | null
+  | undefined;
+const fmtWhen = (d: Date, allDay: boolean) =>
+  new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Riyadh',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    ...(allDay ? {} : { hour: 'numeric', minute: '2-digit' }),
+  }).format(d);
 
 /* After onboarding: the greeting and the members-only WhatsApp links. */
 export async function sendWelcome(profile: ProfileLike) {
   const to = profile?.email;
   if (!serviceReady() || !isEmail(to)) return NOT_QUEUED;
   const groups = await getWhatsappGroups().catch((): Group[] => []);
-  const { subject, html } = await renderTemplate('welcome', { name: greet(profile), whatsappLinks: whatsappList(groups) });
+  const { subject, html } = await renderTemplate('welcome', {
+    name: greet(profile),
+    whatsappLinks: whatsappList(groups),
+  });
   return enqueue({ to, subject, html, kind: 'welcome' });
 }
 /* After a reviewer changes a post's status; `status` is already human-readable ("changes requested"). */
-export async function sendStatusChange(post: PostLike, status: string, comment: string, authorEmail: string | null | undefined) {
+export async function sendStatusChange(
+  post: PostLike,
+  status: string,
+  comment: string,
+  authorEmail: string | null | undefined,
+) {
   if (!serviceReady() || !isEmail(authorEmail)) return NOT_QUEUED;
-  const { subject, html } = await renderTemplate('status', { name: greet({ name: post?.author_name || post?.authorName }), postTitle: post?.title || 'Untitled', status, comment: (comment || '').trim() });
+  const { subject, html } = await renderTemplate('status', {
+    name: greet({ name: post?.author_name || post?.authorName }),
+    postTitle: post?.title || 'Untitled',
+    status,
+    comment: (comment || '').trim(),
+  });
   return enqueue({ to: authorEmail, subject, html, kind: 'status' });
 }
 /* The copy a member asked for when reserving a spot; `calendarLinksHtml` comes from the calendar helpers. */
 export async function sendRegistrationCopy(profile: ProfileLike, event: EventLike, calendarLinksHtml: string) {
   const to = profile?.email;
   if (!serviceReady() || !isEmail(to)) return NOT_QUEUED;
-  const start = event?.start instanceof Date ? event.start : typeof event?.start === 'string' ? new Date(event.start) : null;
-  const when = (event?.when || '').trim() || (start && !Number.isNaN(start.getTime()) ? fmtWhen(start, event?.allDay !== false) : '');
+  const start =
+    event?.start instanceof Date ? event.start : typeof event?.start === 'string' ? new Date(event.start) : null;
+  const when =
+    (event?.when || '').trim() ||
+    (start && !Number.isNaN(start.getTime()) ? fmtWhen(start, event?.allDay !== false) : '');
   const { subject, html } = await renderTemplate('registration', {
-    name: greet(profile), eventTitle: event?.title || 'the event', eventWhen: when, eventLocation: (event?.location || '').trim() || 'KFUPM',
-    calendarLinks: (calendarLinksHtml || '').trim() || `<a href="${escapeHtml(siteUrl)}/timeline" style="color:#2563EB">${escapeHtml(siteUrl)}/timeline</a>`,
+    name: greet(profile),
+    eventTitle: event?.title || 'the event',
+    eventWhen: when,
+    eventLocation: (event?.location || '').trim() || 'KFUPM',
+    calendarLinks:
+      (calendarLinksHtml || '').trim() ||
+      `<a href="${escapeHtml(siteUrl)}/timeline" style="color:#2563EB">${escapeHtml(siteUrl)}/timeline</a>`,
   });
   return enqueue({ to, subject, html, kind: 'registration' });
 }

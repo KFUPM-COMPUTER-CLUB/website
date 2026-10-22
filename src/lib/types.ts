@@ -1,34 +1,166 @@
+/* Shapes shared by the content layer, the pages and the API routes. The only runtime code is the role ladder. */
+
+/* Roles are a ladder, not a set of permissions: a higher rank can do everything a lower one can.
+ * ROLE_RANK must match role_rank() in supabase/migrations/0001_init.sql, which the read policies
+ * use through has_role(); if the two drift, the page and the database admit different people.
+ * 'guest' (no session) is deliberately not a Role and never passes atLeast(). */
 export type Role = 'member' | 'editor' | 'reviewer' | 'officer' | 'admin';
 export const ROLE_RANK: Record<Role, number> = { member: 0, editor: 1, reviewer: 2, officer: 3, admin: 4 };
 export const atLeast = (role: Role | 'guest', min: Role) => role !== 'guest' && ROLE_RANK[role] >= ROLE_RANK[min];
 
+/* Enough to render a plain <img>; produced by photos.ts for database and seed pictures alike. */
 export type Img = { src: string; srcset?: string; width?: number; height?: number };
 
+/* A profiles row as its owner or an admin sees it. Never put email or phone on a public page: use
+ * PublicProfile, which mirrors the profiles_public view. */
 export type Profile = {
-  id: string; handle: string | null; name: string | null; email: string | null; phone: string | null; major: string | null; year: string | null;
-  kfupm_email: string | null; github: string | null; linkedin: string | null; bio: string | null; avatar_url: string | null;
-  show_in_contributors: boolean; onboarded: boolean; suspended: boolean; created_at: string;
+  id: string;
+  handle: string | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  major: string | null;
+  year: string | null;
+  kfupm_email: string | null;
+  github: string | null;
+  linkedin: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  show_in_contributors: boolean;
+  onboarded: boolean;
+  suspended: boolean;
+  created_at: string;
 };
-export type PublicProfile = Pick<Profile, 'id' | 'handle' | 'name' | 'bio' | 'avatar_url' | 'github' | 'linkedin' | 'major' | 'year' | 'show_in_contributors' | 'created_at'>;
+export type PublicProfile = Pick<
+  Profile,
+  | 'id'
+  | 'handle'
+  | 'name'
+  | 'bio'
+  | 'avatar_url'
+  | 'github'
+  | 'linkedin'
+  | 'major'
+  | 'year'
+  | 'show_in_contributors'
+  | 'created_at'
+>;
 
+/* start and end are UTC instants; allDay means only their Riyadh date matters (see content.ts). */
 export type EventItem = {
-  id: string; slug: string; title: string; type: string; start: Date; end: Date | null; allDay: boolean; location: string; summary: string;
-  coverKey: string | null; cover: Img | null; xUrl: string | null; registerUrl: string | null; capacity: number | null; registrationOpen: boolean; featured: boolean; published: boolean;
+  id: string;
+  slug: string;
+  title: string;
+  type: string;
+  start: Date;
+  end: Date | null;
+  allDay: boolean;
+  location: string;
+  summary: string;
+  coverKey: string | null;
+  cover: Img | null;
+  xUrl: string | null;
+  registerUrl: string | null;
+  capacity: number | null;
+  registrationOpen: boolean;
+  featured: boolean;
+  published: boolean;
 };
-export type Highlight = { id: string; photoKey: string | null; img: Img | null; title: string; date: string; line: string; postUrl: string | null; sort: number };
-export type Story = { id: string; photoKey: string | null; img: Img | null; title: string; date: string; text: string; postUrl: string | null };
+export type Highlight = {
+  id: string;
+  photoKey: string | null;
+  img: Img | null;
+  title: string;
+  date: string;
+  line: string;
+  postUrl: string | null;
+  sort: number;
+};
+export type Story = {
+  id: string;
+  photoKey: string | null;
+  img: Img | null;
+  title: string;
+  date: string;
+  text: string;
+  postUrl: string | null;
+};
 export type StripPhoto = { key: string; img: Img | null; label: string; postUrl: string | null; date: string };
-export type ImpactSemester = { id: string; term: string; totalSar: number | null; isMinimum: boolean; photoKey: string | null; img: Img | null; items: { name: string; prizeSar: number | null; detail: string | null; sourceUrl: string | null }[] };
-export type Partner = { id: string; name: string; kind: string; what: string | null; url: string | null; sourceUrl: string | null; logoKey: string | null; logo: Img | null; handle: string | null; mark: boolean; square: boolean; tall: boolean; sort: number };
-export type Officer = { id: string; userId: string | null; handle: string | null; name: string; title: string; committee: string; term: string; major: string | null; photo: string | null; linkedin: string | null; isCurrent: boolean; sort: number };
+export type ImpactSemester = {
+  id: string;
+  term: string;
+  totalSar: number | null;
+  isMinimum: boolean;
+  photoKey: string | null;
+  img: Img | null;
+  items: { name: string; prizeSar: number | null; detail: string | null; sourceUrl: string | null }[];
+};
+export type Partner = {
+  id: string;
+  name: string;
+  kind: string;
+  what: string | null;
+  url: string | null;
+  sourceUrl: string | null;
+  logoKey: string | null;
+  logo: Img | null;
+  handle: string | null;
+  mark: boolean;
+  square: boolean;
+  tall: boolean;
+  sort: number;
+};
+export type Officer = {
+  id: string;
+  userId: string | null;
+  handle: string | null;
+  name: string;
+  title: string;
+  committee: string;
+  term: string;
+  major: string | null;
+  photo: string | null;
+  linkedin: string | null;
+  isCurrent: boolean;
+  sort: number;
+};
 export type FaqItem = { id: string; q: string; a: string; qAr: string | null; aAr: string | null; sort: number };
+/* The settings table merged over the seed defaults (content.ts getSettings). */
 export type Settings = {
-  site: { name: string; short: string; tagline: string; description: string; intro: string; email: string; missionAr?: string };
+  site: {
+    name: string;
+    short: string;
+    tagline: string;
+    description: string;
+    intro: string;
+    email: string;
+    missionAr?: string;
+  };
   links: Record<string, string>;
-  home: { heroLine: string; buildWithUs: { title: string; text: string }; photoMoment: { photoKey: string; eyebrow: string; line: string }; stats: { v: string; u: string; l: string }[]; totalPrizesSar: number };
+  home: {
+    heroLine: string;
+    buildWithUs: { title: string; text: string };
+    photoMoment: { photoKey: string; eyebrow: string; line: string };
+    stats: { v: string; u: string; l: string }[];
+    totalPrizesSar: number;
+  };
   banner: { text: string; url: string; visible: boolean } | null;
   madeBy: { name: string; github?: string }[];
   contributorsUrl: string;
 };
-export type PostSummary = { id: string; slug: string; title: string; excerpt: string; date: Date; authorName: string; authorHandle: string | null; authorAvatar: string | null; category: string; tags: string[]; dir: 'ltr' | 'rtl'; status: string };
+export type PostSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: Date;
+  authorName: string;
+  authorHandle: string | null;
+  authorAvatar: string | null;
+  category: string;
+  tags: string[];
+  dir: 'ltr' | 'rtl';
+  status: string;
+};
+/* Exactly one of html (editor HTML from the database) and entry (an Astro content entry, seed mode) is set. */
 export type PostFull = PostSummary & { html: string | null; entry: any | null; coverKey: string | null };

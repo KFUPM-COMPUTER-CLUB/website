@@ -3,11 +3,27 @@
 import { onPage, listen } from './page.js';
 
 const write = async (text) => {
-  try { await navigator.clipboard.writeText(text); return true; } catch { /* fall through */ }
-  const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta); ta.select();
-  let ok = false; try { ok = document.execCommand('copy'); } catch { ok = false; }
-  ta.remove(); return ok;
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    /* fall through */
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {
+    /* unsupported: report failure */
+  }
+  ta.remove();
+  return ok;
 };
 
 onPage(() => {
@@ -22,7 +38,16 @@ onPage(() => {
     if (!ok) return;
     el.classList.add('is-copied');
     clearTimeout(timers.get(el));
-    timers.set(el, setTimeout(() => { el.classList.remove('is-copied'); if (status) status.textContent = ''; }, 1400));
+    timers.set(
+      el,
+      setTimeout(() => {
+        el.classList.remove('is-copied');
+        if (status) status.textContent = '';
+      }, 1400),
+    );
   });
-  return () => { stop(); timers.forEach((t) => clearTimeout(t)); };
+  return () => {
+    stop();
+    timers.forEach((t) => clearTimeout(t));
+  };
 });

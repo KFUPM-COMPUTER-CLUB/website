@@ -1,5 +1,8 @@
 ---
-/* Sign in or join. Membership is an account: GitHub now, Google once its provider is configured. */
+/* Sign in or join. Membership is an account: GitHub now, Google once its provider is configured.
+ * /join is excluded from ISR and on the middleware's personal list, which is why this page may look
+ * at Astro.locals.user and send signed-in people on; other public pages never can. The buttons link
+ * to /auth/login, which starts the OAuth flow; errors from the callback arrive as ?error=. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { dbReady, googleEnabled } from '../lib/env';
 import { getSettings } from '../lib/content';
@@ -13,7 +16,10 @@ const google = googleEnabled();
 if (Astro.locals.user) return Astro.redirect(Astro.locals.profile?.onboarded ? next : '/onboarding');
 ---
 
-<BaseLayout title="Join" description="Join the KFUPM Computer Club: sign in with GitHub or Google, tell us about yourself, and you are in.">
+<BaseLayout
+  title="Join"
+  description="Join the KFUPM Computer Club: sign in with GitHub or Google, tell us about yourself, and you are in."
+>
   <section class="page-head page-head--compact">
     <div class="container">
       <span class="eyebrow">Join the club</span>
@@ -24,18 +30,44 @@ if (Astro.locals.user) return Astro.redirect(Astro.locals.profile?.onboarded ? n
   <section class="section">
     <div class="container" style="max-width:720px">
       {!dbReady() ? (
-        <div class="notice"><p><b>Sign-in is being set up.</b> Membership opens as soon as the club connects its accounts. Follow <a href={settings.links.x || 'https://x.com/KFUPM_CC'} target="_blank" rel="noopener">@KFUPM_CC</a> for the announcement.</p></div>
+        <div class="notice">
+          <p>
+            <b>Sign-in is being set up.</b> Membership opens as soon as the club connects its accounts. Follow{' '}
+            <a href={settings.links.x || 'https://x.com/KFUPM_CC'} target="_blank" rel="noopener">
+              @KFUPM_CC
+            </a>{' '}
+            for the announcement.
+          </p>
+        </div>
       ) : (
         <>
           {error && <p class="notice notice--warn">Sign-in did not complete ({error}). Try again.</p>}
-          {q.get('google') === 'off' && <p class="notice notice--warn">Google sign-in is not switched on yet. Use GitHub for now.</p>}
+          {q.get('google') === 'off' && (
+            <p class="notice notice--warn">Google sign-in is not switched on yet. Use GitHub for now.</p>
+          )}
           <div class="join__buttons">
-            <a class="btn" href={`/auth/login?provider=github&next=${encodeURIComponent(next)}`}>Continue with GitHub <span aria-hidden="true">→</span></a>
-            {google
-              ? <a class="btn btn--ghost" href={`/auth/login?provider=google&next=${encodeURIComponent(next)}`}>Continue with Google <span aria-hidden="true">→</span></a>
-              : <span class="btn btn--ghost is-disabled" aria-disabled="true" title="Google sign-in is not switched on yet">Continue with Google · soon</span>}
+            <a class="btn" href={`/auth/login?provider=github&next=${encodeURIComponent(next)}`}>
+              Continue with GitHub <span aria-hidden="true">→</span>
+            </a>
+            {google ? (
+              <a class="btn btn--ghost" href={`/auth/login?provider=google&next=${encodeURIComponent(next)}`}>
+                Continue with Google <span aria-hidden="true">→</span>
+              </a>
+            ) : (
+              <span
+                class="btn btn--ghost is-disabled"
+                aria-disabled="true"
+                title="Google sign-in is not switched on yet"
+              >
+                Continue with Google · soon
+              </span>
+            )}
           </div>
-          <p class="lead lead--muted" style="margin-top:28px">One account per person. You can link both providers later from your dashboard. Your phone number and email are visible to the club's admins only, and you can delete your account at any time. See the <a href="/privacy">privacy</a> and <a href="/terms">terms</a> pages.</p>
+          <p class="lead lead--muted" style="margin-top:28px">
+            One account per person. You can link both providers later from your dashboard. Your phone number and email
+            are visible to the club's admins only, and you can delete your account at any time. See the{' '}
+            <a href="/privacy">privacy</a> and <a href="/terms">terms</a> pages.
+          </p>
         </>
       )}
     </div>

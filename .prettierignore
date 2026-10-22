@@ -1,0 +1,8 @@
+dist
+.vercel
+.astro
+node_modules
+public
+package-lock.json
+# The stylesheets keep one rule per line on purpose (easy to scan and diff); Prettier would explode them.
+src/styles/*.css

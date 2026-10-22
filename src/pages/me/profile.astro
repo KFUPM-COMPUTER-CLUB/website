@@ -1,56 +1,135 @@
 ---
+/* Profile form plus sign-in methods and account deletion. The linked providers are read from the
+ * session client here because the middleware keeps only id and email on Astro.locals. Email and phone
+ * are editable but shown to admins only; the handle follows the same rule as onboarding. */
 import MeLayout from '../../components/MeLayout.astro';
 import { googleEnabled } from '../../lib/env';
 import { sessionClient } from '../../lib/supabase';
 const p = Astro.locals.profile!;
 const years = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
-const { data: { user } } = await sessionClient(Astro.request, Astro.cookies).auth.getUser();
+const {
+  data: { user },
+} = await sessionClient(Astro.request, Astro.cookies).auth.getUser();
 const providers: string[] = (user?.identities || []).map((i: any) => i.provider);
 ---
+
 <MeLayout title="Profile" lead="What people see on your public profile, plus the details only admins see.">
   <form class="form" method="post" action="/api/me/profile" enctype="multipart/form-data">
     <div class="profile__head">
-      {p.avatar_url ? <img class="avatar avatar--lg" src={p.avatar_url} alt="" /> : <span class="avatar avatar--lg person__blank" aria-hidden="true">{(p.name || '?').slice(0, 1)}</span>}
-      <div class="field"><label for="avatar">Change photo</label><input class="input" id="avatar" name="avatar" type="file" accept="image/*" /></div>
+      {p.avatar_url ? (
+        <img class="avatar avatar--lg" src={p.avatar_url} alt="" />
+      ) : (
+        <span class="avatar avatar--lg person__blank" aria-hidden="true">
+          {(p.name || '?').slice(0, 1)}
+        </span>
+      )}
+      <div class="field">
+        <label for="avatar">Change photo</label>
+        <input class="input" id="avatar" name="avatar" type="file" accept="image/*" />
+      </div>
     </div>
     <div class="form__row">
-      <div class="field"><label for="name">Full name</label><input class="input" id="name" name="name" required maxlength="80" value={p.name || ''} /></div>
-      <div class="field"><label for="handle">Handle</label><input class="input" id="handle" name="handle" required pattern="[a-z0-9_]{3,24}" value={p.handle || ''} /></div>
+      <div class="field">
+        <label for="name">Full name</label>
+        <input class="input" id="name" name="name" required maxlength="80" value={p.name || ''} />
+      </div>
+      <div class="field">
+        <label for="handle">Handle</label>
+        <input class="input" id="handle" name="handle" required pattern="[a-z0-9_]{3,24}" value={p.handle || ''} />
+      </div>
     </div>
     <div class="form__row">
-      <div class="field"><label for="email">Email (admins only)</label><input class="input" id="email" name="email" type="email" required value={p.email || ''} /></div>
-      <div class="field"><label for="phone">Phone (admins only)</label><input class="input" id="phone" name="phone" type="tel" required value={p.phone || ''} /></div>
+      <div class="field">
+        <label for="email">Email (admins only)</label>
+        <input class="input" id="email" name="email" type="email" required value={p.email || ''} />
+      </div>
+      <div class="field">
+        <label for="phone">Phone (admins only)</label>
+        <input class="input" id="phone" name="phone" type="tel" required value={p.phone || ''} />
+      </div>
     </div>
     <div class="form__row">
-      <div class="field"><label for="major">Major</label><input class="input" id="major" name="major" required value={p.major || ''} /></div>
-      <div class="field"><label for="year">Year</label><select class="select" id="year" name="year">{years.map((y) => <option value={y} selected={p.year === y}>{y}</option>)}</select></div>
+      <div class="field">
+        <label for="major">Major</label>
+        <input class="input" id="major" name="major" required value={p.major || ''} />
+      </div>
+      <div class="field">
+        <label for="year">Year</label>
+        <select class="select" id="year" name="year">
+          {years.map((y) => (
+            <option value={y} selected={p.year === y}>
+              {y}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
     <div class="form__row">
-      <div class="field"><label for="kfupm_email">KFUPM email</label><input class="input" id="kfupm_email" name="kfupm_email" type="email" value={p.kfupm_email || ''} /></div>
-      <div class="field"><label for="github">GitHub username</label><input class="input" id="github" name="github" value={p.github || ''} /></div>
+      <div class="field">
+        <label for="kfupm_email">KFUPM email</label>
+        <input class="input" id="kfupm_email" name="kfupm_email" type="email" value={p.kfupm_email || ''} />
+      </div>
+      <div class="field">
+        <label for="github">GitHub username</label>
+        <input class="input" id="github" name="github" value={p.github || ''} />
+      </div>
     </div>
-    <div class="field"><label for="linkedin">LinkedIn URL</label><input class="input" id="linkedin" name="linkedin" type="url" value={p.linkedin || ''} /></div>
-    <div class="field"><label for="bio">Bio</label><textarea class="textarea" id="bio" name="bio" maxlength="400">{p.bio || ''}</textarea></div>
-    <label class="check"><input type="checkbox" name="show_in_contributors" value="1" checked={p.show_in_contributors} /> Show me among the top contributors on the Community page</label>
-    <div class="form__actions"><button class="btn" type="submit">Save</button></div>
+    <div class="field">
+      <label for="linkedin">LinkedIn URL</label>
+      <input class="input" id="linkedin" name="linkedin" type="url" value={p.linkedin || ''} />
+    </div>
+    <div class="field">
+      <label for="bio">Bio</label>
+      <textarea class="textarea" id="bio" name="bio" maxlength="400">{p.bio || ''}</textarea>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="show_in_contributors" value="1" checked={p.show_in_contributors} /> Show me among the
+      top contributors on the Community page
+    </label>
+    <div class="form__actions">
+      <button class="btn" type="submit">
+        Save
+      </button>
+    </div>
   </form>
 
   <div class="card" style="margin-top:32px">
     <h2 class="h3">Sign-in methods</h2>
-    <p>Linked: <b>{providers.join(', ') || 'none'}</b>. One account can use both GitHub and Google.</p>
+    <p>
+      Linked: <b>{providers.join(', ') || 'none'}</b>. One account can use both GitHub and Google.
+    </p>
     <div class="links-row">
-      {!providers.includes('github') && <a class="btn btn--small btn--ghost" href="/auth/link?provider=github">Link GitHub</a>}
-      {!providers.includes('google') && (googleEnabled() ? <a class="btn btn--small btn--ghost" href="/auth/link?provider=google">Link Google</a> : <span class="hint">Google linking opens once Google sign-in is switched on.</span>)}
+      {!providers.includes('github') && (
+        <a class="btn btn--small btn--ghost" href="/auth/link?provider=github">
+          Link GitHub
+        </a>
+      )}
+      {!providers.includes('google') &&
+        (googleEnabled() ? (
+          <a class="btn btn--small btn--ghost" href="/auth/link?provider=google">
+            Link Google
+          </a>
+        ) : (
+          <span class="hint">Google linking opens once Google sign-in is switched on.</span>
+        ))}
     </div>
   </div>
 
   <div class="card" style="margin-top:16px">
     <h2 class="h3">Delete my account</h2>
-    <p class="hint">Removes your profile, drafts, posts and reservations. Published posts are removed too. This cannot be undone.</p>
+    <p class="hint">
+      Removes your profile, drafts, posts and reservations. Published posts are removed too. This cannot be undone.
+    </p>
     <form class="inline-form" method="post" action="/api/me/delete">
       <input class="input" name="confirm" placeholder='type "delete"' style="max-width:200px" required />
-      <button class="btn btn--small btn--danger" type="submit">Delete account</button>
+      <button class="btn btn--small btn--danger" type="submit">
+        Delete account
+      </button>
     </form>
   </div>
-  <form method="post" action="/auth/logout" style="margin-top:24px"><button class="btn btn--small btn--ghost" type="submit">Sign out</button></form>
+  <form method="post" action="/auth/logout" style="margin-top:24px">
+    <button class="btn btn--small btn--ghost" type="submit">
+      Sign out
+    </button>
+  </form>
 </MeLayout>

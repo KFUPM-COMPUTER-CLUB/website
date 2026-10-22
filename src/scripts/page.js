@@ -10,16 +10,43 @@
 const hasRouter = () => !!document.querySelector('meta[name="astro-view-transitions-enabled"]');
 
 export function onPage(init) {
-  let cleanup = null, ran = false, navigated = false;
-  const stop = () => { if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; } };
-  const run = () => { stop(); ran = true; try { const r = init(); if (typeof r === 'function') cleanup = r; } catch (e) { console.error(e); } };
+  let cleanup = null,
+    ran = false,
+    navigated = false;
+  const stop = () => {
+    if (cleanup) {
+      try {
+        cleanup();
+      } catch (e) {
+        console.error(e);
+      }
+      cleanup = null;
+    }
+  };
+  const run = () => {
+    stop();
+    ran = true;
+    try {
+      const r = init();
+      if (typeof r === 'function') cleanup = r;
+    } catch (e) {
+      console.error(e);
+    }
+  };
   // First run as soon as the DOM is parsed (module scripts are deferred, so usually right now).
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true }); else run();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
+  else run();
   if (hasRouter()) {
     // The router fires page-load at window.load too; skip that one, the page already ran.
     document.addEventListener('astro:before-swap', stop);
-    document.addEventListener('astro:after-swap', () => { navigated = true; });
-    document.addEventListener('astro:page-load', () => { if (!navigated && ran) return; navigated = false; run(); });
+    document.addEventListener('astro:after-swap', () => {
+      navigated = true;
+    });
+    document.addEventListener('astro:page-load', () => {
+      if (!navigated && ran) return;
+      navigated = false;
+      run();
+    });
   }
 }
 
@@ -29,8 +56,21 @@ export const finePointer = () => window.matchMedia('(pointer: fine)').matches;
 
 /* `listen(target, type, fn, opts)` returns an unsubscribe function; collect them with `bag()`:
  *   const off = bag(); off.add(listen(window, 'scroll', fn, { passive: true })); return off.flush; */
-export const listen = (t, type, fn, opts) => { t.addEventListener(type, fn, opts); return () => t.removeEventListener(type, fn, opts); };
-export const bag = () => { const fns = []; return { add: (f) => { if (f) fns.push(f); }, flush: () => { fns.splice(0).forEach((f) => f()); } }; };
+export const listen = (t, type, fn, opts) => {
+  t.addEventListener(type, fn, opts);
+  return () => t.removeEventListener(type, fn, opts);
+};
+export const bag = () => {
+  const fns = [];
+  return {
+    add: (f) => {
+      if (f) fns.push(f);
+    },
+    flush: () => {
+      fns.splice(0).forEach((f) => f());
+    },
+  };
+};
 
 /* Internal links set from scripts. In production this returns the path untouched. In a static preview
  * bundle, where the pages live in folders and root-relative URLs do not resolve, the site-root meta

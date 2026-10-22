@@ -15,8 +15,12 @@ import '../styles/snake.css';
 
       <div class="snake__game">
         <div class="snake__meta">
-          <span class="mono">Score <b data-snake-score>0</b></span>
-          <span class="mono">Best <b data-snake-best>0</b></span>
+          <span class="mono">
+            Score <b data-snake-score>0</b>
+          </span>
+          <span class="mono">
+            Best <b data-snake-best>0</b>
+          </span>
         </div>
 
         <div
@@ -26,22 +30,36 @@ import '../styles/snake.css';
           aria-label="Snake. Arrow keys or W A S D to steer, Space to start or pause, swipe on touch screens."
           data-snake-board
         >
-          <canvas class="snake__canvas" width="400" height="400" data-snake-canvas>Snake needs a browser with canvas support.</canvas>
+          <canvas class="snake__canvas" width="400" height="400" data-snake-canvas>
+            Snake needs a browser with canvas support.
+          </canvas>
         </div>
 
         <div class="snake__pad" aria-label="Steer">
-          <button class="btn btn--ghost" type="button" data-dir="up" aria-label="Up">↑</button>
-          <button class="btn btn--ghost" type="button" data-dir="left" aria-label="Left">←</button>
-          <button class="btn btn--ghost" type="button" data-dir="down" aria-label="Down">↓</button>
-          <button class="btn btn--ghost" type="button" data-dir="right" aria-label="Right">→</button>
+          <button class="btn btn--ghost" type="button" data-dir="up" aria-label="Up">
+            ↑
+          </button>
+          <button class="btn btn--ghost" type="button" data-dir="left" aria-label="Left">
+            ←
+          </button>
+          <button class="btn btn--ghost" type="button" data-dir="down" aria-label="Down">
+            ↓
+          </button>
+          <button class="btn btn--ghost" type="button" data-dir="right" aria-label="Right">
+            →
+          </button>
         </div>
 
         <p class="visually-hidden" aria-live="polite" data-snake-status></p>
       </div>
 
       <div class="snake__actions">
-        <a class="btn" href="/">Take me home</a>
-        <a class="btn btn--ghost" href="/timeline">See the timeline</a>
+        <a class="btn" href="/">
+          Take me home
+        </a>
+        <a class="btn btn--ghost" href="/timeline">
+          See the timeline
+        </a>
       </div>
     </div>
   </section>

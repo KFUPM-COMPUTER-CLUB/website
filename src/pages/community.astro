@@ -4,7 +4,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
 import { getOfficers, getMemberCount, getContributors, getSettings } from '../lib/content';
-const [officers, memberCount, contributors, settings] = await Promise.all([getOfficers(), getMemberCount(), getContributors(), getSettings()]);
+const [officers, memberCount, contributors, settings] = await Promise.all([
+  getOfficers(),
+  getMemberCount(),
+  getContributors(),
+  getSettings(),
+]);
 const current = officers.filter((o) => o.isCurrent).sort((a, b) => a.sort - b.sort);
 const committees = [...new Set(current.map((o) => o.committee || 'Board'))];
 const past = officers.filter((o) => !o.isCurrent);
@@ -12,11 +17,20 @@ const terms = [...new Set(past.map((o) => o.term))].sort().reverse();
 const pad = (n: number) => String(n).padStart(3, '0');
 ---
 
-<BaseLayout title="Community" description="The people of the KFUPM Computer Club: the board, the members, and the ones who write.">
+<BaseLayout
+  title="Community"
+  description="The people of the KFUPM Computer Club: the board, the members, and the ones who write."
+>
   <section class="page-head">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Community"><b>CC</b><span>Community</span></h1>
-      <p class="lead">{memberCount !== null ? `${memberCount.toLocaleString('en-US')} members and growing.` : 'Students, like you.'} Here is who runs it, and who writes.</p>
+      <h1 class="ccmark ccmark--text" aria-label="CC Community">
+        <b>CC</b>
+        <span>Community</span>
+      </h1>
+      <p class="lead">
+        {memberCount !== null ? `${memberCount.toLocaleString('en-US')} members and growing.` : 'Students, like you.'}{' '}
+        Here is who runs it, and who writes.
+      </p>
     </div>
   </section>
 
@@ -28,28 +42,58 @@ const pad = (n: number) => String(n).padStart(3, '0');
         <div class="board__group">
           <h2 class="h2">{c}</h2>
           <div class="idcards">
-            {current.filter((o) => (o.committee || 'Board') === c).map((m, i) => (
-              <article class="idcard reveal">
-                <div class="idcard__top">
-                  <span class="idcard__brand"><Image src={logoSmDark} alt="" width={32} densities={[1, 2, 3]} /> {settings.site.name}</span>
-                  <span class="mono">Officer{m.term && ` · ${m.term}`}</span>
-                </div>
-                <div class="idcard__body">
-                  {m.photo ? <img class="idcard__photo" src={m.photo} alt={m.name} width="320" height="400" loading="lazy" /> : <span class="idcard__photo idcard__photo--empty" aria-hidden="true">CC</span>}
-                  <div class="idcard__info">
-                    <h3>{m.handle ? <a href={`/u/${m.handle}`}>{m.name}</a> : m.name}</h3>
-                    <p class="idcard__role">{m.title}</p>
-                    <dl>
-                      {m.committee && <div><dt>Committee</dt><dd>{m.committee}</dd></div>}
-                      {m.major && <div><dt>Major</dt><dd>{m.major}</dd></div>}
-                      <div><dt>ID</dt><dd>CC-{pad(m.sort || i + 1)}</dd></div>
-                    </dl>
-                    {m.linkedin && <a class="link-arrow" href={m.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>}
+            {current
+              .filter((o) => (o.committee || 'Board') === c)
+              .map((m, i) => (
+                <article class="idcard reveal">
+                  <div class="idcard__top">
+                    <span class="idcard__brand">
+                      <Image src={logoSmDark} alt="" width={32} densities={[1, 2, 3]} /> {settings.site.name}
+                    </span>
+                    <span class="mono">Officer{m.term && ` · ${m.term}`}</span>
                   </div>
-                </div>
-                <div class="idcard__strip"><span class="idcard__barcode" aria-hidden="true"></span><span class="mono">cckfupm.com</span></div>
-              </article>
-            ))}
+                  <div class="idcard__body">
+                    {m.photo ? (
+                      <img class="idcard__photo" src={m.photo} alt={m.name} width="320" height="400" loading="lazy" />
+                    ) : (
+                      <span class="idcard__photo idcard__photo--empty" aria-hidden="true">
+                        CC
+                      </span>
+                    )}
+                    <div class="idcard__info">
+                      <h3>{m.handle ? <a href={`/u/${m.handle}`}>{m.name}</a> : m.name}</h3>
+                      <p class="idcard__role">{m.title}</p>
+                      <dl>
+                        {m.committee && (
+                          <div>
+                            <dt>Committee</dt>
+                            <dd>{m.committee}</dd>
+                          </div>
+                        )}
+                        {m.major && (
+                          <div>
+                            <dt>Major</dt>
+                            <dd>{m.major}</dd>
+                          </div>
+                        )}
+                        <div>
+                          <dt>ID</dt>
+                          <dd>CC-{pad(m.sort || i + 1)}</dd>
+                        </div>
+                      </dl>
+                      {m.linkedin && (
+                        <a class="link-arrow" href={m.linkedin} target="_blank" rel="noopener">
+                          LinkedIn ↗
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div class="idcard__strip">
+                    <span class="idcard__barcode" aria-hidden="true"></span>
+                    <span class="mono">cckfupm.com</span>
+                  </div>
+                </article>
+              ))}
           </div>
         </div>
       ))}
@@ -63,7 +107,23 @@ const pad = (n: number) => String(n).padStart(3, '0');
         <h2 class="h2">Top contributors</h2>
         <ul class="people">
           {contributors.map((c) => (
-            <li><a class="person" href={`/u/${c.handle}`}>{c.avatar_url ? <img src={c.avatar_url} alt="" width="48" height="48" loading="lazy" /> : <span class="person__blank" aria-hidden="true">{(c.name || '?').slice(0, 1)}</span>}<span><b>{c.name}</b><small>{c.posts} {c.posts === 1 ? 'post' : 'posts'}</small></span></a></li>
+            <li>
+              <a class="person" href={`/u/${c.handle}`}>
+                {c.avatar_url ? (
+                  <img src={c.avatar_url} alt="" width="48" height="48" loading="lazy" />
+                ) : (
+                  <span class="person__blank" aria-hidden="true">
+                    {(c.name || '?').slice(0, 1)}
+                  </span>
+                )}
+                <span>
+                  <b>{c.name}</b>
+                  <small>
+                    {c.posts} {c.posts === 1 ? 'post' : 'posts'}
+                  </small>
+                </span>
+              </a>
+            </li>
           ))}
         </ul>
       </div>
@@ -78,7 +138,20 @@ const pad = (n: number) => String(n).padStart(3, '0');
         {terms.map((t) => (
           <div class="alumni__term">
             <h3 class="h3">{t}</h3>
-            <ul class="alumni__list">{past.filter((o) => o.term === t).sort((a, b) => a.sort - b.sort).map((o) => <li><b>{o.name}</b><span>{o.title}{o.committee && ` · ${o.committee}`}</span></li>)}</ul>
+            <ul class="alumni__list">
+              {past
+                .filter((o) => o.term === t)
+                .sort((a, b) => a.sort - b.sort)
+                .map((o) => (
+                  <li>
+                    <b>{o.name}</b>
+                    <span>
+                      {o.title}
+                      {o.committee && ` · ${o.committee}`}
+                    </span>
+                  </li>
+                ))}
+            </ul>
           </div>
         ))}
       </div>
@@ -89,7 +162,11 @@ const pad = (n: number) => String(n).padStart(3, '0');
     <div class="container join__inner">
       <h2 class="h1">{settings.home.buildWithUs.title}</h2>
       <p class="lead lead--muted">{settings.home.buildWithUs.text}</p>
-      <div class="hero__actions"><a class="btn" data-magnet href="/join">Become a member <span aria-hidden="true">→</span></a></div>
+      <div class="hero__actions">
+        <a class="btn" data-magnet href="/join">
+          Become a member <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
   </section>
 </BaseLayout>

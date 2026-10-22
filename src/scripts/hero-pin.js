@@ -15,9 +15,14 @@ onPage(() => {
     inner.style.transform = `scale(${(1 - 0.06 * p).toFixed(4)})`;
     inner.style.opacity = (1 - 0.6 * p).toFixed(3);
   };
-  const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint); };
+  const onScroll = () => {
+    if (!raf) raf = requestAnimationFrame(paint);
+  };
   off.add(listen(window, 'scroll', onScroll, { passive: true }));
   off.add(listen(window, 'resize', onScroll));
   paint();
-  return () => { off.flush(); cancelAnimationFrame(raf); };
+  return () => {
+    off.flush();
+    cancelAnimationFrame(raf);
+  };
 });

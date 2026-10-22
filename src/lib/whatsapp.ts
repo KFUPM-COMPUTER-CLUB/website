@@ -1,4 +1,7 @@
-/* WhatsApp group links: admin-only setting, shown to onboarded members on screen and in the welcome email. */
+/* The members-only group links. They live under the private "whatsapp_groups" setting, which the
+ * settings_read policy shows to admins only, so a member's token cannot read it: the server reads
+ * it with the service key, and /me and the welcome email decide who gets it (onboarded members).
+ * A database trigger refuses invite links under any public setting key, so they cannot leak by mistake. */
 import { serviceReady } from './env';
 import { serviceClient } from './supabase';
 export type Group = { label: string; url: string };

@@ -1,81 +1,70 @@
 <p align="center">
-  <a href="https://cckfupm.vercel.app">
-    <img src="public/logo.png" alt="KFUPM Computer Club" width="150">
-  </a>
+  <a href="https://cckfupm.vercel.app"><img src="public/logo.png" alt="KFUPM Computer Club" width="150"></a>
 </p>
 
 <h1 align="center">KFUPM Computer Club — Website</h1>
 
 <p align="center">
-  News, events, tutorials and the newsletter of the Computer Club at KFUPM.<br>
-  Written by members. Built by students. Open source.
+  Events, recaps, tutorials and the people behind them. Written by members, built by students, open source.<br>
+  <a href="https://cckfupm.vercel.app">cckfupm.vercel.app</a> · <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/issues">Issues</a> · <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 <p align="center">
-  <a href="https://cckfupm.vercel.app"><img alt="Live site" src="https://img.shields.io/badge/live-cckfupm.vercel.app-0B1A33?style=for-the-badge&logo=vercel&logoColor=white"></a>
-</p>
-
-<p align="center">
+  <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/KFUPM-COMPUTER-CLUB/website/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/actions/workflows/deploy.yml"><img alt="Deploy" src="https://github.com/KFUPM-COMPUTER-CLUB/website/actions/workflows/deploy.yml/badge.svg"></a>
-  <img alt="Astro" src="https://img.shields.io/badge/Astro-7-BC52EE?logo=astro&logoColor=white">
-  <img alt="Node" src="https://img.shields.io/badge/Node.js-24-5FA04E?logo=node.js&logoColor=white">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2563EB"></a>
-  <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/issues"><img alt="Issues" src="https://img.shields.io/github/issues/KFUPM-COMPUTER-CLUB/website?color=2563EB"></a>
 </p>
 
-<p align="center">
-  <a href="https://cckfupm.vercel.app">Visit the site</a> ·
-  <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/issues">Issues</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a>
-</p>
+![The home page](docs/screenshot.jpg)
 
----
+## What it is
 
-## About
+The club's site and its membership platform in one Astro app:
 
-The club runs workshops, talks, hackathons and competitions all year. This website is where all of it is recorded: news, event recaps, tutorials, the newsletter and the calendar.
+- **Public pages** (home, timeline, blog, community, FAQ): rendered on Vercel and cached for 60 seconds, so they are as fast as static pages and edits go live within a minute.
+- **Members** sign in with GitHub or Google, fill a short onboarding form, get the group links, reserve spots at events, and write posts in a rich editor that goes through review.
+- **Officers** edit everything in `/admin`: events, the home page, partners, FAQ, the board, settings, media, the blog queue. No deploys, no pull requests for content.
+- **Without any keys** the site serves the seed data in `src/data`, so a fresh clone runs in a minute.
 
-- **Static.** No database, no server, no logins. Every page is plain HTML.
-- **Content is files.** An article is a Markdown file. An event is a line of JSON.
-- **Links, not forms.** Joining, registering and subscribing open the club's own forms.
+## Stack
 
-## Built with
+| Layer             | What                                                                            | Why                                                           |
+| ----------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Framework         | [Astro 7](https://astro.build), server output, plain CSS, small vanilla scripts | Pages are mostly HTML; no client framework to learn           |
+| Hosting           | Vercel (functions in Stockholm, ISR cache)                                      | Free tier, preview deployment per pull request                |
+| Data, auth, files | [Supabase](https://supabase.com) Postgres, Auth (GitHub, Google), Storage       | One project for everything, row level security on every table |
+| Email             | [Resend](https://resend.com) through a queue in Postgres                        | Free tier; the queue keeps us under the daily limit           |
+| Editor            | TipTap                                                                          | Headings, tables, code, images, PDFs, Arabic                  |
 
-<p>
-  <img alt="Astro" src="https://img.shields.io/badge/Astro-BC52EE?style=flat-square&logo=astro&logoColor=white">
-  <img alt="CSS" src="https://img.shields.io/badge/Plain_CSS-663399?style=flat-square&logo=css&logoColor=white">
-  <img alt="Markdown" src="https://img.shields.io/badge/Markdown-000000?style=flat-square&logo=markdown&logoColor=white">
-  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white">
-  <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white">
-</p>
-
-## Quick start
+## Run it locally (under 5 minutes)
 
 ```bash
 git clone https://github.com/KFUPM-COMPUTER-CLUB/website.git
 cd website
 npm install
-npm run dev        # http://localhost:4321
+npm run dev          # http://localhost:4321 with the seed data; sign-in is off
 ```
 
-Requires Node.js 24. `npm run build` produces the production site in `dist/`.
+To work against the real database, copy `.env.example` to `.env` and fill the Supabase values (ask a maintainer; see `docs/OPERATIONS.md`). Then `/join` signs you in and `ADMIN_EMAILS` makes you an admin.
 
-## Contributing
+```bash
+npm run lint         # ESLint
+npm run format       # Prettier
+npm run check        # Astro type check
+npm run build        # must pass before every pull request
+```
 
-Pick an issue, branch from `main`, open a pull request. Every pull request gets a preview deployment and a review. The rules are in [CONTRIBUTING.md](CONTRIBUTING.md); how the site is put together is in [docs/](docs/).
+## Where to start reading
 
-## Contributors
+1. `docs/ARCHITECTURE.md`: the one diagram, the roles, the data model.
+2. `src/lib/content.ts`: how every page gets its data (database or seed).
+3. `src/middleware.ts` and `src/lib/api.ts`: sessions, roles, and how API routes are written.
+4. `supabase/migrations/0001_init.sql`: the schema and its policies, commented.
+5. `src/pages/admin/` and `src/lib/admin/resources.ts`: how one definition drives an admin screen.
+6. `docs/OPERATIONS.md`: the outside services, who owns them, and the handover checklist.
 
-<p align="center">
-  <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=KFUPM-COMPUTER-CLUB/website" alt="Contributors">
-  </a>
-</p>
+`docs/DESIGN_SYSTEM.md` describes the look; `/styleguide` on the running site shows it.
 
 ## License
 
-[MIT](LICENSE). Articles belong to their authors.
-
-<p align="center">
-  <sub>Computer Club · King Fahd University of Petroleum and Minerals</sub>
-</p>
+MIT. Content (posts, photos) belongs to its authors and the club.

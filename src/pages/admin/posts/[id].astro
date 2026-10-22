@@ -1,26 +1,78 @@
 ---
+/* Review page for one post (reviewer and up): the rendered post beside the decision form, which posts
+ * to /api/admin/posts/<id>/review. set:html is safe here only because content_html was sanitised when
+ * it was saved. Draft images resolve through /api/media, which signs them for reviewers. The status
+ * select defaults to "published" for a submitted post, the usual answer. */
 import AdminLayout from '../../../components/AdminLayout.astro';
 import { serviceClient } from '../../../lib/supabase';
 import { atLeast } from '../../../lib/types';
 import { isUuid } from '../../../lib/api';
 if (!atLeast(Astro.locals.role, 'reviewer')) return new Response('Reviewers only', { status: 403 });
 if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
-const { data: post } = await serviceClient().from('posts').select('*, author:profiles!posts_author_id_fkey(name,handle,email), post_reviews(comment,status_set,created_at, reviewer:profiles!post_reviews_reviewer_id_fkey(name))').eq('id', Astro.params.id).maybeSingle();
+const { data: post } = await serviceClient()
+  .from('posts')
+  .select(
+    '*, author:profiles!posts_author_id_fkey(name,handle,email), post_reviews(comment,status_set,created_at, reviewer:profiles!post_reviews_reviewer_id_fkey(name))',
+  )
+  .eq('id', Astro.params.id)
+  .maybeSingle();
 if (!post) return new Response(null, { status: 404 });
 const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
 ---
-<AdminLayout title={post.title} lead={`${post.author?.name || post.author_name || 'Unknown author'} · ${post.category} · ${post.status.replace('_', ' ')}`}>
+
+<AdminLayout
+  title={post.title}
+  lead={`${post.author?.name || post.author_name || 'Unknown author'} · ${post.category} · ${post.status.replace('_', ' ')}`}
+>
   <div class="app" style="grid-template-columns: minmax(0, 1fr) 320px">
-    <article class="prose" dir={post.dir} data-prose style="max-width:none"><Fragment set:html={post.content_html || '<p>(empty)</p>'} /></article>
+    <article class="prose" dir={post.dir} data-prose style="max-width:none">
+      <Fragment set:html={post.content_html || '<p>(empty)</p>'} />
+    </article>
     <div>
       <form class="form card" method="post" action={`/api/admin/posts/${post.id}/review`}>
         <h2 class="h3">Decision</h2>
-        <div class="field"><label for="status">Status</label><select class="select" id="status" name="status">{['published', 'changes_requested', 'unpublished', 'submitted', 'draft'].map((s) => <option value={s} selected={s === (post.status === 'submitted' ? 'published' : post.status)}>{s.replace('_', ' ')}</option>)}</select></div>
-        <div class="field"><label for="comment">Note to the author</label><textarea class="textarea" id="comment" name="comment" maxlength="1000" placeholder="What to change, or a thank-you."></textarea><small>The author gets an email with this note.</small></div>
-        <button class="btn" type="submit">Save decision</button>
-        <a class="btn btn--ghost" href={`/me/posts/${post.id}/edit`}>Open in editor</a>
+        <div class="field">
+          <label for="status">Status</label>
+          <select class="select" id="status" name="status">
+            {['published', 'changes_requested', 'unpublished', 'submitted', 'draft'].map((s) => (
+              <option value={s} selected={s === (post.status === 'submitted' ? 'published' : post.status)}>
+                {s.replace('_', ' ')}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div class="field">
+          <label for="comment">Note to the author</label>
+          <textarea
+            class="textarea"
+            id="comment"
+            name="comment"
+            maxlength="1000"
+            placeholder="What to change, or a thank-you."
+          ></textarea>
+          <small>The author gets an email with this note.</small>
+        </div>
+        <button class="btn" type="submit">
+          Save decision
+        </button>
+        <a class="btn btn--ghost" href={`/me/posts/${post.id}/edit`}>
+          Open in editor
+        </a>
       </form>
-      {notes.length > 0 && <div class="card" style="margin-top:16px"><h2 class="h3">History</h2><ul>{notes.map((n: any) => <li><span class="mono">{String(n.created_at).slice(0, 10)}</span> · <b>{n.status_set?.replace('_', ' ')}</b> · {n.reviewer?.name || 'reviewer'}{n.comment && <>: {n.comment}</>}</li>)}</ul></div>}
+      {notes.length > 0 && (
+        <div class="card" style="margin-top:16px">
+          <h2 class="h3">History</h2>
+          <ul>
+            {notes.map((n: any) => (
+              <li>
+                <span class="mono">{String(n.created_at).slice(0, 10)}</span> · <b>{n.status_set?.replace('_', ' ')}</b>{' '}
+                · {n.reviewer?.name || 'reviewer'}
+                {n.comment && <>: {n.comment}</>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   </div>
 </AdminLayout>

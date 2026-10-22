@@ -1,5 +1,10 @@
 ---
-/* Admin shell: head, side navigation filtered by role, flash messages. */
+/* Admin shell: head, side navigation filtered by role, flash messages. The filtered menu is a
+ * courtesy, not a guard: the middleware requires editor and up for anything under /admin, each page
+ * checks its own minimum role, and the API checks again before writing. Flash messages arrive as
+ * ?ok= and ?error= because API routes answer HTML forms with a redirect (see handle() in lib/api.ts).
+ * "live" shows the reminder that public pages are cached for a minute (ISR); pass false on pages
+ * whose data never reaches a public page. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Subnav from './Subnav.astro';
 import '../styles/app.css';
@@ -25,10 +30,19 @@ const items = all.filter((i) => atLeast(role, i.min)).map(({ href, label }) => (
 const flash = Astro.url.searchParams.get('ok');
 const error = Astro.url.searchParams.get('error');
 ---
+
 <BaseLayout title={`${title} · Admin`} noindex={true}>
   <section class="page-head page-head--compact">
     <div class="container app__head">
-      <div><span class="eyebrow">Admin</span><h1 class="h1">{title}</h1>{lead && <p class="lead" style="margin-top:10px">{lead}</p>}</div>
+      <div>
+        <span class="eyebrow">Admin</span>
+        <h1 class="h1">{title}</h1>
+        {lead && (
+          <p class="lead" style="margin-top:10px">
+            {lead}
+          </p>
+        )}
+      </div>
       {live && <span class="live">Saves go live in about a minute</span>}
     </div>
   </section>

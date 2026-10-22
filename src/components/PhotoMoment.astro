@@ -4,9 +4,20 @@ import { photoImg } from '../lib/photos';
 const { photoKey, line, eyebrow } = Astro.props;
 const img = await photoImg(photoKey);
 ---
+
 {img && (
   <section class="moment bg-black" data-bg="#0B0B0F">
-    <img class="moment__photo" src={img.src} srcset={img.srcset} sizes="100vw" alt="" width="1800" height="1000" loading="lazy" decoding="async" />
+    <img
+      class="moment__photo"
+      src={img.src}
+      srcset={img.srcset}
+      sizes="100vw"
+      alt=""
+      width="1800"
+      height="1000"
+      loading="lazy"
+      decoding="async"
+    />
     <div class="moment__text">
       {eyebrow && <span class="eyebrow">{eyebrow}</span>}
       <p class="h1">{line}</p>

@@ -1,4 +1,9 @@
 ---
+/* The shell every page uses: head tags, fonts, header, banner, footer, the terminal and the global
+ * scripts. ClientRouter enables view transitions, which is why every client script goes through
+ * onPage() in scripts/page.js instead of running at module load. Settings come from the content
+ * layer (memoised), so this layout is cheap on cached pages. The HTML comment near the end of body
+ * is clue 2 of the site challenge; keep it. */
 import '../styles/global.css';
 import '../styles/terminal.css';
 import '../styles/magnetic.css';
@@ -15,7 +20,7 @@ const site = settings.site;
 import { ClientRouter } from 'astro:transitions';
 
 // Every page passes a title; the description falls back to the club's.
-// noindex keeps a page out of search results (used by /styleguide).
+// noindex keeps a page out of search results (dashboards, admin, the style guide).
 const { title, description = site.description, noindex = false } = Astro.props;
 ---
 
@@ -41,10 +46,20 @@ const { title, description = site.description, noindex = false } = Astro.props;
     />
   </head>
   <body>
-    <div class="scroll-progress" aria-hidden="true"><i></i></div>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-progress" aria-hidden="true">
+      <i></i>
+    </div>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
     <Header />
-    {settings.banner && <div class="banner" role="status"><div class="container">{settings.banner.url ? <a href={settings.banner.url}>{settings.banner.text}</a> : settings.banner.text}</div></div>}
+    {settings.banner && (
+      <div class="banner" role="status">
+        <div class="container">
+          {settings.banner.url ? <a href={settings.banner.url}>{settings.banner.text}</a> : settings.banner.text}
+        </div>
+      </div>
+    )}
     <main id="main" class="site-main bg-black" data-bg="#0B0B0F">
       <slot />
     </main>

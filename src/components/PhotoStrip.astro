@@ -4,8 +4,18 @@
 // pauses on hover, and stays static under prefers-reduced-motion.
 // The pool comes from the strip_photos table (or every seed photo in src/assets/photos).
 import { getStripPhotos } from '../lib/content';
-const items = (await getStripPhotos()).map((p) => ({ ...p, year: p.date.slice(0, 4) })).sort((a, b) => a.date.localeCompare(b.date));
-const fmt = (d: string) => d ? new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
+const items = (await getStripPhotos())
+  .map((p) => ({ ...p, year: p.date.slice(0, 4) }))
+  .sort((a, b) => a.date.localeCompare(b.date));
+const fmt = (d: string) =>
+  d
+    ? new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })
+    : '';
 ---
 
 <div class="strip" data-strip>
@@ -13,8 +23,20 @@ const fmt = (d: string) => d ? new Date(d + 'T00:00:00Z').toLocaleDateString('en
     {items.map((p) => (
       <li class="strip__item" data-year={p.year} hidden>
         <a href={p.postUrl || '#'} target="_blank" rel="noopener">
-          <img src={p.img!.src} srcset={p.img!.srcset} sizes="360px" alt={`Club event, ${fmt(p.date)}`} width="360" height="240" loading="lazy" decoding="async" />
-          <span class="strip__cap"><b>{p.label}</b><span>{fmt(p.date)}</span></span>
+          <img
+            src={p.img!.src}
+            srcset={p.img!.srcset}
+            sizes="360px"
+            alt={`Club event, ${fmt(p.date)}`}
+            width="360"
+            height="240"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="strip__cap">
+            <b>{p.label}</b>
+            <span>{fmt(p.date)}</span>
+          </span>
         </a>
       </li>
     ))}
@@ -22,21 +44,5 @@ const fmt = (d: string) => d ? new Date(d + 'T00:00:00Z').toLocaleDateString('en
 </div>
 
 <script>
-  import { onPage, reduceMotion } from '../scripts/page.js';
-  onPage(() => {
-    const strip = document.querySelector('[data-strip]');
-    if (!strip) return;
-    const track = strip.querySelector('.strip__track');
-    const all = [...track.children];
-    const byYear = new Map();
-    for (const li of all.sort(() => Math.random() - 0.5)) { const y = li.dataset.year; if (!byYear.has(y)) byYear.set(y, []); byYear.get(y).push(li); }
-    const pick = []; const years = [...byYear.keys()];
-    while (pick.length < 20 && years.some((y) => byYear.get(y).length)) for (const y of years) { const li = byYear.get(y).shift(); if (li && pick.length < 20) pick.push(li); }
-    all.forEach((li) => li.remove());
-    pick.forEach((li) => { li.hidden = false; track.appendChild(li); });
-    if (!reduceMotion()) {
-      pick.forEach((li) => track.appendChild(li.cloneNode(true)));
-      strip.classList.add('strip--moving');
-    }
-  });
+  import '../scripts/photo-strip.js';
 </script>

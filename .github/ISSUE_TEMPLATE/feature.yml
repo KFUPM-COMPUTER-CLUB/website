@@ -1,0 +1,29 @@
+name: Feature request
+description: Something the site should do
+labels: ['type: feature']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is missing
+      description: Describe the situation from a member's or officer's point of view.
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: How it should work. A rough sketch or an example from another site helps.
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Public pages, Member dashboard, Admin panel, Blog editor, Events, Email, Database, Docs]
+    validations: { required: true }
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: I checked the open issues and this is not a duplicate
+        - label: I can work on this myself
