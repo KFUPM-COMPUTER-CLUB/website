@@ -1,14 +1,15 @@
 ---
-/* Community: the current board, how many members there are, the members who write, and past boards. */
+/* Community: the current board, the committees and what they own, how many members there are, the members who write, and past boards. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
-import { getOfficers, getMemberCount, getContributors, getSettings } from '../lib/content';
-const [officers, memberCount, contributors, settings] = await Promise.all([
+import { getOfficers, getMemberCount, getContributors, getSettings, getCommittees } from '../lib/content';
+const [officers, memberCount, contributors, settings, groups] = await Promise.all([
   getOfficers(),
   getMemberCount(),
   getContributors(),
   getSettings(),
+  getCommittees(),
 ]);
 const current = officers.filter((o) => o.isCurrent).sort((a, b) => a.sort - b.sort);
 const committees = [...new Set(current.map((o) => o.committee || 'Board'))];
@@ -99,6 +100,31 @@ const pad = (n: number) => String(n).padStart(3, '0');
       ))}
     </div>
   </section>
+
+  {groups.length > 0 && (
+    <section class="section section--lined" id="committees">
+      <div class="container">
+        <span class="eyebrow">Who runs the club</span>
+        <h2 class="h2">What each committee owns</h2>
+        <div class="committees">
+          {groups.map((c) => (
+            <article class="card committee reveal">
+              <h3 class="h3">{c.name}</h3>
+              {c.leads && <p class="committee__leads">{c.leads}</p>}
+              {c.items.length > 0 && (
+                <ul class="committee__items">
+                  {c.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              )}
+              {c.note && <p class="committee__note">{c.note}</p>}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 
   {contributors.length > 0 && (
     <section class="section section--lined" id="writers">

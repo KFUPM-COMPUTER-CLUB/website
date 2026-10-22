@@ -125,6 +125,8 @@ export type Officer = {
   sort: number;
 };
 export type FaqItem = { id: string; q: string; a: string; qAr: string | null; aAr: string | null; sort: number };
+/* A committee on /community. Leads are free text so the section works before the leads have accounts. */
+export type Committee = { id: string; name: string; leads: string; items: string[]; note: string | null; sort: number };
 /* The settings table merged over the seed defaults (content.ts getSettings). */
 export type Settings = {
   site: {

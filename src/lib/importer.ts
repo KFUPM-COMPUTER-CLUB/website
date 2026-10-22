@@ -19,6 +19,7 @@ import {
   mapOfficers,
   mapSettings,
   mapFaq,
+  mapCommittees,
   mapPost,
   mapSolvers,
 } from '../../scripts/import-seed.mjs';
@@ -29,6 +30,7 @@ import impactJson from '../data/impact.json';
 import partnersJson from '../data/partners.json';
 import teamJson from '../data/team.json';
 import siteJson from '../data/site.json';
+import committeesJson from '../data/committees.json';
 import solversJson from '../data/solvers.json';
 
 const photoFiles = Object.keys(import.meta.glob('../data/photos/*.jpg'))
@@ -195,6 +197,7 @@ async function importData(log: string[]) {
   count('partners', await upsertAll('partners', mapPartners(partnersJson as any, keys)));
   count('officer_terms', await upsertAll('officer_terms', mapOfficers(teamJson as any)));
   count('faq', await upsertAll('faq', mapFaq((siteJson as any).faq || [])));
+  count('committees', await upsertAll('committees', mapCommittees(committeesJson as any)));
   const { data: existing } = await sb.from('settings').select('key');
   const have = new Set((existing || []).map((r: any) => r.key));
   const settings = mapSettings(siteJson as any, impactJson as any).filter(

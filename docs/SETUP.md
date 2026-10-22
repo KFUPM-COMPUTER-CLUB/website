@@ -7,7 +7,7 @@ Replace `<project-ref>` with the reference of your Supabase project (the part be
 ## 1. Supabase project (8 min)
 
 1. Go to https://supabase.com/dashboard, **New project**. Name: `cckfupm-website`. Region: **Stockholm (eu-north-1)**. Generate and store the database password (you will not need it again for the site).
-2. Open **SQL Editor → New query**, paste the whole file `supabase/migrations/0001_init.sql` from the repo, press **Run**. It must end with "Success". It is safe to run again later.
+2. Open **SQL Editor → New query**, paste each file in `supabase/migrations/` from the repo in order (`0001_init.sql`, then `0002_committees.sql`, and so on), press **Run** after each. Every one must end with "Success". They are safe to run again later.
 3. **Project Settings → API** (or **Data API**). Copy:
    - Project URL → `PUBLIC_SUPABASE_URL`
    - the publishable key (`sb_publishable_…`) → `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (older projects: the `anon` key as `PUBLIC_SUPABASE_ANON_KEY`)

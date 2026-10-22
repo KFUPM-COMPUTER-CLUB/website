@@ -18,11 +18,13 @@ import type {
   Partner,
   Officer,
   FaqItem,
+  Committee,
   Settings,
   PostSummary,
   PostFull,
 } from './types';
 import siteJson from '../data/site.json';
+import committeesJson from '../data/committees.json';
 import eventsJson from '../data/events.json';
 import highlightsJson from '../data/highlights.json';
 import storiesJson from '../data/stories.json';
@@ -466,6 +468,36 @@ export function getFaq(): Promise<FaqItem[]> {
       }));
     const { data } = await db().from('faq').select('*').eq('visible', true).order('sort');
     return (data || []).map((r: any) => ({ id: r.id, q: r.q_en, a: r.a_en, qAr: r.q_ar, aAr: r.a_ar, sort: r.sort }));
+  });
+}
+
+/* ── Committees ────────────────────────────────────────────────────────── */
+/* Items are one per line in the table so the generic admin textarea can edit them. */
+const splitLines = (s: unknown) =>
+  String(s || '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+export function getCommittees(): Promise<Committee[]> {
+  return cached('committees', async () => {
+    if (!dbReady())
+      return (committeesJson as any[]).map((c, i) => ({
+        id: `seed-${i}`,
+        name: c.name,
+        leads: c.leads || '',
+        items: c.items || [],
+        note: c.note || null,
+        sort: i,
+      }));
+    const { data } = await db().from('committees').select('*').eq('visible', true).order('sort');
+    return (data || []).map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      leads: r.leads || '',
+      items: splitLines(r.items),
+      note: r.note || null,
+      sort: r.sort,
+    }));
   });
 }
 

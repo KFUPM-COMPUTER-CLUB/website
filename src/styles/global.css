@@ -857,6 +857,14 @@ body.scrolled .scroll-hint { opacity: 0; }
 .banner { position: relative; z-index: 99; margin-top: var(--header-h); padding: 10px 0; background: var(--blue-deep); color: #fff; font: 600 13px/1.4 var(--font-head); text-align: center; }
 .banner a { color: inherit; }
 .board__group + .board__group { margin-top: 40px; }
+/* Community: committees */
+.committees { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.committee { border: 1px solid var(--line); background: var(--card); }
+.committee .h3 { margin: 0 0 8px; }
+.committee__leads { margin: 0 0 16px; font: 600 14px/1.4 var(--font-mono); color: var(--accent-text); }
+.committee__items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 15px; }
+.committee__note { margin: 0; color: var(--muted); font-size: 15px; }
+.committee__items + .committee__note { margin-top: 16px; }
 .idcard__photo--empty { display: grid; place-items: center; background: var(--card-2); color: var(--muted); font: 800 28px/1 var(--font-head); font-variation-settings: var(--wide); }
 .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
 .person { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); background: var(--card); text-decoration: none; }

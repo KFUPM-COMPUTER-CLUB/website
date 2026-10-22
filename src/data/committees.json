@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Cybersecurity",
+    "leads": "Mazen · Noureldin",
+    "items": ["KIFADA 6367 (done)", "AD Pentesting Bootcamp", "Bug Bounty Bootcamp, 15 to 19 Nov"]
+  },
+  {
+    "name": "AI",
+    "leads": "Ahmad Alzuhair",
+    "items": ["AI & Applied Math booth, CCM event", "RAG Systems Bootcamp", "Kaggle Competition", "Research Seminar"]
+  },
+  {
+    "name": "Dev & Growth",
+    "leads": "Thamer · Fawaz",
+    "items": ["The club's Notion", "Our website, maintained and updated", "The club's Telegram bot"]
+  },
+  {
+    "name": "PR",
+    "leads": "Abdullah Alharbi",
+    "items": ["Hackathon sponsor", "Visits: Humain, Autopia, Accenture", "Speakers and IoT talk"]
+  },
+  {
+    "name": "Media & Marketing",
+    "leads": "Basem · Khaled",
+    "items": ["Graphic Design Workshop", "Posters for every event", "Photos and coverage"]
+  },
+  {
+    "name": "Logistics & Ops",
+    "leads": "Ziyad · Hammad",
+    "items": [],
+    "note": "The enablers of every event. No event happens without them."
+  },
+  {
+    "name": "Financial",
+    "leads": "Abdullah Eitani",
+    "items": ["Custody and settlements", "Competition prizes", "Invoices from every event"]
+  }
+]
