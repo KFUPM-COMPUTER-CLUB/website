@@ -35,7 +35,7 @@ if (Astro.locals.user) return Astro.redirect(Astro.locals.profile?.onboarded ? n
               ? <a class="btn btn--ghost" href={`/auth/login?provider=google&next=${encodeURIComponent(next)}`}>Continue with Google <span aria-hidden="true">→</span></a>
               : <span class="btn btn--ghost is-disabled" aria-disabled="true" title="Google sign-in is not switched on yet">Continue with Google · soon</span>}
           </div>
-          <p class="lead lead--muted" style="margin-top:28px">One account per person. You can link both providers later from your dashboard. Your phone number and email are visible to the club's admins only, and you can delete your account at any time.</p>
+          <p class="lead lead--muted" style="margin-top:28px">One account per person. You can link both providers later from your dashboard. Your phone number and email are visible to the club's admins only, and you can delete your account at any time. See the <a href="/privacy">privacy</a> and <a href="/terms">terms</a> pages.</p>
         </>
       )}
     </div>

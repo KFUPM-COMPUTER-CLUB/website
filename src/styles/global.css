@@ -885,3 +885,5 @@ body.scrolled .scroll-hint { opacity: 0; }
 .hljs-title, .hljs-section, .hljs-type, .hljs-class .hljs-title { color: #fff; }
 .hljs-comment, .hljs-quote, .hljs-meta { color: #A1A1AA; font-style: italic; }
 .hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable { color: #BFDBFE; }
+.prose hr { margin: 48px 0; border: 0; border-top: 1px solid var(--line-strong); }
+.prose [dir="rtl"] { text-align: right; } .prose [dir="rtl"] ul { padding-right: 1.4em; padding-left: 0; }
