@@ -1,0 +1,52 @@
+---
+// Three moments: one photo each with a short record of what happened. Advances on its own every
+// few seconds, pauses on hover, and can be stepped with the dots or arrows. Static under
+// prefers-reduced-motion. Edit src/data/stories.json to change the slides.
+import { Image } from 'astro:assets';
+import stories from '../data/stories.json';
+const all = import.meta.glob('../assets/photos/*.jpg', { eager: true });
+const fmt = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+
+<section class="stories bg-black" data-bg="#0B0B0F" data-stories aria-roledescription="carousel" aria-label="Moments from the club">
+  {stories.map((s, i) => (
+    <article class="story" data-slide={i} data-active={i === 0 ? '' : undefined} aria-hidden={i !== 0}>
+      <Image class="story__photo" src={all[`../assets/photos/${s.photo}`].default} alt="" width={1800} height={1000} loading={i === 0 ? 'eager' : 'lazy'} />
+      <div class="story__card">
+        <span class="eyebrow">{fmt(s.date)}</span>
+        <h3 class="h2">{s.title}</h3>
+        <p>{s.text}</p>
+        {s.post && <a class="link-arrow" href={s.post} target="_blank" rel="noopener">Open the post ↗</a>}
+      </div>
+    </article>
+  ))}
+  <div class="story__nav">
+    <button type="button" class="story__arrow" data-dir="-1" aria-label="Previous">‹</button>
+    <span class="story__dots">{stories.map((_, i) => <button type="button" data-go={i} aria-label={`Slide ${i + 1}`} data-active={i === 0 ? '' : undefined}></button>)}</span>
+    <button type="button" class="story__arrow" data-dir="1" aria-label="Next">›</button>
+  </div>
+</section>
+
+<script>
+  import { onPage, reduceMotion } from '../scripts/page.js';
+  onPage(() => {
+    const root = document.querySelector('[data-stories]');
+    if (!root) return;
+    const slides = [...root.querySelectorAll('[data-slide]')];
+    const dots = [...root.querySelectorAll('[data-go]')];
+    const reduce = reduceMotion();
+    let i = 0, timer = 0;
+    const show = (n) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => { const on = k === i; on ? s.setAttribute('data-active', '') : s.removeAttribute('data-active'); s.setAttribute('aria-hidden', String(!on)); });
+      dots.forEach((d, k) => k === i ? d.setAttribute('data-active', '') : d.removeAttribute('data-active'));
+    };
+    const start = () => { if (!reduce) timer = window.setInterval(() => show(i + 1), 6000); };
+    const stop = () => { window.clearInterval(timer); timer = 0; };
+    dots.forEach((d) => d.addEventListener('click', () => { stop(); show(Number(d.dataset.go)); start(); }));
+    root.querySelectorAll('[data-dir]').forEach((b) => b.addEventListener('click', () => { stop(); show(i + Number(b.dataset.dir)); start(); }));
+    root.addEventListener('pointerenter', stop); root.addEventListener('pointerleave', () => { if (!timer) start(); });
+    start();
+    return stop;
+  });
+</script>

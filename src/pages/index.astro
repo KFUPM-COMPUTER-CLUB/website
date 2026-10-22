@@ -1,254 +1,118 @@
 ---
+import { Image } from 'astro:assets';
+import logoColor from '../assets/brand/logo-color.png';
+import kfupmLogo from '../assets/brand/kfupm-logo.png';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import site from '../data/site.json';
+import { colorOf } from '../lib/colors.js';
+import Collage from '../components/Collage.astro';
+import PhotoStrip from '../components/PhotoStrip.astro';
+import Partners from '../components/Partners.astro';
+import ShowReel from '../components/ShowReel.astro';
+import Stories from '../components/Stories.astro';
+import PhotoMoment from '../components/PhotoMoment.astro';
 
-const isReal = (value) => typeof value === 'string' && !value.includes('REPLACE');
+const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
 const link = (key, fallback) => (isReal(site.links[key]) ? site.links[key] : fallback);
 const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
 
-const today = new Date();
-today.setUTCHours(0, 0, 0, 0);
-
+const today = new Date(); today.setUTCHours(0, 0, 0, 0);
 const events = (await getCollection('events')).sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
 const upcoming = events.filter((e) => e.data.date.valueOf() >= today.valueOf());
-const featured = upcoming.find((e) => e.data.featured) ?? upcoming[0];
-const nextEvents = upcoming.filter((e) => e !== featured).slice(0, 3);
-
-const posts = (await getCollection('posts', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
-
-const issues = (await getCollection('newsletter'))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+const past = events.filter((e) => e.data.date.valueOf() < today.valueOf());
+const next = upcoming.find((e) => e.data.featured) ?? upcoming[0];
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const iso = (d) => d.toISOString().slice(0, 10);
-const long = (d) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const short = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const weekday = (d) => d.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
 
-const stats = site.stats.filter((s) => isReal(s.value));
-const marquee = [...site.marquee, ...site.marquee];
+const history = [
+  ...past.map((e) => ({ kind: e.data.type, date: e.data.date, title: e.data.title, text: e.data.summary, href: e.data.detailsUrl })),
+  ...posts.map((p) => ({ kind: p.data.category, date: p.data.date, title: p.data.title, text: p.data.excerpt, href: `/blog/${p.id}` })),
+].sort((a, b) => b.date.valueOf() - a.date.valueOf()).slice(0, 6);
+const stageTabs = ['Moments', 'In pictures'];
+const whatWeDo = [
+  { c: 'blue', k: 'WS', t: 'Workshops', d: 'Hands-on sessions from zero to shipped. Git, web, AI, security, and whatever members ask for.' },
+  { c: 'blue', k: 'HK', t: 'Hackathons', d: 'Build nights and 24-hour sprints with mentors on the floor. Ship something, then write about it.' },
+  { c: 'blue', k: 'TK', t: 'Talks', d: 'Alumni, engineers, and researchers answering the questions you actually have.' },
+  { c: 'blue', k: 'CP', t: 'Competitions', d: 'Coding, typing, CTF and puzzle contests with real prize pools, on campus and with other clubs.' },
+];
 ---
 
 <BaseLayout title="Home">
-  <!-- 1. Hero -->
-  <section class="hero section--navy">
-    <div class="hero__glow" aria-hidden="true"></div>
-    <div class="hero__grid" aria-hidden="true"></div>
-    <div class="container hero__inner">
-      <div>
-        <span class="eyebrow">{site.name}</span>
-        <h1 class="h-display hero__title">{site.tagline}</h1>
-        <p class="lead">{site.description}</p>
-        <div class="hero__actions">
-          <a class="btn" href={link('join', '/about')} {...ext(link('join', '/about'))}>Join the club <span aria-hidden="true">→</span></a>
-          <a class="btn btn--ghost" href="/news">Read the blog <span aria-hidden="true">→</span></a>
-        </div>
-      </div>
-      {
-        stats.length > 0 && (
-          <dl class="hero__stats">
-            {stats.map((s) => (
-              <div>
-                <dt class="visually-hidden">{s.label}</dt>
-                <dd style="margin:0"><strong>{s.value}</strong><br /><span>{s.label}</span></dd>
-              </div>
-            ))}
-          </dl>
-        )
-      }
+  <!-- Screen 1: logo and headline only -->
+  <section class="screen screen--one bg-white" data-bg="#FFFFFF" data-hero>
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="container screen__inner" data-hero-inner>
+      <Image class="hero__logo" src={logoColor} alt={site.name} width={1100} densities={[1, 1.5]} loading="eager" />
+      <h1 class="h-display hero__title">Where curious minds build <span class="hl">the future.</span></h1>
     </div>
+    <div class="scroll-hint" aria-hidden="true"><span class="mono">Scroll</span><i></i></div>
   </section>
 
-  <!-- 2. Marquee -->
-  <div class="marquee section--navy" aria-hidden="true">
-    <div class="marquee__track">{marquee.map((word) => <span>{word}</span>)}</div>
-  </div>
-
-  <!-- 3. Next event -->
-  {
-    featured && (
-      <section class="section section--white" id="next-event" data-date={iso(featured.data.date)}>
-        <div class="container">
-          <div class="section-head">
-            <div>
-              <span class="eyebrow">What's happening</span>
-              <h2 class="h2">Next event</h2>
-            </div>
-            <a class="link-arrow" href="/events">All events →</a>
-          </div>
-          <article class="feature">
-            <div class:list={['feature__media', { 'feature__media--pattern': !featured.data.image }]}>
-              {featured.data.image && <img src={featured.data.image} alt="" loading="lazy" />}
-            </div>
-            <div class="feature__body">
-              <p style="margin:0"><span class="tag">{featured.data.type}</span></p>
-              <h3>{featured.data.title}</h3>
-              <p class="meta">
-                <span>{long(featured.data.date)}</span>
-                <span>{featured.data.time}</span>
-                <span>{featured.data.location}</span>
-              </p>
-              <p class="lead">{featured.data.summary}</p>
-              <div class="actions">
-                {isReal(featured.data.registerUrl) ? (
-                  <a class="btn" href={featured.data.registerUrl} target="_blank" rel="noopener">Register <span aria-hidden="true">→</span></a>
-                ) : (
-                  <a class="btn btn--ghost" href="/events">Details <span aria-hidden="true">→</span></a>
-                )}
-              </div>
-            </div>
-          </article>
+  <!-- Screen 2: CC x KFUPM pinned in the top half; the block under it steps between the photo strip and the moments -->
+  <section class="screen screen--two bg-navy" data-bg="#0B1A33" data-stage>
+    <Collage />
+    <div class="stage__anchor" aria-hidden="true"></div>
+    <div class="stage">
+      <div class="container stage__top">
+        <span class="ccmark reveal" aria-label="CC KFUPM"><b>CC</b><Image src={kfupmLogo} alt="KFUPM" height={76} densities={[1, 2]} /></span>
+        <p class="stage__line">{site.intro}</p>
+        <div class="stage__bar" role="tablist" aria-label="Sections">
+          {stageTabs.map((t, i) => <button class="stage__tab" role="tab" type="button" data-tab={i} aria-selected={i === 0 ? 'true' : 'false'}><i aria-hidden="true"></i><span>{t}</span></button>)}
         </div>
-      </section>
-    )
-  }
-
-  <!-- 4. Upcoming events -->
-  {
-    nextEvents.length > 0 && (
-      <section class="section section--paper" id="upcoming">
-        <div class="container">
-          <div class="section-head">
-            <div>
-              <span class="eyebrow">Upcoming</span>
-              <h2 class="h2">On the calendar</h2>
-            </div>
-            <a class="link-arrow" href="/events">Full calendar →</a>
-          </div>
-          <div class="grid grid--3">
-            {nextEvents.map((e) => (
-              <article class="card event" data-date={iso(e.data.date)}>
-                <div class="event__date">
-                  <b>{String(e.data.date.getUTCDate()).padStart(2, '0')}</b>
-                  <span>{MONTHS[e.data.date.getUTCMonth()]} {e.data.date.getUTCFullYear()}</span>
-                </div>
-                <div class="event__body">
-                  <p style="margin:0"><span class="tag">{e.data.type}</span></p>
-                  <h3 class="h3">{e.data.title}</h3>
-                  <p class="meta"><span>{e.data.time}</span><span>{e.data.location}</span></p>
-                  <p>{e.data.summary}</p>
-                  <div class="actions">
-                    {isReal(e.data.registerUrl) ? (
-                      <a class="btn btn--ghost btn--small" href={e.data.registerUrl} target="_blank" rel="noopener">Register <span aria-hidden="true">→</span></a>
-                    ) : (
-                      <a class="link-arrow" href="/events">Details →</a>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  <!-- 5. Latest articles -->
-  <section class="section section--navy">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">News and stories</span>
-          <h2 class="h2">Written by students</h2>
-        </div>
-        <a class="link-arrow" href="/news">All articles →</a>
       </div>
-      <div>
-        {
-          posts.map((p) => (
-            <a class="post-row" href={`/news/${p.id}`}>
-              <time datetime={iso(p.data.date)}>{short(p.data.date)}</time>
-              <div>
-                <span class="tag">{p.data.category}</span>
-                <h3>{p.data.title}</h3>
-                <p>{p.data.excerpt}</p>
-                <div class="byline">By {p.data.author}</div>
-              </div>
-              <span class="link-arrow">Read →</span>
-            </a>
-          ))
-        }
+      <div class="stage__panels">
+        <div class="stage__panel stage__panel--stories" role="tabpanel" data-panel="0" data-active>
+          <Stories />
+        </div>
+        <div class="stage__panel stage__panel--strip" role="tabpanel" data-panel="1">
+          <div class="container stage__head"><div><span class="eyebrow">In pictures</span><h2 class="h3">Six years of building</h2></div><a class="link-arrow" href="https://x.com/KFUPM_CC" target="_blank" rel="noopener">More on X ↗</a></div>
+          <PhotoStrip />
+        </div>
+      </div>
+    </div>
+    <div class="fade fade--to-black" aria-hidden="true"></div>
+  </section>
+
+  <ShowReel />
+
+  <PhotoMoment photo="2025-04-10_1910478806520914205.jpg" eyebrow="Techathon 2025, day one" line="Any major. Any year. No experience required." />
+
+  <!-- Join -->
+  <section class="section join bg-black" data-bg="#0B0B0F" id="join">
+    <div class="container join__inner reveal">
+      <h2 class="h1">Build with us.</h2>
+      <p class="lead lead--muted">Workshops, hackathons, talks and competitions, all term long. Free for KFUPM students.</p>
+      <div class="hero__actions">
+        <a class="btn" data-magnet href={link('join', '/about')} {...ext(link('join', '/about'))}>Become a member <span aria-hidden="true">→</span></a>
+        <a class="btn btn--ghost" href="/timeline">See what's coming <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
-
-  <!-- 6. Newsletter -->
-  <section class="section section--paper">
-    <div class="container split">
-      <div class="sticky">
-        <span class="eyebrow">Newsletter</span>
-        <h2 class="h2">One email a month. Zero noise.</h2>
-        <p class="lead">Events, member projects, internship postings from alumni, and the best of the blog. Written and edited by students.</p>
-        <div class="hero__actions">
-          <a class="btn" href={link('newsletterSubscribe', '/newsletter')} {...ext(link('newsletterSubscribe', '/newsletter'))}>Subscribe <span aria-hidden="true">→</span></a>
-          <a class="link-arrow" href="/newsletter">Past issues →</a>
-        </div>
-      </div>
-      <div class="linklist">
-        {
-          issues.map((n) => (
-            <a href={isReal(n.data.url) ? n.data.url : '/newsletter'} {...ext(isReal(n.data.url) ? n.data.url : '/newsletter')}>
-              <span class="num">{n.data.issue}</span>
-              <div>
-                <h3>{n.data.title}</h3>
-                <p>{short(n.data.date)} · {n.data.summary}</p>
-              </div>
-              <span class="arrow" aria-hidden="true">↗</span>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- 7. Three ways in -->
-  <section class="section section--white">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Take part</span>
-          <h2 class="h2">Three ways in</h2>
-        </div>
-      </div>
-      <div class="linklist">
-        <a href={link('join', '/about')} {...ext(link('join', '/about'))}>
-          <span class="num">01</span>
-          <div><h3>Join the club</h3><p>Any major, any year. Fill in the membership form and we add you to the community channels.</p></div>
-          <span class="arrow" aria-hidden="true">↗</span>
-        </a>
-        <a href="/write">
-          <span class="num">02</span>
-          <div><h3>Write for us</h3><p>Tutorials, recaps, opinions. Send a draft and the media team edits and publishes it under your name.</p></div>
-          <span class="arrow" aria-hidden="true">→</span>
-        </a>
-        <a href={link('discord', '/about')} {...ext(link('discord', '/about'))}>
-          <span class="num">03</span>
-          <div><h3>Join the Discord</h3><p>Where the community talks between events. Questions, project teams, and announcements.</p></div>
-          <span class="arrow" aria-hidden="true">↗</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- 8. Call to action -->
-  <section class="cta">
-    <div class="container">
-      <h2>Build with us.</h2>
-      <a class="btn btn--ghost" href={link('join', '/about')} {...ext(link('join', '/about'))}>Join the club <span aria-hidden="true">→</span></a>
-    </div>
-  </section>
+  <Partners />
 </BaseLayout>
 
 <script>
-  // The site is static. Hide events whose date has passed since the last build.
-  const today = new Date();
-  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  document.querySelectorAll('[data-date]').forEach((el) => {
-    if (el.getAttribute('data-date') < todayIso) el.remove();
+  import '../scripts/parallax.js';
+  import '../scripts/hero-pin.js';
+  import '../scripts/stage.js';
+</script>
+
+<script>
+  import { onPage, reduceMotion } from '../scripts/page.js';
+  onPage(() => {
+    const reduce = reduceMotion();
+    document.querySelectorAll('[data-count]').forEach((el) => {
+      const raw = el.dataset.count || ''; const n = parseInt(raw.replace(/\D/g, ''), 10); if (!n || reduce) return;
+      const suffix = raw.replace(/^[\d,]+/, ''); const start = performance.now();
+      const step = (t) => { const p = Math.min(1, (t - start) / 1200); el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3))) + suffix; if (p < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+    const t = new Date(); const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    document.querySelectorAll('[data-date]').forEach((el) => { if ((el.getAttribute('data-date') || '') < todayIso) el.remove(); });
   });
-  const upcoming = document.getElementById('upcoming');
-  if (upcoming && !upcoming.querySelector('.event')) upcoming.remove();
 </script>
