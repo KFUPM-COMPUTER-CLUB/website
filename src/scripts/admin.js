@@ -20,11 +20,8 @@ onPage(() => {
       try {
         const r = await fetch('/api/upload', { method: 'POST', body: fd });
         // Vercel answers bodies over 4.5 MB with its own non-JSON 413 page.
-        const j = await r.json().catch(() => ({
-          ok: false,
-          error: r.status === 413 ? 'The file is over 4 MB.' : 'Upload failed',
-        }));
-        if (!j.ok) throw new Error(j.error || 'Upload failed');
+        const j = await r.json().catch(() => null);
+        if (!j?.ok) throw new Error(j?.error || (r.status === 413 ? 'The file is over 4 MB.' : 'Upload failed'));
         const target = input.closest('[data-media-pick]').querySelector('input.input');
         target.value = j.key;
         let img = input.closest('[data-media-pick]').querySelector('img');
