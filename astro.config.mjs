@@ -19,7 +19,8 @@ export default defineConfig({
   }),
   // sanitize-html is CommonJS but requires htmlparser2, which is ESM-only since v10. Left external, the
   // function crashes at runtime with ERR_REQUIRE_ESM (blog submit and review). Bundling them lets Vite
-  // turn the require() into an import.
+  // turn the require() into an import. Its whole dependency tree is listed, because a bundled package
+  // cannot find an unbundled dependency at runtime ("Cannot find module 'escape-string-regexp'").
   vite: {
     ssr: {
       noExternal: [
@@ -30,6 +31,15 @@ export default defineConfig({
         'dom-serializer',
         'domelementtype',
         'entities',
+        'escape-string-regexp',
+        'is-plain-object',
+        'launder',
+        'dayjs',
+        'parse-srcset',
+        'postcss',
+        'nanoid',
+        'picocolors',
+        'source-map-js',
       ],
     },
   },
