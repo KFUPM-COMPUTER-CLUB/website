@@ -57,13 +57,13 @@ Open `https://cckfupm-website.vercel.app/join`, **Continue with GitHub**, fill t
 
 ## Later: switch on the rest (nothing breaks until then)
 
-### Google sign-in (5 min)
+### Google sign-in (done)
 1. https://console.cloud.google.com → a project → **APIs & Services → Credentials → Create credentials → OAuth client ID** (type **Web application**).
    - Authorized JavaScript origins: `https://cckfupm-website.vercel.app` and `https://<project-ref>.supabase.co`
    - Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`
    - If asked, configure the consent screen first (External, app name, support email, scopes `email` and `profile`).
 2. Supabase → **Authentication → Sign In / Providers → Google**: enable, paste Client ID and secret.
-3. Vercel env var `PUBLIC_GOOGLE_SIGNIN` = `true`, redeploy. The Google button on `/join` turns on.
+3. The Google button on `/join` is on by default. To hide it, set the Vercel env var `PUBLIC_GOOGLE_SIGNIN` to `false` and redeploy.
 
 ### Email with Resend (10 min)
 1. https://resend.com → **API Keys → Create** (sending access). Vercel env var `RESEND_API_KEY`.

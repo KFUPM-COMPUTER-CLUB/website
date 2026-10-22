@@ -8,7 +8,8 @@ export const supabaseAnon = PUBLIC_SUPABASE_ANON_KEY || PUBLIC_SUPABASE_PUBLISHA
 export const serviceKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SECRET_KEY || '';
 export const dbReady = () => !!(supabaseUrl && supabaseAnon);
 export const serviceReady = () => dbReady() && !!serviceKey;
-export const googleEnabled = () => (PUBLIC_GOOGLE_SIGNIN || '').toLowerCase() === 'true';
+/* Google sign-in is on unless PUBLIC_GOOGLE_SIGNIN is "false" (the provider is configured in Supabase). */
+export const googleEnabled = () => (PUBLIC_GOOGLE_SIGNIN || 'true').toLowerCase() !== 'false';
 export const resendReady = () => !!RESEND_API_KEY;
 export const resendKey = RESEND_API_KEY || '';
 export const emailFrom = EMAIL_FROM || 'KFUPM Computer Club <onboarding@resend.dev>';
