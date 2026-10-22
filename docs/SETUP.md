@@ -13,9 +13,9 @@ Replace `<project-ref>` with the reference of your Supabase project (the part be
    - the publishable key (`sb_publishable_…`) → `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (older projects: the `anon` key as `PUBLIC_SUPABASE_ANON_KEY`)
    - the secret key (`sb_secret_…`) → `SUPABASE_SECRET_KEY` (older projects: `service_role` as `SUPABASE_SERVICE_ROLE_KEY`); server only, never share it
 4. **Authentication → URL Configuration**:
-   - Site URL: `https://cckfupm-website.vercel.app`
+   - Site URL: `https://cckfupm.vercel.app`
    - Redirect URLs, add all three:
-     - `https://cckfupm-website.vercel.app/**`
+     - `https://cckfupm.vercel.app/**`
      - `https://cckfupm-website-*.vercel.app/**` (every Vercel preview deployment)
      - `http://localhost:4321/**`
 5. **Authentication → Sign In / Providers → Email**: turn **off** "Enable email provider" (we only use GitHub and Google).
@@ -25,7 +25,7 @@ Replace `<project-ref>` with the reference of your Supabase project (the part be
 
 1. https://github.com/settings/developers → **OAuth Apps → New OAuth App**.
    - Application name: `KFUPM Computer Club`
-   - Homepage URL: `https://cckfupm-website.vercel.app`
+   - Homepage URL: `https://cckfupm.vercel.app`
    - Authorization callback URL: `https://<project-ref>.supabase.co/auth/v1/callback`
 2. **Register application**, then **Generate a new client secret**. Copy the Client ID and the secret.
 3. Supabase → **Authentication → Sign In / Providers → GitHub**: enable, paste Client ID and secret, **Save**.
@@ -40,14 +40,14 @@ Vercel → the `cckfupm-website` project → **Settings → Environment Variable
 | `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the publishable key (or `PUBLIC_SUPABASE_ANON_KEY` with the anon key) |
 | `SUPABASE_SECRET_KEY` | the secret key, marked sensitive (or `SUPABASE_SERVICE_ROLE_KEY` with the service_role key) |
 | `ADMIN_EMAILS` | your email(s), comma separated, e.g. `adib.alqurashi@gmail.com` (the GitHub account's primary email) |
-| `SITE_URL` | `https://cckfupm-website.vercel.app` |
+| `SITE_URL` | `https://cckfupm.vercel.app` |
 | `CRON_SECRET` | any long random string (Vercel sends it with the daily cron) |
 
 Then **Deployments → ⋯ on the latest → Redeploy** so the build picks them up. Also check **Settings → Functions → Function Region** shows **Stockholm (arn1)**; `vercel.json` requests it.
 
 ## 4. First sign-in (1 min)
 
-Open `https://cckfupm-website.vercel.app/join`, **Continue with GitHub**, fill the onboarding form. Because your email is in `ADMIN_EMAILS` you land as **admin**: `/admin` is open.
+Open `https://cckfupm.vercel.app/join`, **Continue with GitHub**, fill the onboarding form. Because your email is in `ADMIN_EMAILS` you land as **admin**: `/admin` is open.
 
 ## 5. Import the starter content (3 min, in the browser)
 
@@ -59,7 +59,7 @@ Open `https://cckfupm-website.vercel.app/join`, **Continue with GitHub**, fill t
 
 ### Google sign-in (done)
 1. https://console.cloud.google.com → a project → **APIs & Services → Credentials → Create credentials → OAuth client ID** (type **Web application**).
-   - Authorized JavaScript origins: `https://cckfupm-website.vercel.app` and `https://<project-ref>.supabase.co`
+   - Authorized JavaScript origins: `https://cckfupm.vercel.app` and `https://<project-ref>.supabase.co`
    - Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`
    - If asked, configure the consent screen first (External, app name, support email, scopes `email` and `profile`).
 2. Supabase → **Authentication → Sign In / Providers → Google**: enable, paste Client ID and secret.
