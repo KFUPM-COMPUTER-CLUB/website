@@ -5,10 +5,10 @@
  * to "next" with ?welcome=1. Errors come back as ?error= from the API. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/app.css';
+import { YEARS as years } from '../lib/types';
 const p = Astro.locals.profile;
 const next = Astro.url.searchParams.get('next') || '/me';
 const error = Astro.url.searchParams.get('error');
-const years = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
 const suggested = (p?.name || '')
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, '_')

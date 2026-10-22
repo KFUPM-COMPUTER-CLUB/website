@@ -1,4 +1,5 @@
-/* Shapes shared by the content layer, the pages and the API routes. The only runtime code is the role ladder. */
+/* Shapes shared by the content layer, the pages and the API routes. The only runtime code is the role ladder
+ * and the year list. */
 
 /* Roles are a ladder, not a set of permissions: a higher rank can do everything a lower one can.
  * ROLE_RANK must match role_rank() in supabase/migrations/0001_init.sql, which the read policies
@@ -7,6 +8,20 @@
 export type Role = 'member' | 'editor' | 'reviewer' | 'officer' | 'admin';
 export const ROLE_RANK: Record<Role, number> = { member: 0, editor: 1, reviewer: 2, officer: 3, admin: 4 };
 export const atLeast = (role: Role | 'guest', min: Role) => role !== 'guest' && ROLE_RANK[role] >= ROLE_RANK[min];
+
+/* The study-year choices on onboarding and the profile form. One list for both: the profile <select>
+ * can only keep a value it lists, so a year missing there would be silently replaced on save.
+ * profiles.year is free text (max 30 characters in the API), so adding a choice needs no migration. */
+export const YEARS = [
+  'Preparatory / Orientation',
+  'Freshman',
+  'Sophomore',
+  'Junior',
+  'Senior',
+  'Graduate',
+  'Alumni',
+  'Other',
+];
 
 /* Enough to render a plain <img>; produced by photos.ts for database and seed pictures alike. */
 export type Img = { src: string; srcset?: string; width?: number; height?: number };
