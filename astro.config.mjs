@@ -4,7 +4,7 @@ import vercel from '@astrojs/vercel';
 // Rendered on demand on Vercel. Public pages are cached by ISR for 60 seconds, so an admin's edit
 // is live within about a minute without a deploy. User-specific routes are never cached.
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://cckfupm-website.vercel.app',
+  site: process.env.SITE_URL || 'https://cckfupm.vercel.app',
   trailingSlash: 'ignore',
   output: 'server',
   adapter: vercel({

@@ -14,5 +14,5 @@ export const resendReady = () => !!RESEND_API_KEY;
 export const resendKey = RESEND_API_KEY || '';
 export const emailFrom = EMAIL_FROM || 'KFUPM Computer Club <onboarding@resend.dev>';
 export const cronSecret = CRON_SECRET || '';
-export const siteUrl = SITE_URL || 'https://cckfupm-website.vercel.app';
+export const siteUrl = SITE_URL || 'https://cckfupm.vercel.app';
 export const adminEmails = () => (ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);

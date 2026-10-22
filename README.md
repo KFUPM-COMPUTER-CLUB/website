@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://cckfupm-website.vercel.app">
+  <a href="https://cckfupm.vercel.app">
     <img src="public/logo.png" alt="KFUPM Computer Club" width="150">
   </a>
 </p>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://cckfupm-website.vercel.app"><img alt="Live site" src="https://img.shields.io/badge/live-cckfupm--website.vercel.app-0B1A33?style=for-the-badge&logo=vercel&logoColor=white"></a>
+  <a href="https://cckfupm.vercel.app"><img alt="Live site" src="https://img.shields.io/badge/live-cckfupm.vercel.app-0B1A33?style=for-the-badge&logo=vercel&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <a href="https://cckfupm-website.vercel.app">Visit the site</a> ·
+  <a href="https://cckfupm.vercel.app">Visit the site</a> ·
   <a href="https://github.com/KFUPM-COMPUTER-CLUB/website/issues">Issues</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
