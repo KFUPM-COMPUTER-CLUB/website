@@ -1,86 +1,48 @@
 ---
+import { Image } from 'astro:assets';
+import logoSm from '../assets/brand/logo-color-sm.png';
+import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
 import site from '../data/site.json';
+import NextEvent from './NextEvent.astro';
 
+// The logo is the home link. Everything else lives in these five entries.
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/events', label: 'Events' },
-  { href: '/news', label: 'News' },
-  { href: '/newsletter', label: 'Newsletter' },
-  { href: '/write', label: 'Write' },
-  { href: '/about', label: 'About' },
+  { href: '/timeline', label: 'Timeline' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/officers', label: 'Officers' },
+  { href: '/faq', label: 'FAQ' },
 ];
 
-// Join points at the membership form once it is set in site.json; until then, at the About page.
 const joinHref = site.links.join.includes('REPLACE') ? '/about' : site.links.join;
 const external = joinHref.startsWith('http');
-
-// trailingSlash is 'ignore', so "/news" and "/news/" are the same page.
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const isCurrent = (href) =>
-  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+const isCurrent = (href) => path === href || path.startsWith(`${href}/`);
 ---
 
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="site-logo" href="/" aria-label={`${site.name} home`}>
-      <img src="/logo.png" alt="" width="68" height="36" />
-      <span class="site-logo__text">{site.short}</span>
-    </a>
-
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-controls="site-nav"
-      aria-expanded="false"
-      aria-label="Open menu"
-    >
-      Menu
-    </button>
-
-    <nav id="site-nav" class="site-nav" aria-label="Main">
-      {
-        links.map((link) => (
-          <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
-            {link.label}
-          </a>
-        ))
-      }
-      <a class="btn btn--small" href={joinHref} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
-        Join <span aria-hidden="true">→</span>
+    <div class="site-header__brand">
+      <a class="site-logo" href="/" aria-label={`${site.name} home`} aria-current={path === '/' ? 'page' : undefined}>
+        <span class="site-logo__stack"><Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} /><Image class="site-logo__icon site-logo__icon--dark" src={logoSmDark} alt="" width={64} densities={[1, 2, 3]} /></span>
+        <span class="site-logo__words"><span lang="ar" dir="rtl">نادي الحاسب الآلي</span><b>Computer Club</b></span>
       </a>
-    </nav>
+      <NextEvent variant="bar" />
+    </div>
+
+    <div class="site-header__end">
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <NextEvent variant="menu" />
+        {links.map((l) => <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a>)}
+        <a class="btn btn--small" data-magnet href={joinHref} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>Join <span aria-hidden="true">→</span></a>
+      </nav>
+      <div class="site-header__tools">
+        <button type="button" class="term-open" data-term-open aria-label="Open terminal" title="Terminal">&gt;_</button>
+        <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="Open menu">Menu</button>
+      </div>
+    </div>
   </div>
 </header>
 
 <script>
-  const toggle = document.querySelector('.nav-toggle');
-  const nav = document.getElementById('site-nav');
-  const body = document.body;
-
-  const setOpen = (open) => {
-    body.classList.toggle('nav-open', open);
-    toggle?.setAttribute('aria-expanded', String(open));
-    toggle?.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-  };
-
-  toggle?.addEventListener('click', () => setOpen(!body.classList.contains('nav-open')));
-
-  // Escape closes the phone menu and returns focus to the button.
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && body.classList.contains('nav-open')) {
-      setOpen(false);
-      toggle?.focus();
-    }
-  });
-
-  // Close after choosing a link, and when the screen grows past the phone layout.
-  nav?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
-  window.matchMedia('(min-width: 900px)').addEventListener('change', (e) => {
-    if (e.matches) setOpen(false);
-  });
-
-  // body.scrolled lets the header style change once the page scrolls.
-  const onScroll = () => body.classList.toggle('scrolled', window.scrollY > 8);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
+  import '../scripts/header.js';
 </script>
