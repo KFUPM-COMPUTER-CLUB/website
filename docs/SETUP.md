@@ -7,7 +7,7 @@ Replace `<project-ref>` with the reference of your Supabase project (the part be
 ## 1. Supabase project (8 min)
 
 1. Go to https://supabase.com/dashboard, **New project**. Name: `cckfupm-website`. Region: **Stockholm (eu-north-1)**. Generate and store the database password (you will not need it again for the site).
-2. Open **SQL Editor → New query**, paste each file in `supabase/migrations/` from the repo in order (`0001_init.sql`, then `0002_committees.sql`, and so on), press **Run** after each. Every one must end with "Success". They are safe to run again later.
+2. Schema. On GitHub, add the repository secret `SUPABASE_DB_URL` (Settings → Secrets and variables → Actions): the value is the **Session pooler** connection string from Supabase → Connect, with the database password filled in. Then run the **migrate** workflow from the Actions tab. It applies every file in `supabase/migrations/` in order, records them, and keeps doing so on every merge. Alternative by hand: **SQL Editor → New query**, run each file in order. Both are safe to repeat.
 3. **Project Settings → API** (or **Data API**). Copy:
    - Project URL → `PUBLIC_SUPABASE_URL`
    - the publishable key (`sb_publishable_…`) → `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (older projects: the `anon` key as `PUBLIC_SUPABASE_ANON_KEY`)

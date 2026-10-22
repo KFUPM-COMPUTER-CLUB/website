@@ -6,7 +6,7 @@ Every outside service the site depends on, who owns it, how to rotate its keys, 
 
 | Service                                              | What it is for                                                            | Owner account                                                                                            | Free-tier limits that matter                                                                                                               |
 | ---------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **GitHub organisation** `KFUPM-COMPUTER-CLUB`        | the code, pull requests, CI, deploy workflow                              | the club's GitHub org; owners are the current lead and web lead                                          | public repo: unlimited Actions minutes                                                                                                     |
+| **GitHub organisation** `KFUPM-COMPUTER-CLUB`        | the code, pull requests, CI, the deploy and migrate workflows             | the club's GitHub org; owners are the current lead and web lead                                          | public repo: unlimited Actions minutes                                                                                                     |
 | **Vercel** project `cckfupm-website` (team `adib25`) | hosting, preview per pull request, functions, cron, environment variables | the web lead's Vercel account; add the next lead as a team member                                        | 100 GB bandwidth/month, 1 cron job per day on Hobby, 60 s function limit (300 s with Fluid compute)                                        |
 | **Supabase** project (Stockholm)                     | Postgres, Auth, Storage                                                   | the web lead's Supabase account; invite the next lead as Owner                                           | 500 MB database, 1 GB storage, 50 000 monthly active users; the project pauses after a week without traffic, which the daily cron prevents |
 | **GitHub OAuth app** "KFUPM Computer Club"           | "Continue with GitHub"                                                    | created under the GitHub org (Settings → Developer settings → OAuth Apps), not under a person            | none                                                                                                                                       |
@@ -24,6 +24,7 @@ All runtime secrets are Vercel environment variables (Vercel → project → Set
 - **Google OAuth secret**: Google Cloud → Credentials → the client → Reset secret → paste in Supabase → Providers → Google.
 - **Resend API key**: Resend → API Keys → create a new key → Vercel `RESEND_API_KEY` → redeploy → delete the old key.
 - **Vercel deploy token** (`VERCEL_TOKEN` in GitHub Actions secrets): Vercel → Account → Tokens → create → GitHub repo → Settings → Secrets → update → delete the old token.
+- **Database connection string** (`SUPABASE_DB_URL` in GitHub Actions secrets, used by the migrate workflow): Supabase → Project Settings → Database → reset the database password → Connect → copy the **Session pooler** string with the new password → GitHub repo → Settings → Secrets → update.
 - **`CRON_SECRET`**: any new random string in Vercel; the cron route reads it on the next call.
 
 After any rotation, open the preview or production site, sign in, and load `/admin` once.
@@ -33,7 +34,7 @@ After any rotation, open the preview or production site, sign in, and load `/adm
 - The daily cron (`/api/cron/daily`, 03:00 UTC) sends queued mail and touches the database so the free project never pauses. If Supabase shows "paused", restore it in the dashboard and check the cron in Vercel → Cron Jobs.
 - `/admin` shows the email counts and warns at 80% of the daily or monthly limit.
 - The audit log in `/admin/audit` records every admin action; content edits can be undone there.
-- Database changes are SQL files under `supabase/migrations/`, run by a maintainer in the Supabase SQL editor; `0001_init.sql` is never edited after it has run.
+- Database changes are SQL files under `supabase/migrations/`. The `migrate` workflow applies new files to the project on every merge to `main` and records them in `schema_migrations`; it needs the repository secret `SUPABASE_DB_URL`. `0001_init.sql` is never edited after it has run.
 
 ## Handover checklist (when officers change)
 
@@ -45,5 +46,5 @@ After any rotation, open the preview or production site, sign in, and load `/adm
 6. **Admins on the site**: set `ADMIN_EMAILS` in Vercel to the new leads' sign-in emails and redeploy; in `/admin/members` set the roles of the new board (officer, reviewer) and demote leavers to member.
 7. **Board page**: in `/admin/board`, untick "current" for the old board (they move to the alumni archive) and add the new one.
 8. **Settings**: check the members-only group links, the social links and the club email in `/admin/settings`.
-9. **Rotate** the Supabase secret key, the Resend key and the Vercel token if any leaver had them.
+9. **Rotate** the Supabase secret key, the database password, the Resend key and the Vercel token if any leaver had them.
 10. **Docs**: update the owner account column above and the names in `CONTRIBUTORS.md`.

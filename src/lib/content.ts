@@ -478,10 +478,13 @@ const splitLines = (s: unknown) =>
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean);
+/* The table is not in the Data API: 0002_committees.sql has not run on the project yet. */
+const noTable = (e: { code?: string; message?: string } | null) =>
+  !!e && (e.code === 'PGRST205' || e.code === '42P01' || /schema cache/i.test(e.message || ''));
 export function getCommittees(): Promise<Committee[]> {
   return cached('committees', async () => {
-    if (!dbReady())
-      return (committeesJson as any[]).map((c, i) => ({
+    const seed = () =>
+      (committeesJson as any[]).map((c, i) => ({
         id: `seed-${i}`,
         name: c.name,
         leads: c.leads || '',
@@ -491,7 +494,8 @@ export function getCommittees(): Promise<Committee[]> {
         grantsRole: (c.grantsRole || 'member') as Committee['grantsRole'],
         members: [],
       }));
-    const [{ data }, { data: people }] = await Promise.all([
+    if (!dbReady()) return seed();
+    const [{ data, error }, { data: people }] = await Promise.all([
       db().from('committees').select('*').eq('visible', true).order('sort'),
       // Members who are in a committee, for the cards. Empty until 0003_committee_members.sql has run.
       db()
@@ -500,6 +504,8 @@ export function getCommittees(): Promise<Committee[]> {
         .not('committee_id', 'is', null)
         .order('name'),
     ]);
+    // Until the migration has run, show the deck's committees rather than an empty page.
+    if (noTable(error)) return seed();
     return (data || []).map((r: any) => ({
       id: r.id,
       name: r.name,
