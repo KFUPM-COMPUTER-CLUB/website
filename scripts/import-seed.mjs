@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* One-shot, idempotent import of the seed content (src/data, src/content/posts, src/assets) into
+/* One-shot, idempotent import of the seed content (src/data, src/data/posts, src/assets) into
  * Supabase. Run it once after the schema migration, and again whenever the seed files change:
  *
  *   node scripts/import-seed.mjs            # import (reads .env and process.env)
@@ -351,8 +351,8 @@ async function headOk(url) {
  * Each seed image becomes a folder in the bucket (WebP sizes + original) and one media row whose
  * key is the original file name. Returns the set of media keys that exist after this step. */
 async function importMedia() {
-  const photoDir = 'src/assets/photos',
-    logoDir = 'src/assets/partners';
+  const photoDir = 'src/data/photos',
+    logoDir = 'src/data/partners';
   const photos = listDir(photoDir).filter((f) => /\.jpe?g$/i.test(f));
   const logos = listDir(logoDir).filter((f) => extname(f).toLowerCase() in CONTENT_TYPES);
 
@@ -794,9 +794,9 @@ async function main() {
   await sync('faq', mapFaq(site.faq || []), { label: (r) => r.q_en });
 
   // 11. Posts from markdown.
-  const posts = listDir('src/content/posts')
+  const posts = listDir('src/data/posts')
     .filter((f) => f.endsWith('.md'))
-    .map((f) => mapPost(f, readFileSync(join(ROOT, 'src/content/posts', f), 'utf8')));
+    .map((f) => mapPost(f, readFileSync(join(ROOT, 'src/data/posts', f), 'utf8')));
   await sync('posts', posts, { label: (r) => r.slug, keep: ['author_id', 'cover_key', 'content_json'] });
 
   // 12. Flag solvers.

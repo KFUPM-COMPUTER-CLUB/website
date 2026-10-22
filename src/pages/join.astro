@@ -50,7 +50,11 @@ if (Astro.locals.user) return Astro.redirect(Astro.locals.profile?.onboarded ? n
               Continue with GitHub <span aria-hidden="true">→</span>
             </a>
             {google ? (
-              <a data-astro-reload class="btn btn--ghost" href={`/auth/login?provider=google&next=${encodeURIComponent(next)}`}>
+              <a
+                data-astro-reload
+                class="btn btn--ghost"
+                href={`/auth/login?provider=google&next=${encodeURIComponent(next)}`}
+              >
                 Continue with Google <span aria-hidden="true">→</span>
               </a>
             ) : (

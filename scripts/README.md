@@ -2,8 +2,8 @@
 
 ## `import-seed.mjs`: seed content into Supabase
 
-Copies the seed content that ships in the repository (`src/data/*.json`, `src/content/posts/*.md`,
-`src/assets/photos`, `src/assets/partners`) into the database and the `media` storage bucket.
+Copies the seed content that ships in the repository (`src/data/*.json`, `src/data/posts/*.md`,
+`src/data/photos`, `src/data/partners`) into the database and the `media` storage bucket.
 Run it once after applying `supabase/migrations/0001_init.sql`, and again whenever the seed files
 change. It is idempotent: a second run finds its own rows and changes nothing.
 
@@ -22,8 +22,8 @@ and then assumes an empty database. Supabase project region: Stockholm (eu-north
 
 | Source                            | Table                                                                                                  | Notes                                                                                                        |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `src/assets/photos/*.jpg`         | `media`, storage `photos/<name>/`                                                                      | WebP at 480/960/1600 (never upscaled, quality 80) plus the original; `key` = file name, `tags` `seed, photo` |
-| `src/assets/partners/*`           | `media`, storage `partners/`                                                                           | SVGs as-is; PNG/JPG also get WebP slots capped at 800px; `tags` `seed, partner`                              |
+| `src/data/photos/*.jpg`           | `media`, storage `photos/<name>/`                                                                      | WebP at 480/960/1600 (never upscaled, quality 80) plus the original; `key` = file name, `tags` `seed, photo` |
+| `src/data/partners/*`             | `media`, storage `partners/`                                                                           | SVGs as-is; PNG/JPG also get WebP slots capped at 800px; `tags` `seed, partner`                              |
 | `events.json`                     | `events`                                                                                               | times are Riyadh (UTC+3); `ends_at` from `endDate` (end of day) or the end of a time range                   |
 | `highlights.json`, `stories.json` | `highlights`, `stories`                                                                                | ordered by position in the file                                                                              |
 | every seed photo                  | `strip_photos`                                                                                         | label from the matching event or highlight, else an event on the same day, else `@KFUPM_CC`                  |
@@ -31,7 +31,7 @@ and then assumes an empty database. Supabase project region: Stockholm (eu-north
 | `partners.json`                   | `partners`                                                                                             | `visited` entries are inserted hidden                                                                        |
 | `team.json`                       | `officer_terms`                                                                                        | placeholder photos are not uploaded; `user_id`/`photo_key` set by admins are kept                            |
 | `site.json`                       | `settings` (`site`, `links`, `home`, `made_by`, `banner`, `whatsapp_groups`, `email_templates`), `faq` | `REPLACE` placeholders become empty strings                                                                  |
-| `src/content/posts/*.md`          | `posts`                                                                                                | frontmatter + a small Markdown converter; published, `author_id` null                                        |
+| `src/data/posts/*.md`             | `posts`                                                                                                | frontmatter + a small Markdown converter; published, `author_id` null                                        |
 | `solvers.json`                    | `flag_solvers`                                                                                         | approved                                                                                                     |
 
 Every row id is derived from its seed identity (`sha1("event:" + id)` laid out as a UUID), so the

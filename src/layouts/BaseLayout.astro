@@ -43,10 +43,15 @@ const { title, description = site.description, noindex = false } = Astro.props;
     <ClientRouter fallback="animate" />
     <script>
       // Runs in the capture phase, so it marks the form before ClientRouter's own submit handler looks at it.
-      document.addEventListener('submit', (e) => {
-        const form = e.target;
-        if (form instanceof HTMLFormElement && /^\/(api|auth)\//.test(new URL(form.action, location.href).pathname)) form.setAttribute('data-astro-reload', '');
-      }, true);
+      document.addEventListener(
+        'submit',
+        (e) => {
+          const form = e.target;
+          if (form instanceof HTMLFormElement && /^\/(api|auth)\//.test(new URL(form.action, location.href).pathname))
+            form.setAttribute('data-astro-reload', '');
+        },
+        true,
+      );
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

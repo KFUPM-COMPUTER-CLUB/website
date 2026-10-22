@@ -31,13 +31,13 @@ import teamJson from '../data/team.json';
 import siteJson from '../data/site.json';
 import solversJson from '../data/solvers.json';
 
-const photoFiles = Object.keys(import.meta.glob('../assets/photos/*.jpg'))
+const photoFiles = Object.keys(import.meta.glob('../data/photos/*.jpg'))
   .map((p) => p.split('/').pop()!)
   .sort();
-const logoFiles = Object.keys(import.meta.glob('../assets/partners/*'))
+const logoFiles = Object.keys(import.meta.glob('../data/partners/*'))
   .map((p) => p.split('/').pop()!)
   .sort();
-const postFiles = import.meta.glob('../content/posts/*.md', {
+const postFiles = import.meta.glob('../data/posts/*.md', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -69,7 +69,7 @@ async function exists(key: string) {
 
 async function importPhoto(name: string, force: boolean) {
   if (!force && (await exists(name))) return 'kept';
-  const buf = await fetchBytes(`src/assets/photos/${name}`);
+  const buf = await fetchBytes(`src/data/photos/${name}`);
   const sb = serviceClient();
   const base = `photos/${name.replace(/\.[^.]+$/, '')}`;
   const meta = await sharp(Buffer.from(buf)).rotate().metadata();
@@ -114,7 +114,7 @@ async function importPhoto(name: string, force: boolean) {
 }
 async function importLogo(name: string, force: boolean) {
   if (!force && (await exists(name))) return 'kept';
-  const buf = await fetchBytes(`src/assets/partners/${name}`);
+  const buf = await fetchBytes(`src/data/partners/${name}`);
   const sb = serviceClient();
   const ext = name.split('.').pop()!.toLowerCase();
   const type =

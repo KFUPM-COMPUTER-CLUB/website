@@ -1,6 +1,6 @@
 name: Bug report
 description: A page is broken or renders incorrectly
-labels: ['type: bug']
+labels: ['bug']
 body:
   - type: input
     id: page

@@ -2,7 +2,7 @@
 // Infinite horizontal strip of event photos. Every thumbnail is rendered small and lazy;
 // a script picks a random 20 on each load (mixed years), duplicates them for a seamless loop,
 // pauses on hover, and stays static under prefers-reduced-motion.
-// The pool comes from the strip_photos table (or every seed photo in src/assets/photos).
+// The pool comes from the strip_photos table (or every seed photo in src/data/photos).
 import { getStripPhotos } from '../lib/content';
 const items = (await getStripPhotos())
   .map((p) => ({ ...p, year: p.date.slice(0, 4) }))
