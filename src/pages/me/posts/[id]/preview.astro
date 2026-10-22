@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { serviceClient } from '../../../../lib/supabase';
+import { atLeast } from '../../../../lib/types';
+import { isUuid } from '../../../../lib/api';
+const { user, role } = Astro.locals;
+if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
+const { data: post } = await serviceClient().from('posts').select('*').eq('id', Astro.params.id).maybeSingle();
+if (!post || (post.author_id !== user!.id && !atLeast(role, 'reviewer'))) return new Response(null, { status: 404 });
+---
+<BaseLayout title={`Preview: ${post.title}`} noindex={true}>
+  <section class="page-head">
+    <div class="container" dir={post.dir}>
+      <span class="eyebrow">Preview · {post.status.replace('_', ' ')}</span>
+      <h1 class="h1">{post.title}</h1>
+      <p class="meta" style="margin-top:18px"><span>By {post.author_name || 'you'}</span><span>{post.category}</span></p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container"><article class="prose" dir={post.dir} data-prose><Fragment set:html={post.content_html || '<p>Nothing written yet.</p>'} /></article>
+      <p style="margin-top:32px"><a class="link-arrow" href={`/me/posts/${post.id}/edit`}>← Back to the editor</a></p>
+    </div>
+  </section>
+</BaseLayout>
+<script>
+  import '../../../../scripts/highlight.js';
+</script>

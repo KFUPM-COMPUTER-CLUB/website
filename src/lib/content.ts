@@ -193,14 +193,21 @@ export function getFaq(): Promise<FaqItem[]> {
 
 /* ── Posts ─────────────────────────────────────────────────────────────── */
 const rowToPost = (r: any): PostSummary => ({ id: r.id, slug: r.slug, title: r.title, excerpt: r.excerpt || '', date: new Date(r.published_at || r.created_at), authorName: r.author?.name || r.author_name || 'Computer Club', authorHandle: r.author?.handle || null, authorAvatar: r.author?.avatar_url || null, category: r.category, tags: r.tags || [], dir: r.dir || 'ltr', status: r.status });
+/* Authors come from the public profile view (no phone, no email), matched by id. */
+async function withAuthors(rows: any[]): Promise<PostSummary[]> {
+  const ids = [...new Set(rows.map((r) => r.author_id).filter(Boolean))];
+  const authors = ids.length ? (await db().from('profiles_public').select('id,name,handle,avatar_url').in('id', ids)).data || [] : [];
+  const byId = new Map(authors.map((a: any) => [a.id, a]));
+  return rows.map((r) => rowToPost({ ...r, author: byId.get(r.author_id) || null }));
+}
 export function getPosts(): Promise<PostSummary[]> {
   return cached('posts', async () => {
     if (!dbReady()) {
       const entries = await getCollection('posts', ({ data }) => !data.draft);
       return entries.map((e) => ({ id: e.id, slug: e.id, title: e.data.title, excerpt: e.data.excerpt, date: e.data.date, authorName: e.data.author, authorHandle: null, authorAvatar: null, category: e.data.category, tags: e.data.tags, dir: 'ltr' as const, status: 'published' })).sort((a, b) => b.date.valueOf() - a.date.valueOf());
     }
-    const { data } = await db().from('posts').select('id,slug,title,excerpt,published_at,created_at,author_name,category,tags,dir,status,author:profiles_public!posts_author_id_fkey(name,handle,avatar_url)').eq('status', 'published').order('published_at', { ascending: false });
-    return (data || []).map(rowToPost);
+    const { data } = await db().from('posts').select('id,slug,title,excerpt,published_at,created_at,author_id,author_name,category,tags,dir,status').eq('status', 'published').order('published_at', { ascending: false });
+    return withAuthors(data || []);
   });
 }
 export async function getPost(slug: string): Promise<PostFull | null> {
@@ -209,6 +216,8 @@ export async function getPost(slug: string): Promise<PostFull | null> {
     const e = entries.find((x) => x.id === slug); if (!e) return null;
     return { id: e.id, slug: e.id, title: e.data.title, excerpt: e.data.excerpt, date: e.data.date, authorName: e.data.author, authorHandle: null, authorAvatar: null, category: e.data.category, tags: e.data.tags, dir: 'ltr', status: 'published', html: null, entry: e, coverKey: null };
   }
-  const { data } = await db().from('posts').select('*, author:profiles_public!posts_author_id_fkey(name,handle,avatar_url)').eq('slug', slug).eq('status', 'published').maybeSingle();
-  return data ? { ...rowToPost(data), html: data.content_html, entry: null, coverKey: data.cover_key } : null;
+  const { data } = await db().from('posts').select('*').eq('slug', slug).eq('status', 'published').maybeSingle();
+  if (!data) return null;
+  const [row] = await withAuthors([data]);
+  return { ...row, html: data.content_html, entry: null, coverKey: data.cover_key };
 }

@@ -26,3 +26,21 @@ Contributions are welcome. These are the rules.
 ## Review
 
 Anyone may review. Test on the preview deployment, comment on specific lines, and keep feedback factual and specific to the code. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Local setup
+
+```bash
+npm install
+cp .env.example .env   # optional: without keys the site runs on the seed data and sign-in is off
+npm run dev            # http://localhost:4321
+npm run build          # must pass before every pull request
+```
+
+With Supabase keys in `.env` you get the real database locally (same project as the preview). Sign in at `/join` with GitHub; `ADMIN_EMAILS` makes your account an admin. The owner checklist is in `docs/SETUP.md`.
+
+## Where things live
+
+- Content changes do not need code: officers edit everything under `/admin`. Edits are live in about a minute.
+- Schema changes go in a new file under `supabase/migrations/` (idempotent SQL with explicit grants and RLS policies; run it in the Supabase SQL editor).
+- New pages read data through `src/lib/content.ts` and must work in seed mode too.
+- API routes use `src/lib/api.ts` (`handle`, `requireRole`, `guardRate`, `audit`) and never expose the service key.

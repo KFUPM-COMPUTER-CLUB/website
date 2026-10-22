@@ -1,15 +1,6 @@
 import { kt as defineMiddleware, t as sequence } from "./chunks/sequence_CcNeFUgX.mjs";
-import { a as adminEmails, c as serviceReady, i as sessionClient, o as dbReady, r as serviceClient } from "./chunks/supabase_Bb8GfBf3.mjs";
-//#region src/lib/types.ts
-var ROLE_RANK = {
-	member: 0,
-	editor: 1,
-	reviewer: 2,
-	officer: 3,
-	admin: 4
-};
-var atLeast = (role, min) => role !== "guest" && ROLE_RANK[role] >= ROLE_RANK[min];
-//#endregion
+import { a as adminEmails, c as serviceReady, i as sessionClient, o as dbReady, r as serviceClient } from "./chunks/supabase_BYajXEmb.mjs";
+import { t as atLeast } from "./chunks/types_DpuWdFt1.mjs";
 //#region src/middleware.ts
 var PERSONAL = /^\/(me|admin|onboarding|auth|api|join)(\/|$)/;
 var SIGNED_IN_COOKIE = "cc_in";

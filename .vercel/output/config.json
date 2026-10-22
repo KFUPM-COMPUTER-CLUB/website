@@ -19,11 +19,151 @@
 			"handle": "filesystem"
 		},
 		{
+			"src": "^/me/posts/new$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me/posts/([^/]+?)/edit$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me/posts/([^/]+?)/preview$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me/posts$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me/profile$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me/registrations$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/me$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/audit$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/events/([^/]+?)/registrations$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/home$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/media$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/members$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/posts/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/posts$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/settings$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/([^/]+?)/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/audit/([^/]+?)/undo$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/events/([^/]+?)/registrations$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/media$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/members$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/posts/([^/]+?)/review$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/settings$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/events/([^/]+?).ics$",
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/events/([^/]+?)/register$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/flag/solvers$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/me/delete$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/me/onboard$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/me/profile$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/posts/([^/]+?)/submit$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/posts/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/posts$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/upload$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/auth/callback$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/link$",
 			"dest": "_render"
 		},
 		{
@@ -32,6 +172,10 @@
 		},
 		{
 			"src": "^/auth/logout$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/onboarding$",
 			"dest": "_render"
 		},
 		{
@@ -48,55 +192,59 @@
 		},
 		{
 			"src": "^(/404/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/about/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/blog/([^/]+?)/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/blog/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/calendar\\.ics)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/community/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/faq/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/flag/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/officers/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/rss\\.xml)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/styleguide/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/timeline/?)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
+		},
+		{
+			"src": "^(/u/([^/]+?)/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^(/)$",
-			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=1a399cfc-9e41-4182-84e5-e61e0da70985"
 		},
 		{
 			"src": "^/.*$",

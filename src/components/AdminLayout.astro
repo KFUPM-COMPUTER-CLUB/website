@@ -1,0 +1,44 @@
+---
+/* Admin shell: head, side navigation filtered by role, flash messages. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Subnav from './Subnav.astro';
+import '../styles/app.css';
+import { atLeast } from '../lib/types';
+const { title, lead, live = true } = Astro.props as { title: string; lead?: string; live?: boolean };
+const role = Astro.locals.role;
+const all = [
+  { href: '/admin', label: 'Dashboard', min: 'editor' },
+  { href: '/admin/members', label: 'Members', min: 'admin' },
+  { href: '/admin/posts', label: 'Blog review', min: 'reviewer' },
+  { href: '/admin/events', label: 'Events', min: 'officer' },
+  { href: '/admin/board', label: 'Community board', min: 'admin' },
+  { href: '/admin/faq', label: 'FAQ', min: 'officer' },
+  { href: '/admin/home', label: 'Home page', min: 'officer' },
+  { href: '/admin/partners', label: 'Partners', min: 'officer' },
+  { href: '/admin/media', label: 'Media library', min: 'officer' },
+  { href: '/admin/solvers', label: 'Flag solvers', min: 'admin' },
+  { href: '/admin/settings', label: 'Settings', min: 'admin' },
+  { href: '/admin/audit', label: 'Audit log', min: 'admin' },
+] as const;
+const items = all.filter((i) => atLeast(role, i.min)).map(({ href, label }) => ({ href, label }));
+const flash = Astro.url.searchParams.get('ok');
+const error = Astro.url.searchParams.get('error');
+---
+<BaseLayout title={`${title} · Admin`} noindex={true}>
+  <section class="page-head page-head--compact">
+    <div class="container app__head">
+      <div><span class="eyebrow">Admin</span><h1 class="h1">{title}</h1>{lead && <p class="lead" style="margin-top:10px">{lead}</p>}</div>
+      {live && <span class="live">Saves go live in about a minute</span>}
+    </div>
+  </section>
+  <section class="section" style="padding-top:32px">
+    <div class="container app">
+      <Subnav items={items} />
+      <div>
+        {flash && <p class="flash--ok">{flash}</p>}
+        {error && <p class="flash--error">{error}</p>}
+        <slot />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

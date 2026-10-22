@@ -5,25 +5,6 @@
 
 create extension if not exists pgcrypto;
 
--- ── Roles ───────────────────────────────────────────────────────────────────
--- member < editor < reviewer < officer < admin. A signed-in user without a row is a member.
-create table if not exists public.user_roles (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  role text not null check (role in ('member', 'editor', 'reviewer', 'officer', 'admin')),
-  granted_by uuid,
-  created_at timestamptz not null default now()
-);
-
-create or replace function public.role_rank(r text) returns int language sql immutable as $$
-  select case r when 'admin' then 4 when 'officer' then 3 when 'reviewer' then 2 when 'editor' then 1 else 0 end
-$$;
-create or replace function public.my_role() returns text language sql stable security definer set search_path = public as $$
-  select case when auth.uid() is null then null else coalesce((select role from public.user_roles where user_id = auth.uid()), 'member') end
-$$;
-create or replace function public.has_role(min_role text) returns boolean language sql stable security definer set search_path = public as $$
-  select coalesce(public.role_rank(public.my_role()) >= public.role_rank(min_role), false)
-$$;
-
 -- ── Profiles ────────────────────────────────────────────────────────────────
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -45,6 +26,25 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 create index if not exists profiles_handle_idx on public.profiles (lower(handle));
+
+-- ── Roles ───────────────────────────────────────────────────────────────────
+-- member < editor < reviewer < officer < admin. A signed-in user without a row is a member.
+create table if not exists public.user_roles (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  role text not null check (role in ('member', 'editor', 'reviewer', 'officer', 'admin')),
+  granted_by uuid,
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.role_rank(r text) returns int language sql immutable as $$
+  select case r when 'admin' then 4 when 'officer' then 3 when 'reviewer' then 2 when 'editor' then 1 else 0 end
+$$;
+create or replace function public.my_role() returns text language sql stable security definer set search_path = public as $$
+  select case when auth.uid() is null then null else coalesce((select role from public.user_roles where user_id = auth.uid()), 'member') end
+$$;
+create or replace function public.has_role(min_role text) returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce(public.role_rank(public.my_role()) >= public.role_rank(min_role), false)
+$$;
 
 -- A profile row appears the moment a user signs up, so onboarding only has to fill it in.
 create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path = public as $$
@@ -337,54 +337,72 @@ begin
   end if;
 end $$;
 
-select public._policy('roles_self_read', 'user_roles', 'select', 'user_id = auth.uid() or public.has_role(''admin'')');
+do $$ begin
+  perform public._policy('roles_self_read', 'user_roles', 'select', 'user_id = auth.uid() or public.has_role(''admin'')');
+end $$;
 
-select public._policy('profiles_self_read', 'profiles', 'select', 'id = auth.uid() or public.has_role(''admin'')');
-select public._policy('profiles_self_update', 'profiles', 'update', 'id = auth.uid()', 'id = auth.uid() and suspended = false');
-select public._policy('profiles_self_insert', 'profiles', 'insert', 'id = auth.uid()');
+do $$ begin
+  perform public._policy('profiles_self_read', 'profiles', 'select', 'id = auth.uid() or public.has_role(''admin'')');
+  perform public._policy('profiles_self_update', 'profiles', 'update', 'id = auth.uid()', 'id = auth.uid() and suspended = false');
+  perform public._policy('profiles_self_insert', 'profiles', 'insert', 'id = auth.uid()');
+end $$;
 
-select public._policy('media_public_read', 'media', 'select', 'true');
-select public._policy('media_member_insert', 'media', 'insert', 'auth.uid() is not null and uploaded_by = auth.uid()');
-select public._policy('media_officer_write', 'media', 'update', 'public.has_role(''officer'')');
-select public._policy('media_officer_delete', 'media', 'delete', 'public.has_role(''officer'')');
+do $$ begin
+  perform public._policy('media_public_read', 'media', 'select', 'true');
+  perform public._policy('media_member_insert', 'media', 'insert', 'auth.uid() is not null and uploaded_by = auth.uid()');
+  perform public._policy('media_officer_write', 'media', 'update', 'public.has_role(''officer'')');
+  perform public._policy('media_officer_delete', 'media', 'delete', 'public.has_role(''officer'')');
+end $$;
 
-select public._policy('events_public_read', 'events', 'select', 'published or public.has_role(''officer'')');
-select public._policy('events_officer_write', 'events', 'all', 'public.has_role(''officer'')');
+do $$ begin
+  perform public._policy('events_public_read', 'events', 'select', 'published or public.has_role(''officer'')');
+  perform public._policy('events_officer_write', 'events', 'all', 'public.has_role(''officer'')');
+end $$;
 
-select public._policy('registrations_read', 'registrations', 'select', 'true');
-select public._policy('registrations_self_insert', 'registrations', 'insert', 'user_id = auth.uid()');
-select public._policy('registrations_self_delete', 'registrations', 'delete', 'user_id = auth.uid() or public.has_role(''officer'')');
-select public._policy('registrations_officer_update', 'registrations', 'update', 'public.has_role(''officer'')');
+do $$ begin
+  perform public._policy('registrations_read', 'registrations', 'select', 'true');
+  perform public._policy('registrations_self_insert', 'registrations', 'insert', 'user_id = auth.uid()');
+  perform public._policy('registrations_self_delete', 'registrations', 'delete', 'user_id = auth.uid() or public.has_role(''officer'')');
+  perform public._policy('registrations_officer_update', 'registrations', 'update', 'public.has_role(''officer'')');
+end $$;
 
-select public._policy('posts_public_read', 'posts', 'select', 'status = ''published'' or author_id = auth.uid() or public.has_role(''reviewer'')');
-select public._policy('posts_author_insert', 'posts', 'insert', 'author_id = auth.uid()');
-select public._policy('posts_author_update', 'posts', 'update', 'author_id = auth.uid() or public.has_role(''reviewer'')');
-select public._policy('posts_author_delete', 'posts', 'delete', '(author_id = auth.uid() and status in (''draft'', ''changes_requested'')) or public.has_role(''admin'')');
+do $$ begin
+  perform public._policy('posts_public_read', 'posts', 'select', 'status = ''published'' or author_id = auth.uid() or public.has_role(''reviewer'')');
+  perform public._policy('posts_author_insert', 'posts', 'insert', 'author_id = auth.uid()');
+  perform public._policy('posts_author_update', 'posts', 'update', 'author_id = auth.uid() or public.has_role(''reviewer'')');
+  perform public._policy('posts_author_delete', 'posts', 'delete', '(author_id = auth.uid() and status in (''draft'', ''changes_requested'')) or public.has_role(''admin'')');
+end $$;
 
-select public._policy('reviews_read', 'post_reviews', 'select', 'public.has_role(''reviewer'') or exists (select 1 from public.posts p where p.id = post_id and p.author_id = auth.uid())');
-select public._policy('reviews_insert', 'post_reviews', 'insert', 'public.has_role(''reviewer'') and reviewer_id = auth.uid()');
+do $$ begin
+  perform public._policy('reviews_read', 'post_reviews', 'select', 'public.has_role(''reviewer'') or exists (select 1 from public.posts p where p.id = post_id and p.author_id = auth.uid())');
+  perform public._policy('reviews_insert', 'post_reviews', 'insert', 'public.has_role(''reviewer'') and reviewer_id = auth.uid()');
+end $$;
 
-select public._policy('officer_terms_read', 'officer_terms', 'select', 'true');
-select public._policy('officer_terms_write', 'officer_terms', 'all', 'public.has_role(''admin'')');
+do $$ begin
+  perform public._policy('officer_terms_read', 'officer_terms', 'select', 'true');
+  perform public._policy('officer_terms_write', 'officer_terms', 'all', 'public.has_role(''admin'')');
+end $$;
 
-select public._policy('highlights_read', 'highlights', 'select', 'visible or public.has_role(''officer'')');
-select public._policy('highlights_write', 'highlights', 'all', 'public.has_role(''officer'')');
-select public._policy('stories_read', 'stories', 'select', 'visible or public.has_role(''officer'')');
-select public._policy('stories_write', 'stories', 'all', 'public.has_role(''officer'')');
-select public._policy('strip_read', 'strip_photos', 'select', 'visible or public.has_role(''officer'')');
-select public._policy('strip_write', 'strip_photos', 'all', 'public.has_role(''officer'')');
-select public._policy('impact_read', 'impact_semesters', 'select', 'true');
-select public._policy('impact_write', 'impact_semesters', 'all', 'public.has_role(''officer'')');
-select public._policy('impact_items_read', 'impact_items', 'select', 'true');
-select public._policy('impact_items_write', 'impact_items', 'all', 'public.has_role(''officer'')');
-select public._policy('partners_read', 'partners', 'select', 'visible or public.has_role(''officer'')');
-select public._policy('partners_write', 'partners', 'all', 'public.has_role(''officer'')');
-select public._policy('faq_read', 'faq', 'select', 'visible or public.has_role(''officer'')');
-select public._policy('faq_write', 'faq', 'all', 'public.has_role(''officer'')');
-select public._policy('settings_read', 'settings', 'select', 'public.setting_is_public(key) or public.has_role(''admin'')');
-select public._policy('settings_write', 'settings', 'all', 'public.has_role(''admin'')');
-select public._policy('solvers_read', 'flag_solvers', 'select', 'approved or public.has_role(''admin'')');
-select public._policy('solvers_write', 'flag_solvers', 'all', 'public.has_role(''admin'')');
+do $$ begin
+  perform public._policy('highlights_read', 'highlights', 'select', 'visible or public.has_role(''officer'')');
+  perform public._policy('highlights_write', 'highlights', 'all', 'public.has_role(''officer'')');
+  perform public._policy('stories_read', 'stories', 'select', 'visible or public.has_role(''officer'')');
+  perform public._policy('stories_write', 'stories', 'all', 'public.has_role(''officer'')');
+  perform public._policy('strip_read', 'strip_photos', 'select', 'visible or public.has_role(''officer'')');
+  perform public._policy('strip_write', 'strip_photos', 'all', 'public.has_role(''officer'')');
+  perform public._policy('impact_read', 'impact_semesters', 'select', 'true');
+  perform public._policy('impact_write', 'impact_semesters', 'all', 'public.has_role(''officer'')');
+  perform public._policy('impact_items_read', 'impact_items', 'select', 'true');
+  perform public._policy('impact_items_write', 'impact_items', 'all', 'public.has_role(''officer'')');
+  perform public._policy('partners_read', 'partners', 'select', 'visible or public.has_role(''officer'')');
+  perform public._policy('partners_write', 'partners', 'all', 'public.has_role(''officer'')');
+  perform public._policy('faq_read', 'faq', 'select', 'visible or public.has_role(''officer'')');
+  perform public._policy('faq_write', 'faq', 'all', 'public.has_role(''officer'')');
+  perform public._policy('settings_read', 'settings', 'select', 'public.setting_is_public(key) or public.has_role(''admin'')');
+  perform public._policy('settings_write', 'settings', 'all', 'public.has_role(''admin'')');
+  perform public._policy('solvers_read', 'flag_solvers', 'select', 'approved or public.has_role(''admin'')');
+  perform public._policy('solvers_write', 'flag_solvers', 'all', 'public.has_role(''admin'')');
+end $$;
 -- email_queue, audit_log, rate_limits, keepalive: no policies, so only the service key reaches them.
 
 -- Admins may read everyone's roles and profiles (above); members read nothing about others beyond the public view.

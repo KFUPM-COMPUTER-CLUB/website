@@ -1,0 +1,33 @@
+---
+import AdminLayout from '../../../../components/AdminLayout.astro';
+import { serviceClient } from '../../../../lib/supabase';
+import { atLeast } from '../../../../lib/types';
+import { isUuid } from '../../../../lib/api';
+import { fmtRiyadh } from '../../../../lib/content';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
+const sb = serviceClient();
+const [{ data: ev }, { data: regs }] = await Promise.all([sb.from('events').select('*').eq('id', Astro.params.id).maybeSingle(), sb.from('registrations').select('id,email_copy,attended,created_at, profiles(name,handle,email,phone,major)').eq('event_id', Astro.params.id).order('created_at')]);
+if (!ev) return new Response(null, { status: 404 });
+const admin = atLeast(Astro.locals.role, 'admin');
+---
+<AdminLayout title={`Registrations · ${ev.title}`} lead={`${fmtRiyadh(new Date(ev.starts_at), { weekday: 'long', day: 'numeric', month: 'long' })} · ${regs?.length || 0} reserved${ev.capacity ? ` of ${ev.capacity}` : ''} · registration ${ev.registration_open ? 'open' : 'closed'}`} live={false}>
+  <p class="form__actions"><a class="btn btn--small btn--ghost" href={`/api/admin/events/${ev.id}/registrations`}>Export CSV</a> <a class="btn btn--small btn--ghost" href={`/admin/events/${ev.id}`}>Edit event</a></p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Member</th>{admin && <th>Contact</th>}<th>Registered</th><th>Attended</th><th></th></tr></thead>
+      <tbody>
+        {(regs || []).map((r: any) => (
+          <tr>
+            <td>{r.profiles?.name}<br /><span class="mono">@{r.profiles?.handle} · {r.profiles?.major || ''}</span></td>
+            {admin && <td class="mono">{r.profiles?.email}<br />{r.profiles?.phone}</td>}
+            <td class="mono">{String(r.created_at).slice(0, 16).replace('T', ' ')}{r.email_copy && ' · emailed'}</td>
+            <td><form method="post" action={`/api/admin/events/${ev.id}/registrations`}><input type="hidden" name="registration_id" value={r.id} /><button class={`btn btn--tiny ${r.attended ? '' : 'btn--ghost'}`} type="submit">{r.attended ? '✓ Attended' : 'Mark attended'}</button></form></td>
+            <td><form method="post" action={`/api/admin/events/${ev.id}/registrations`} onsubmit="return confirm('Remove this reservation?')"><input type="hidden" name="registration_id" value={r.id} /><input type="hidden" name="_action" value="remove" /><button class="btn btn--tiny btn--ghost" type="submit">Remove</button></form></td>
+          </tr>
+        ))}
+        {!regs?.length && <tr><td colspan="5" class="hint">No reservations yet.</td></tr>}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

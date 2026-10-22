@@ -1,0 +1,54 @@
+---
+/* Public member profile. Only the public view of a profile is read: no phone, no email. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
+import logoSmDark from '../../assets/brand/logo-color-ondark-sm.png';
+import { dbReady } from '../../lib/env';
+import { publicClient } from '../../lib/supabase';
+import { getSettings, fmtRiyadh } from '../../lib/content';
+const handle = (Astro.params.handle || '').toLowerCase();
+if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, { status: 404 });
+const db = publicClient();
+const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
+if (!p) return new Response(null, { status: 404 });
+const [{ data: posts }, { data: regs }, { data: officer }, { data: solved }, settings] = await Promise.all([
+  db.from('posts').select('slug,title,excerpt,published_at,category').eq('author_id', p.id).eq('status', 'published').order('published_at', { ascending: false }),
+  db.from('registrations').select('attended,events(slug,title,starts_at)').eq('user_id', p.id).order('created_at', { ascending: false }).limit(12),
+  db.from('officer_terms').select('title,committee,term,is_current').eq('user_id', p.id).order('is_current', { ascending: false }).limit(3),
+  db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
+  getSettings(),
+]);
+const current = (officer || []).find((o: any) => o.is_current);
+const badges = [current && `Officer · ${current.title}`, (officer || []).some((o: any) => !o.is_current) && 'Past officer', (posts?.length || 0) > 0 && 'Writer', (regs || []).some((r: any) => r.attended) && 'Attended events', solved?.length && 'Flag solver', `Member since ${String(p.created_at).slice(0, 4)}`].filter(Boolean) as string[];
+---
+<BaseLayout title={p.name || p.handle} description={p.bio || `${p.name} at the KFUPM Computer Club.`}>
+  <section class="page-head page-head--compact">
+    <div class="container profile__head">
+      {p.avatar_url ? <img class="avatar avatar--lg" src={p.avatar_url} alt="" /> : <span class="avatar avatar--lg person__blank" aria-hidden="true">{(p.name || '?').slice(0, 1)}</span>}
+      <div>
+        <span class="eyebrow">@{p.handle}</span>
+        <h1 class="h1" style="margin:0">{p.name}</h1>
+        {(p.major || p.year) && <p class="mono" style="margin:8px 0 0">{[p.major, p.year].filter(Boolean).join(' · ')}</p>}
+        <ul class="badges">{badges.map((b) => <li class="chip">{b}</li>)}</ul>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {p.bio && <p class="lead" style="max-width:60ch">{p.bio}</p>}
+      <p class="links-row">
+        {p.github && <a class="link-arrow" href={`https://github.com/${p.github}`} target="_blank" rel="noopener">GitHub ↗</a>}
+        {p.linkedin && <a class="link-arrow" href={p.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>}
+      </p>
+      {current && (
+        <article class="idcard" style="max-width:420px;margin:32px 0">
+          <div class="idcard__top"><span class="idcard__brand"><Image src={logoSmDark} alt="" width={32} densities={[1, 2, 3]} /> {settings.site.name}</span><span class="mono">Officer · {current.term}</span></div>
+          <div class="idcard__body"><div class="idcard__info"><h2>{p.name}</h2><p class="idcard__role">{current.title}</p><dl>{current.committee && <div><dt>Committee</dt><dd>{current.committee}</dd></div>}{p.major && <div><dt>Major</dt><dd>{p.major}</dd></div>}</dl></div></div>
+          <div class="idcard__strip"><span class="idcard__barcode" aria-hidden="true"></span><span class="mono">cckfupm.com</span></div>
+        </article>
+      )}
+      {posts?.length ? <><h2 class="h2" style="margin-top:40px">Posts</h2><div class="posts">{posts.map((x: any) => <a class="post" href={`/blog/${x.slug}`}><time class="post__date" datetime={String(x.published_at).slice(0, 10)}><b>{fmtRiyadh(new Date(x.published_at), { month: 'short' })}</b><span>{fmtRiyadh(new Date(x.published_at), { day: 'numeric', year: 'numeric' })}</span></time><div class="post__body"><h3 class="post__title">{x.title}</h3><p class="post__excerpt">{x.excerpt}</p></div></a>)}</div></> : null}
+      {regs?.length ? <><h2 class="h2" style="margin-top:40px">Events</h2><ul>{regs.map((r: any) => r.events && <li><a href={`/timeline#ev-${r.events.slug}`}>{r.events.title}</a> · <span class="mono">{fmtRiyadh(new Date(r.events.starts_at), { day: 'numeric', month: 'short', year: 'numeric' })}</span> {r.attended ? <span class="chip chip--published">attended</span> : <span class="chip">registered</span>}</li>)}</ul></> : null}
+    </div>
+  </section>
+</BaseLayout>
