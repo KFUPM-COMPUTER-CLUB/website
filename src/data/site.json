@@ -2,18 +2,77 @@
   "name": "KFUPM Computer Club",
   "short": "CCKFUPM",
   "tagline": "Where curious minds build the future.",
-  "description": "The student-run tech community at KFUPM. We build, we write, we host, and we grow together.",
+  "description": "The KFUPM Computer Club: a supportive platform for students to discover their strengths, talents and passions and turn them into real projects, events and skills.",
   "email": "REPLACE@kfupm.edu.sa",
-  "stats": [
-    { "value": "REPLACE", "label": "Members" },
-    { "value": "REPLACE", "label": "Events a year" },
-    { "value": "REPLACE", "label": "Founded" }
-  ],
   "links": {
-    "join": "REPLACE", "newsletterSubscribe": "REPLACE", "writeForUs": "REPLACE",
-    "discord": "REPLACE", "whatsapp": "REPLACE",
-    "instagram": "https://instagram.com/kfupm_cc", "x": "https://twitter.com/kfupm_cc",
-    "linkedin": "https://linkedin.com/company/kfupmcclub", "github": "https://github.com/KFUPM-COMPUTER-CLUB/website"
+    "join": "REPLACE",
+    "discord": "REPLACE",
+    "whatsapp": "REPLACE",
+    "instagram": "https://instagram.com/kfupm_cc",
+    "x": "https://twitter.com/kfupm_cc",
+    "linkedin": "https://linkedin.com/company/kfupmcclub",
+    "github": "https://github.com/KFUPM-COMPUTER-CLUB/website",
+    "solvers": "REPLACE"
   },
-  "marquee": ["Workshops", "Hackathons", "Talks", "Student writers", "Newsletter", "AI & ML", "Web", "Cybersecurity", "Open source"]
+  "faq": [
+    {
+      "q": "Do I need to study computer science?",
+      "a": "No. Members come from every college at KFUPM. If you are curious about technology, you belong here."
+    },
+    {
+      "q": "Is it free?",
+      "a": "Yes. Membership, events and workshops are free for KFUPM students."
+    },
+    {
+      "q": "I'm a complete beginner. Where do I start?",
+      "a": "Come to any workshop. They start from zero, and there is always someone to ask. Recent ones covered Git, web development, React, Flutter, Arduino, prompt engineering, cloud computing and Claude."
+    },
+    {
+      "q": "How do I join?",
+      "a": "Use the Join button at the top of the site. Applications open at the start of each term, and the orientation meeting is where you meet the teams."
+    },
+    {
+      "q": "How do I know when something is happening?",
+      "a": "Every event is on the Timeline page with one-click Google, Outlook and Apple calendar links. We also announce everything on X at @KFUPM_CC, Instagram and LinkedIn."
+    },
+    {
+      "q": "Where do events take place?",
+      "a": "On the KFUPM campus. Each announcement names the building and room, and some sessions run online."
+    },
+    {
+      "q": "Can students from other universities take part?",
+      "a": "Some events are open beyond KFUPM. Techathon hosted teams from universities across the Kingdom, and KAUST Connect welcomed students from IAU and KFU. Each announcement says who can register."
+    },
+    {
+      "q": "Are there prizes?",
+      "a": "Yes. Competitions and hackathons come with announced prize pools, from 3,000 SAR challenges to the 40,000 SAR Streamathon. The Impact section on the home page lists them by semester."
+    },
+    {
+      "q": "How do I get involved beyond attending?",
+      "a": "Join a team: events, media or technical. Write for the blog. Or propose a workshop you want to run; the officers will help you set it up."
+    },
+    {
+      "q": "Can I write for the blog?",
+      "a": "Yes. Members write the posts: event recaps, tutorials, and what they learned. Talk to any officer and they will get you started."
+    },
+    {
+      "q": "My company wants to work with the club. Who do I contact?",
+      "a": "Open the Officers page and reach the leadership team directly. Companies have run hackathons, talks, office visits and workshops with us."
+    }
+  ],
+  "intro": "KFUPM's student-run home for everyone who builds with technology. Any major, no experience required.",
+  "missionAr": "توفير منصة داعمة للطلاب لاكتشاف وإشراك مواطن قوتهم، مواهبهم، وشغفهم في ما يعود لهم بالفائدة ويمكنهم من تحقيق أهدافهم المستقبلية.",
+  "madeBy": [
+    {
+      "name": "Adib Alqurashi",
+      "github": "adib-alqurashi"
+    },
+    {
+      "name": "Yogesh Krishna Thakur",
+      "github": "YKrishna17"
+    }
+  ],
+  "contributorsUrl": "https://github.com/KFUPM-COMPUTER-CLUB/website/blob/main/CONTRIBUTORS.md",
+  "_madeBy_note": "Names shown after 'Made by' in the footer; 'github' is optional. 'contributorsUrl' is the Contributors link.",
+  "_links_note": "'solvers' is an optional endpoint that receives flag solvers' names as JSON; while it says REPLACE the flag page opens a prefilled GitHub issue instead."
 }
