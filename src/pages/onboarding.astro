@@ -8,7 +8,7 @@ import '../styles/app.css';
 const p = Astro.locals.profile;
 const next = Astro.url.searchParams.get('next') || '/me';
 const error = Astro.url.searchParams.get('error');
-const years = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
+const years = ['Preparatory / Orientation', 'Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Alumni', 'Other'];
 const suggested = (p?.name || '')
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, '_')
