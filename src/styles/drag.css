@@ -1,0 +1,5 @@
+/* Draggable polaroids: --dx/--dy/--tilt are driven by the script; --py still comes from the parallax. */
+.collage.is-draggable .polaroid { cursor: grab; touch-action: none; user-select: none; -webkit-user-drag: none; transform: translate3d(var(--dx, 0px), calc(var(--py, 0px) + var(--dy, 0px)), 0) rotate(calc(var(--rot, 0deg) + var(--tilt, 0deg))); }
+.collage.is-draggable .polaroid img { pointer-events: none; -webkit-user-drag: none; }
+.collage.is-draggable .polaroid.is-dragging { cursor: grabbing; box-shadow: 0 34px 60px rgba(0, 0, 0, 0.55), 0 8px 18px rgba(0, 0, 0, 0.4); }
+.collage.is-draggable .polaroid.is-dragging .polaroid__card { opacity: 0; }

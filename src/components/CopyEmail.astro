@@ -1,0 +1,14 @@
+---
+/* The club email as a button: one click copies it and a small "Copied" tip confirms. */
+const { email, label } = Astro.props;
+---
+
+<button type="button" class="copy" data-copy={email} aria-label={label ? `${label}: copy ${email}` : `Copy ${email}`}>
+  <span class="copy__text">{email}</span>
+  <span class="copy__tip" aria-hidden="true">Copied ✓</span>
+  <span class="visually-hidden" aria-live="polite" data-copy-status></span>
+</button>
+
+<script>
+  import '../scripts/copy.js';
+</script>

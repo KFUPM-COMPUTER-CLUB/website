@@ -1,0 +1,25 @@
+---
+/* "Next: <event> in 3d 4h" pill for the header. The build keeps every event from the last 60 days on,
+   so a build that is a few weeks old still knows what is coming; the script picks the first one that
+   has not ended and counts down to it. Nothing renders when the data holds no such event. */
+import events from '../data/events.json';
+const { variant = 'bar' } = Astro.props;
+const cutoff = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
+const list = events
+  .filter((e) => (e.endDate || e.date) >= cutoff)
+  .sort((a, b) => a.date.localeCompare(b.date))
+  .map((e) => ({ id: e.id, t: e.title, d: e.date, e: e.endDate || e.date, h: e.time || '' }));
+---
+
+{list.length > 0 && (
+  <a class={`next-pill next-pill--${variant}`} data-next={JSON.stringify(list)} hidden href="/timeline">
+    <i class="next-pill__dot" aria-hidden="true"></i>
+    <span class="next-pill__label">Next:</span>
+    <span class="next-pill__title"></span>
+    <span class="next-pill__when"></span>
+  </a>
+)}
+
+<script>
+  import '../scripts/next-event.js';
+</script>

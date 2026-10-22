@@ -1,0 +1,6 @@
+/* Magnetic buttons: the pull lands in --mx/--my; hover keeps its lift, release springs back. */
+.btn[data-magnet] { transform: translate(var(--mx, 0px), var(--my, 0px)); transition: transform 0.12s linear, box-shadow 0.15s, background 0.15s, border-color 0.15s, color 0.15s, font-variation-settings 0.2s; }
+.btn[data-magnet]:hover { transform: translate(calc(var(--mx, 0px) - 2px), calc(var(--my, 0px) - 2px)); }
+.btn[data-magnet]:active { transform: translate(var(--mx, 0px), var(--my, 0px)); }
+.btn[data-magnet].is-releasing { transition: transform 0.5s cubic-bezier(0.2, 1.6, 0.4, 1), box-shadow 0.15s, background 0.15s, border-color 0.15s, color 0.15s, font-variation-settings 0.2s; }
+@media (prefers-reduced-motion: reduce) { .btn[data-magnet], .btn[data-magnet]:hover { transform: none; } }
