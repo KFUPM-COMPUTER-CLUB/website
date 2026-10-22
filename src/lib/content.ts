@@ -1,0 +1,214 @@
+/* The content layer. Every page reads through these functions. With Supabase configured they
+ * query the database with the anon key (row level security applies); otherwise they serve the
+ * seed data in src/data, so the site is complete without a single key. Results are memoised for
+ * 30 seconds per server instance; the public pages are additionally cached by ISR for a minute. */
+import { getCollection } from 'astro:content';
+import { dbReady } from './env';
+import { publicClient } from './supabase';
+import { photoImg, seedPhotoKeys } from './photos';
+import type { EventItem, Highlight, Story, StripPhoto, ImpactSemester, Partner, Officer, FaqItem, Settings, PostSummary, PostFull } from './types';
+import siteJson from '../data/site.json';
+import eventsJson from '../data/events.json';
+import highlightsJson from '../data/highlights.json';
+import storiesJson from '../data/stories.json';
+import impactJson from '../data/impact.json';
+import partnersJson from '../data/partners.json';
+import teamJson from '../data/team.json';
+
+const memo = new Map<string, { at: number; value: Promise<any> }>();
+const cached = <T>(key: string, fn: () => Promise<T>): Promise<T> => {
+  const hit = memo.get(key);
+  if (hit && Date.now() - hit.at < 30_000) return hit.value;
+  const value = fn().catch((e) => { memo.delete(key); throw e; });
+  memo.set(key, { at: Date.now(), value });
+  return value;
+};
+export const bust = () => memo.clear();
+const db = () => publicClient();
+const real = (v: unknown) => typeof v === 'string' && v.length > 0 && !v.includes('REPLACE');
+
+/* ── Riyadh time helpers (UTC+3, no daylight saving) ─────────────────── */
+export const RIYADH = 'Asia/Riyadh';
+const riyadh = (y: number, m: number, d: number, h = 0, min = 0) => new Date(Date.UTC(y, m - 1, d, h - 3, min));
+export const parseRiyadh = (date: string, time = ''): Date => {
+  const [y, m, d] = date.split('-').map(Number);
+  const t = /^(\d{1,2}):(\d{2})/.exec(time);
+  return t ? riyadh(y, m, d, Number(t[1]), Number(t[2])) : riyadh(y, m, d);
+};
+export const riyadhDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: RIYADH, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); // YYYY-MM-DD
+export const fmtRiyadh = (d: Date, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: RIYADH, ...opts }).format(d);
+export const termOf = (d: Date) => { const [y, m] = riyadhDate(d).split('-').map(Number); return m >= 8 ? `Fall ${y}` : m <= 5 ? `Spring ${y}` : `Summer ${y}`; };
+
+/* ── Settings ──────────────────────────────────────────────────────────── */
+const seedSettings = (): Settings => ({
+  site: { name: siteJson.name, short: siteJson.short, tagline: siteJson.tagline, description: siteJson.description, intro: siteJson.intro, email: real(siteJson.email) ? siteJson.email : '', missionAr: (siteJson as any).missionAr },
+  links: Object.fromEntries(Object.entries(siteJson.links).map(([k, v]) => [k, real(v) ? (v as string) : ''])),
+  home: {
+    heroLine: siteJson.tagline,
+    buildWithUs: { title: 'Build with us.', text: 'Workshops, hackathons, talks and competitions, all term long. Free for KFUPM students.' },
+    photoMoment: { photoKey: '2025-04-10_1910478806520914205.jpg', eyebrow: 'Techathon 2025, day one', line: 'Any major. Any year. No experience required.' },
+    stats: [{ v: '40,000', u: 'SAR', l: 'biggest prize pool' }, { v: '60+', u: 'teams', l: 'at Techathon 2025' }, { v: '400+', u: 'students', l: 'at KAUST Connect' }],
+    totalPrizesSar: Number(String((impactJson as any).headline_numbers?.announced_prizes_since_2023_sar || '187500').replace(/\D/g, '')),
+  },
+  banner: null,
+  madeBy: (siteJson as any).madeBy || [],
+  contributorsUrl: (siteJson as any).contributorsUrl || 'https://github.com/KFUPM-COMPUTER-CLUB/website',
+});
+export function getSettings(): Promise<Settings> {
+  return cached('settings', async () => {
+    const base = seedSettings();
+    if (!dbReady()) return base;
+    const { data } = await db().from('settings').select('key,value');
+    const rows = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
+    return {
+      site: { ...base.site, ...(rows.site || {}) },
+      links: { ...base.links, ...(rows.links || {}) },
+      home: { ...base.home, ...(rows.home || {}) },
+      banner: rows.banner?.visible ? rows.banner : null,
+      madeBy: rows.made_by || base.madeBy,
+      contributorsUrl: base.contributorsUrl,
+    };
+  });
+}
+export const getFaqIntro = async () => (await getSettings()).site;
+
+/* ── Events ────────────────────────────────────────────────────────────── */
+const seedEvents = (): EventItem[] => (eventsJson as any[]).map((e) => {
+  const start = parseRiyadh(e.date, e.time || '');
+  const allDay = !/^\d{1,2}:\d{2}/.test(e.time || '');
+  const end = e.endDate ? parseRiyadh(e.endDate) : null;
+  return { id: e.id, slug: e.id, title: e.title, type: e.type, start, end, allDay, location: e.location || '', summary: e.summary || '', coverKey: e.image || null, cover: null, xUrl: e.detailsUrl || null, registerUrl: real(e.registerUrl) ? e.registerUrl : null, capacity: null, registrationOpen: false, featured: !!e.featured, published: true };
+});
+const rowToEvent = (r: any): EventItem => ({ id: r.id, slug: r.slug, title: r.title, type: r.type, start: new Date(r.starts_at), end: r.ends_at ? new Date(r.ends_at) : null, allDay: !!r.all_day, location: r.location || '', summary: r.summary || '', coverKey: r.cover_key, cover: null, xUrl: r.x_url, registerUrl: r.register_url, capacity: r.capacity, registrationOpen: !!r.registration_open, featured: !!r.featured, published: !!r.published });
+export function getEvents(): Promise<EventItem[]> {
+  return cached('events', async () => {
+    const list = dbReady() ? ((await db().from('events').select('*').eq('published', true).order('starts_at')).data || []).map(rowToEvent) : seedEvents();
+    for (const e of list) e.cover = await photoImg(e.coverKey);
+    return list.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  });
+}
+export const eventEnd = (e: EventItem) => e.end ?? (e.allDay ? new Date(e.start.valueOf() + 86_400_000 - 1) : new Date(e.start.valueOf() + 2 * 3_600_000));
+export async function getUpcomingEvents() { const now = Date.now(); return (await getEvents()).filter((e) => eventEnd(e).valueOf() >= now); }
+export async function getPastEvents() { const now = Date.now(); return (await getEvents()).filter((e) => eventEnd(e).valueOf() < now).sort((a, b) => b.start.valueOf() - a.start.valueOf()); }
+export async function getEvent(slugOrId: string) { return (await getEvents()).find((e) => e.slug === slugOrId || e.id === slugOrId) || null; }
+
+/* ── Home content ──────────────────────────────────────────────────────── */
+export function getHighlights(): Promise<Highlight[]> {
+  return cached('highlights', async () => {
+    const list: Highlight[] = dbReady()
+      ? ((await db().from('highlights').select('*').eq('visible', true).order('sort')).data || []).map((r: any) => ({ id: r.id, photoKey: r.photo_key, img: null, title: r.title, date: r.date, line: r.line || '', postUrl: r.post_url, sort: r.sort }))
+      : (highlightsJson as any[]).map((h, i) => ({ id: `seed-${i}`, photoKey: h.photo, img: null, title: h.title, date: h.date, line: h.line, postUrl: h.post, sort: i }));
+    for (const h of list) h.img = await photoImg(h.photoKey);
+    return list.filter((h) => h.img);
+  });
+}
+export function getStories(): Promise<Story[]> {
+  return cached('stories', async () => {
+    const list: Story[] = dbReady()
+      ? ((await db().from('stories').select('*').eq('visible', true).order('sort')).data || []).map((r: any) => ({ id: r.id, photoKey: r.photo_key, img: null, title: r.title, date: r.date, text: r.text || '', postUrl: r.post_url }))
+      : (storiesJson as any[]).map((s, i) => ({ id: `seed-${i}`, photoKey: s.photo, img: null, title: s.title, date: s.date, text: s.text, postUrl: s.post }));
+    for (const s of list) s.img = await photoImg(s.photoKey);
+    return list.filter((s) => s.img);
+  });
+}
+export function getStripPhotos(): Promise<StripPhoto[]> {
+  return cached('strip', async () => {
+    let list: StripPhoto[];
+    if (dbReady()) {
+      const rows = (await db().from('strip_photos').select('*').eq('visible', true).order('sort')).data || [];
+      list = rows.map((r: any) => ({ key: r.photo_key, img: null, label: r.label || '', postUrl: r.post_url, date: (r.photo_key.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0] }));
+    } else {
+      const events = eventsJson as any[]; const highlights = highlightsJson as any[];
+      const labels = new Map<string, string>([...events.map((e) => [e.image, e.title] as [string, string]), ...highlights.map((h) => [h.photo, h.title] as [string, string])].filter(([k]) => k));
+      const byDate = new Map(events.filter((e) => e.image).map((e) => [e.date, e.title]));
+      list = seedPhotoKeys().map((key) => { const [date, id] = key.replace('.jpg', '').split('_'); return { key, img: null, label: labels.get(key) || byDate.get(date) || '@KFUPM_CC', postUrl: `https://x.com/KFUPM_CC/status/${id}`, date }; });
+    }
+    for (const p of list) p.img = await photoImg(p.key);
+    return list.filter((p) => p.img);
+  });
+}
+export function getImpact(): Promise<ImpactSemester[]> {
+  return cached('impact', async () => {
+    let list: ImpactSemester[];
+    if (dbReady()) {
+      const { data } = await db().from('impact_semesters').select('*, impact_items(*)').order('sort');
+      list = (data || []).map((r: any) => ({ id: r.id, term: r.term, totalSar: r.total_sar, isMinimum: !!r.total_is_minimum, photoKey: r.photo_key, img: null, items: (r.impact_items || []).sort((a: any, b: any) => a.sort - b.sort).map((i: any) => ({ name: i.name, prizeSar: i.prize_sar, detail: i.detail, sourceUrl: i.source_url })) }));
+    } else {
+      list = (impactJson as any).semesters.map((s: any, i: number) => ({ id: `seed-${i}`, term: s.term, totalSar: s.total_sar ?? null, isMinimum: !!s.total_is_minimum, photoKey: s.photo || null, img: null, items: (s.events || []).map((e: any) => ({ name: e.name, prizeSar: e.prize_sar ?? null, detail: e.detail || null, sourceUrl: e.source || null })) }));
+    }
+    for (const s of list) s.img = await photoImg(s.photoKey);
+    return list;
+  });
+}
+export function getPartners(): Promise<Partner[]> {
+  return cached('partners', async () => {
+    let list: Partner[];
+    if (dbReady()) {
+      const { data } = await db().from('partners').select('*').eq('visible', true).order('sort');
+      list = (data || []).map((r: any) => ({ id: r.id, name: r.name, kind: r.kind, what: r.what, url: r.url, sourceUrl: r.source_url, logoKey: r.logo_key, logo: null, handle: r.handle, mark: !!r.mark, square: !!r.square, tall: !!r.tall, sort: r.sort }));
+    } else {
+      const p = partnersJson as any; let i = 0;
+      const conv = (kind: string) => (e: any) => ({ id: `seed-${i++}`, name: e.name, kind, what: e.what || null, url: e.url || null, sourceUrl: e.source || null, logoKey: e.logo || null, logo: null, handle: e.handle || null, mark: !!e.mark, square: !!e.square, tall: !!e.tall, sort: i });
+      list = [...p.companies.map(conv('company')), ...p.kfupm_units.map(conv('kfupm_unit')), ...p.student_clubs.map(conv('student_club'))];
+    }
+    for (const x of list) x.logo = await photoImg(x.logoKey, 'logo');
+    return list;
+  });
+}
+
+/* ── Community ─────────────────────────────────────────────────────────── */
+export function getOfficers(): Promise<Officer[]> {
+  return cached('officers', async () => {
+    if (!dbReady()) return (teamJson as any[]).map((m, i) => ({ id: m.id, userId: null, handle: null, name: m.name, title: m.role, committee: m.committee || '', term: m.term || '', major: m.major || null, photo: m.photo || null, linkedin: m.linkedin || null, isCurrent: true, sort: m.order ?? i }));
+    const { data } = await db().from('officer_terms').select('*').order('sort');
+    const ids = (data || []).map((r: any) => r.user_id).filter(Boolean);
+    const profiles = ids.length ? (await db().from('profiles_public').select('id,handle,avatar_url').in('id', ids)).data || [] : [];
+    const byId = new Map(profiles.map((p: any) => [p.id, p]));
+    const out: Officer[] = [];
+    for (const r of data || []) {
+      const p: any = r.user_id ? byId.get(r.user_id) : null;
+      const img = await photoImg(r.photo_key);
+      out.push({ id: r.id, userId: r.user_id, handle: p?.handle || null, name: r.name, title: r.title, committee: r.committee || '', term: r.term, major: r.major, photo: img?.src || p?.avatar_url || null, linkedin: r.linkedin, isCurrent: !!r.is_current, sort: r.sort });
+    }
+    return out;
+  });
+}
+export async function getMemberCount(): Promise<number | null> {
+  if (!dbReady()) return null;
+  return cached('member_count', async () => { const { data } = await db().rpc('member_count'); return typeof data === 'number' ? data : Number(data) || 0; });
+}
+export async function getContributors(): Promise<{ id: string; handle: string; name: string; avatar_url: string | null; posts: number }[]> {
+  if (!dbReady()) return [];
+  return cached('contributors', async () => ((await db().from('contributors').select('*').order('posts', { ascending: false }).limit(24)).data || []) as any);
+}
+
+/* ── FAQ ───────────────────────────────────────────────────────────────── */
+export function getFaq(): Promise<FaqItem[]> {
+  return cached('faq', async () => {
+    if (!dbReady()) return (siteJson as any).faq.map((f: any, i: number) => ({ id: `seed-${i}`, q: f.q, a: f.a, qAr: null, aAr: null, sort: i }));
+    const { data } = await db().from('faq').select('*').eq('visible', true).order('sort');
+    return (data || []).map((r: any) => ({ id: r.id, q: r.q_en, a: r.a_en, qAr: r.q_ar, aAr: r.a_ar, sort: r.sort }));
+  });
+}
+
+/* ── Posts ─────────────────────────────────────────────────────────────── */
+const rowToPost = (r: any): PostSummary => ({ id: r.id, slug: r.slug, title: r.title, excerpt: r.excerpt || '', date: new Date(r.published_at || r.created_at), authorName: r.author?.name || r.author_name || 'Computer Club', authorHandle: r.author?.handle || null, authorAvatar: r.author?.avatar_url || null, category: r.category, tags: r.tags || [], dir: r.dir || 'ltr', status: r.status });
+export function getPosts(): Promise<PostSummary[]> {
+  return cached('posts', async () => {
+    if (!dbReady()) {
+      const entries = await getCollection('posts', ({ data }) => !data.draft);
+      return entries.map((e) => ({ id: e.id, slug: e.id, title: e.data.title, excerpt: e.data.excerpt, date: e.data.date, authorName: e.data.author, authorHandle: null, authorAvatar: null, category: e.data.category, tags: e.data.tags, dir: 'ltr' as const, status: 'published' })).sort((a, b) => b.date.valueOf() - a.date.valueOf());
+    }
+    const { data } = await db().from('posts').select('id,slug,title,excerpt,published_at,created_at,author_name,category,tags,dir,status,author:profiles_public!posts_author_id_fkey(name,handle,avatar_url)').eq('status', 'published').order('published_at', { ascending: false });
+    return (data || []).map(rowToPost);
+  });
+}
+export async function getPost(slug: string): Promise<PostFull | null> {
+  if (!dbReady()) {
+    const entries = await getCollection('posts', ({ data }) => !data.draft);
+    const e = entries.find((x) => x.id === slug); if (!e) return null;
+    return { id: e.id, slug: e.id, title: e.data.title, excerpt: e.data.excerpt, date: e.data.date, authorName: e.data.author, authorHandle: null, authorAvatar: null, category: e.data.category, tags: e.data.tags, dir: 'ltr', status: 'published', html: null, entry: e, coverKey: null };
+  }
+  const { data } = await db().from('posts').select('*, author:profiles_public!posts_author_id_fkey(name,handle,avatar_url)').eq('slug', slug).eq('status', 'published').maybeSingle();
+  return data ? { ...rowToPost(data), html: data.content_html, entry: null, coverKey: data.cover_key } : null;
+}

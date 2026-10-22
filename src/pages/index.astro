@@ -2,44 +2,25 @@
 import { Image } from 'astro:assets';
 import logoColor from '../assets/brand/logo-color.png';
 import kfupmLogo from '../assets/brand/kfupm-logo.png';
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import site from '../data/site.json';
-import { colorOf } from '../lib/colors.js';
 import Collage from '../components/Collage.astro';
 import PhotoStrip from '../components/PhotoStrip.astro';
 import Partners from '../components/Partners.astro';
 import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
+import { getSettings } from '../lib/content';
 
-const isReal = (v) => typeof v === 'string' && !v.includes('REPLACE');
-const link = (key, fallback) => (isReal(site.links[key]) ? site.links[key] : fallback);
-const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
-
-const today = new Date(); today.setUTCHours(0, 0, 0, 0);
-const events = (await getCollection('events')).sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
-const upcoming = events.filter((e) => e.data.date.valueOf() >= today.valueOf());
-const past = events.filter((e) => e.data.date.valueOf() < today.valueOf());
-const next = upcoming.find((e) => e.data.featured) ?? upcoming[0];
-const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const iso = (d) => d.toISOString().slice(0, 10);
-const short = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-const weekday = (d) => d.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
-
-const history = [
-  ...past.map((e) => ({ kind: e.data.type, date: e.data.date, title: e.data.title, text: e.data.summary, href: e.data.detailsUrl })),
-  ...posts.map((p) => ({ kind: p.data.category, date: p.data.date, title: p.data.title, text: p.data.excerpt, href: `/blog/${p.id}` })),
-].sort((a, b) => b.date.valueOf() - a.date.valueOf()).slice(0, 6);
+const settings = await getSettings();
+const site = settings.site;
+const home = settings.home;
+const joinHref = settings.links.join || '/join';
+const ext = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
+// The last two words of the hero line are highlighted.
+const words = home.heroLine.trim().split(/\s+/);
+const heroHead = words.slice(0, -2).join(' ');
+const heroTail = words.slice(-2).join(' ');
 const stageTabs = ['Moments', 'In pictures'];
-const whatWeDo = [
-  { c: 'blue', k: 'WS', t: 'Workshops', d: 'Hands-on sessions from zero to shipped. Git, web, AI, security, and whatever members ask for.' },
-  { c: 'blue', k: 'HK', t: 'Hackathons', d: 'Build nights and 24-hour sprints with mentors on the floor. Ship something, then write about it.' },
-  { c: 'blue', k: 'TK', t: 'Talks', d: 'Alumni, engineers, and researchers answering the questions you actually have.' },
-  { c: 'blue', k: 'CP', t: 'Competitions', d: 'Coding, typing, CTF and puzzle contests with real prize pools, on campus and with other clubs.' },
-];
 ---
 
 <BaseLayout title="Home">
@@ -48,7 +29,7 @@ const whatWeDo = [
     <div class="hero-grid" aria-hidden="true"></div>
     <div class="container screen__inner" data-hero-inner>
       <Image class="hero__logo" src={logoColor} alt={site.name} width={1100} densities={[1, 1.5]} loading="eager" />
-      <h1 class="h-display hero__title">Where curious minds build <span class="hl">the future.</span></h1>
+      <h1 class="h-display hero__title">{heroHead} <span class="hl">{heroTail}</span></h1>
     </div>
     <div class="scroll-hint" aria-hidden="true"><span class="mono">Scroll</span><i></i></div>
   </section>
@@ -80,15 +61,15 @@ const whatWeDo = [
 
   <ShowReel />
 
-  <PhotoMoment photo="2025-04-10_1910478806520914205.jpg" eyebrow="Techathon 2025, day one" line="Any major. Any year. No experience required." />
+  <PhotoMoment photoKey={home.photoMoment.photoKey} eyebrow={home.photoMoment.eyebrow} line={home.photoMoment.line} />
 
   <!-- Join -->
   <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
-      <h2 class="h1">Build with us.</h2>
-      <p class="lead lead--muted">Workshops, hackathons, talks and competitions, all term long. Free for KFUPM students.</p>
+      <h2 class="h1">{home.buildWithUs.title}</h2>
+      <p class="lead lead--muted">{home.buildWithUs.text}</p>
       <div class="hero__actions">
-        <a class="btn" data-magnet href={link('join', '/about')} {...ext(link('join', '/about'))}>Become a member <span aria-hidden="true">→</span></a>
+        <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>Become a member <span aria-hidden="true">→</span></a>
         <a class="btn btn--ghost" href="/timeline">See what's coming <span aria-hidden="true">→</span></a>
       </div>
     </div>

@@ -51,7 +51,7 @@ onPage(() => {
     if (!window.crypto?.subtle) return say(result, 'This page needs a secure connection to check the flag.');
     busy = true;
     try {
-      if ((await digest(value)) === DIGEST) { say(result, ''); unlock(true); }
+      if ((await digest(value)) === DIGEST) { try { sessionStorage.setItem('cc_flag', value); } catch { /* ignore */ } say(result, ''); unlock(true); }
       else say(result, 'Not it. Keep looking.');
     } catch { say(result, 'Could not check that. Try again.'); }
     busy = false;
@@ -69,7 +69,7 @@ onPage(() => {
       if (submitBtn) submitBtn.disabled = true;
       say(solverResult, 'Sending…');
       try {
-        const r = await fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, handle, solved: true }) });
+        const r = await fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, handle, flag: input.value.trim() || sessionStorage.getItem('cc_flag') || '' }) });
         if (!r.ok) throw new Error(String(r.status));
         say(solverResult, 'Sent. An officer adds you to the list.');
         solverForm.reset();

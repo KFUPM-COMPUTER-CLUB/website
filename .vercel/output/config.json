@@ -1,0 +1,106 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": "^/officers$",
+			"headers": {
+				"Location": "/community"
+			},
+			"status": 301
+		},
+		{
+			"src": "^/_astro(?:/(.*))$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/api/events/([^/]+?).ics$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/callback$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/login$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/logout$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/join$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^(/404/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/about/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/blog/([^/]+?)/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/blog/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/calendar\\.ics)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/community/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/faq/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/flag/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/officers/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/rss\\.xml)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/styleguide/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/timeline/?)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^(/)$",
+			"dest": "/_isr?x_astro_path=$1&x_astro_path_token=4e5bb324-70db-4d98-befe-1926585342be"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render"
+		}
+	]
+}

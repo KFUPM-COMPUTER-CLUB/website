@@ -2,10 +2,12 @@
 import { Image } from 'astro:assets';
 import logoSm from '../assets/brand/logo-color-sm.png';
 import logoSmDark from '../assets/brand/logo-color-ondark-sm.png';
-import site from '../data/site.json';
+import { getSettings } from '../lib/content';
+const settings = await getSettings();
+const site = { name: settings.site.name, email: settings.site.email, links: settings.links, madeBy: settings.madeBy, contributorsUrl: settings.contributorsUrl };
 import CopyEmail from './CopyEmail.astro';
 
-const isReal = (value) => typeof value === 'string' && !value.includes('REPLACE');
+const isReal = (value) => typeof value === 'string' && value.length > 0 && !value.includes('REPLACE');
 const icons = {
   instagram: { label: 'Instagram', d: 'M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.3-3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z' },
   x: { label: 'X', d: 'M17.5 3h3.1l-6.8 7.8L21.8 21h-6.3l-4.9-6.4L5 21H1.9l7.3-8.3L1.5 3h6.4l4.4 5.9L17.5 3zm-1.1 16.2h1.7L6.9 4.7H5.1l11.3 14.5z' },

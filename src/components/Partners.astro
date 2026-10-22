@@ -1,16 +1,11 @@
 ---
-// Friends of the club, laid out as a centred tree of logos. Everything comes from
-// src/data/partners.json: a logo file in src/assets/partners/ shows as the logo (in colour);
-// an entry without one shows as its name. The click goes to the organisation's own site
-// post that shows the collaboration ("source"); the "what" field is the hover text.
-import partners from '../data/partners.json';
-import site from '../data/site.json';
-import impact from '../data/impact.json';
-const files = import.meta.glob('../assets/partners/*', { eager: true, query: '?url', import: 'default' });
-const logoUrl = (name) => (name ? files[`../assets/partners/${name}`] : undefined);
-const href = (e) => e.source || e.url || undefined;
-const email = site.email.includes('REPLACE') ? '' : site.email;
-const friends = [...partners.kfupm_units.map((u) => ({ ...u, kfupm: true })), ...partners.student_clubs];
+// Friends of the club, laid out as a centred tree of logos. Content comes from the partners table
+// (or src/data/partners.json as seed). The click goes to the post that shows the collaboration
+// ("source") or the organisation's site; the "what" field is the hover text.
+import { getPartners } from '../lib/content';
+const all = await getPartners();
+const friends = all.filter((c) => c.kind !== 'visited');
+const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUrl || e.url || undefined;
 ---
 
 <section class="section partners bg-black" data-bg="#0B0B0F">
@@ -19,15 +14,15 @@ const friends = [...partners.kfupm_units.map((u) => ({ ...u, kfupm: true })), ..
     <p class="partners__lead reveal">We're building a place at KFUPM where <b>curious students become builders</b>, and we're lucky to have friends whose work we really admire.</p>
 
     <ul class="logo-tree reveal">
-      {[...partners.companies, ...friends].map((c) => (
+      {friends.map((c) => (
         <li>
           <a href={href(c)} target="_blank" rel="noopener" title={c.what} aria-label={c.what ? `${c.name}: ${c.what}` : c.name}>
-            {logoUrl(c.logo) && c.mark ? (
-              <span class={`logo-tree__pair${c.square ? ' logo-tree__pair--square' : ''}`}><img src={logoUrl(c.logo)} alt="" loading="lazy" /><span class="logo-tree__text">{c.name}</span></span>
-            ) : logoUrl(c.logo) ? (
-              <img class={c.tall ? 'logo-tree__img--tall' : undefined} src={logoUrl(c.logo)} alt={c.name} loading="lazy" />
+            {c.logo && c.mark ? (
+              <span class={`logo-tree__pair${c.square ? ' logo-tree__pair--square' : ''}`}><img src={c.logo.src} alt="" loading="lazy" /><span class="logo-tree__text">{c.name}</span></span>
+            ) : c.logo ? (
+              <img class={c.tall ? 'logo-tree__img--tall' : undefined} src={c.logo.src} alt={c.name} loading="lazy" />
             ) : (
-              <span class={`logo-tree__text${c.kfupm ? ' logo-tree__text--kfupm' : ''}`}>{c.name}</span>
+              <span class={`logo-tree__text${c.kind === 'kfupm_unit' ? ' logo-tree__text--kfupm' : ''}`}>{c.name}</span>
             )}
           </a>
         </li>
