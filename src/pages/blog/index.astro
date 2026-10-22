@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const iso = (d) => d.toISOString().slice(0, 10);
+const mon = (d) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
+const dayYear = (d) => `${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+---
+
+<BaseLayout title="Blog" description="Written by members of the KFUPM Computer Club: what we did, what we taught, and what we learned.">
+  <section class="page-head">
+    <div class="container">
+      <h1 class="ccmark ccmark--text" aria-label="CC Blogs"><b>CC</b><span>Blogs</span></h1>
+      <p class="lead">Event recaps, tutorials and what we learned.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="posts">
+        {posts.map((p) => (
+          <a class="post reveal" href={`/blog/${p.id}`}>
+            <time class="post__date" datetime={iso(p.data.date)}><b>{mon(p.data.date)}</b><span>{dayYear(p.data.date)}</span></time>
+            <div class="post__body">
+              <h2 class="post__title">{p.data.title}</h2>
+              <p class="post__author">{p.data.author}</p>
+              <p class="post__excerpt">{p.data.excerpt}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
