@@ -47,6 +47,15 @@
 .avatar { width: 72px; height: 72px; object-fit: cover; border: 1px solid var(--line-strong); }
 .avatar--lg { width: 120px; height: 120px; }
 .profile__head { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.profile__head--top { align-items: flex-start; }
+.profile__info { flex: 1 1 320px; min-width: 0; }
+.profile__stats { display: flex; flex-wrap: wrap; gap: 20px; margin: 14px 0 0; padding: 0; list-style: none; font: 600 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.profile__stats a { color: inherit; text-decoration: none; }
+.profile__stats a[href]:hover { color: var(--text); }
+.profile__stats b { margin-right: 6px; font-size: 16px; letter-spacing: 0; color: var(--text); }
+.profile__bio { max-width: 60ch; margin: 14px 0 0; }
+.profile__links { margin: 12px 0 0; }
+@media (max-width: 560px) { .profile__head--top { gap: 18px; } .profile__head--top .avatar--lg { width: 88px; height: 88px; } }
 .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
 .links-row { display: flex; flex-wrap: wrap; gap: 14px; }
 .wa-links { display: grid; gap: 10px; }
