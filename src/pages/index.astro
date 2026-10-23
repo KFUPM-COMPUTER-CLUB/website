@@ -89,10 +89,13 @@ const stageTabs = ['Moments', 'In pictures'];
   <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
       <h2 class="h1">{home.buildWithUs.title}</h2>
-      <p class="lead lead--muted">{home.buildWithUs.text}</p>
+
+      <!-- Member count (Don't show when it returns null)-->
       {memberCount !== null && (
         <p class="lead lead--muted">{memberCount.toLocaleString('en-US')} members and growing.</p>
       )}
+
+      <p class="lead lead--muted">{home.buildWithUs.text}</p>
       <div class="hero__actions">
         <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
           Become a member <span aria-hidden="true">→</span>
