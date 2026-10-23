@@ -16,6 +16,7 @@ import {
 } from '../../../lib/api';
 import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
+import { HANDLE_RE } from '../../../lib/types';
 import { notifyWelcome } from '../../../lib/notify';
 
 export const prerender = false;
@@ -40,7 +41,7 @@ export const POST: APIRoute = handle(async (ctx) => {
     major = str(b.major, 80),
     year = str(b.year, 30);
   if (!name) throw new ApiError('Your name is required.');
-  if (!/^[a-z0-9_]{3,24}$/.test(handle)) throw new ApiError('Handle: 3 to 24 letters, digits or underscores.');
+  if (!HANDLE_RE.test(handle)) throw new ApiError('Handle: 3 to 24 letters, digits or underscores (john_doe).');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new ApiError('That email does not look right.');
   if (!isSaudiPhone(phone)) throw new ApiError('Phone must be a Saudi mobile number (05xxxxxxxx).');
   if (!major || !year) throw new ApiError('Major and year are required.');

@@ -15,6 +15,7 @@ import {
 } from '../../../lib/api';
 import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
+import { HANDLE_RE } from '../../../lib/types';
 
 export const prerender = false;
 /* Edits the signed-in member's own profile (ownership is the session's user id; no role needed).
@@ -32,7 +33,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   }
   if ('handle' in b) {
     const h = str(b.handle, 24).toLowerCase();
-    if (!/^[a-z0-9_]{3,24}$/.test(h)) throw new ApiError('Handle: 3 to 24 letters, digits or underscores.');
+    if (!HANDLE_RE.test(h)) throw new ApiError('Handle: 3 to 24 letters, digits or underscores (john_doe).');
     patch.handle = h;
   }
   if ('phone' in b) {

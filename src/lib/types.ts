@@ -9,6 +9,15 @@ export type Role = 'member' | 'editor' | 'reviewer' | 'officer' | 'admin';
 export const ROLE_RANK: Record<Role, number> = { member: 0, editor: 1, reviewer: 2, officer: 3, admin: 4 };
 export const atLeast = (role: Role | 'guest', min: Role) => role !== 'guest' && ROLE_RANK[role] >= ROLE_RANK[min];
 
+/* The public handle rule, shared by onboarding, the profile form and both APIs. Handles are URLs
+ * (/u/<handle>) and are stored lowercase. The forms accept capitals because the API lowercases them,
+ * so "JohnDoe" is saved as "johndoe" instead of failing with the browser's bare "match the requested
+ * format"; the title is what the browser adds to that message when the pattern still fails. */
+export const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
+export const HANDLE_PATTERN = '[A-Za-z0-9_]{3,24}';
+export const HANDLE_HINT =
+  '3 to 24 characters: letters, digits and underscores, saved in lowercase. For example john_doe or sara_99; not john.doe, john-doe or john doe.';
+
 /* The study-year choices on onboarding and the profile form. One list for both: the profile <select>
  * can only keep a value it lists, so a year missing there would be silently replaced on save.
  * profiles.year is free text (max 30 characters in the API), so adding a choice needs no migration. */

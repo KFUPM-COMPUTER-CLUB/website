@@ -5,7 +5,7 @@
  * to "next" with ?welcome=1. Errors come back as ?error= from the API. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/app.css';
-import { YEARS as years } from '../lib/types';
+import { YEARS as years, HANDLE_PATTERN, HANDLE_HINT } from '../lib/types';
 const p = Astro.locals.profile;
 const next = Astro.url.searchParams.get('next') || '/me';
 const error = Astro.url.searchParams.get('error');
@@ -48,11 +48,15 @@ const suggested = (p?.name || '')
               id="handle"
               name="handle"
               required
-              pattern="[a-z0-9_]{3,24}"
+              pattern={HANDLE_PATTERN}
+              title={HANDLE_HINT}
               maxlength="24"
+              placeholder="john_doe67"
+              autocapitalize="none"
+              spellcheck="false"
               value={p?.handle || suggested}
             />
-            <small>3 to 24 characters: letters, digits, underscore. Your profile lives at /u/handle.</small>
+            <small>{HANDLE_HINT} Your profile lives at /u/handle.</small>
           </div>
         </div>
         <div class="form__row">
