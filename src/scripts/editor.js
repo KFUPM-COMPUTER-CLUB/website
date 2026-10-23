@@ -556,7 +556,12 @@ onPage(() => {
   lang.setAttribute('aria-label', 'Code language');
   lang.dataset.editorLang = '';
   for (const [v, l] of LANGS) lang.append(new Option(l, v));
-  off.add(listen(lang, 'change', () => chain().updateAttributes('codeBlock', { language: lang.value }).run()));
+    off.add(
+    listen(lang, 'change', () => {
+      const language = lang.value; // To fix language choosing issue, read before chain() refocuses the editor and refresh() resets the select
+      chain().updateAttributes('codeBlock', { language }).run();
+    }),
+  );
   codeGroup.append(lang);
 
   const refresh = () => {
