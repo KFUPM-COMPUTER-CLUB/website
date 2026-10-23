@@ -459,12 +459,17 @@ export async function getContributors(): Promise<
 
 /* ── Leaderboard ───────────────────────────────────────────────────────── */
 /* Totals come from the security-definer leaderboard() (0006_leaderboard.sql), which names only members
- * who opted in. Seed mode has no points, so the page shows its empty state. */
+ * who opted in. Seed mode has no points, so the page shows its empty state. A failed call is logged and
+ * also shows the empty state: a public page must not go down because one query did (the function
+ * missing from the API's schema cache right after a migration, say). */
 export async function getLeaderboard(period: LeaderPeriod, category: PointCategory | 'all'): Promise<LeaderRow[]> {
   if (!dbReady()) return [];
   return cached(`leaderboard:${period}:${category}`, async () => {
     const { data, error } = await db().rpc('leaderboard', { p_period: period, p_category: category });
-    if (error) throw error;
+    if (error) {
+      console.error('leaderboard', error.message);
+      return [];
+    }
     return ((data || []) as any[]).map((r) => ({
       rank: r.rank,
       handle: r.handle,
