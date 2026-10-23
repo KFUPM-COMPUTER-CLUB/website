@@ -12,8 +12,14 @@ const HIST_KEY = 'cc_term_hist',
   OUT_MAX = 400;
 const PROMPT = 'guest@cckfupm:~$';
 
-/* Easter egg: the "wipe everything" command fakes a wipe, then closes the tab. */
-const WIPE_COMMANDS = new Set(['sudo rm -rf /', 'sudo rm -rf / --no-preserve-root']);
+/* Easter egg: the "wipe everything" command fakes a wipe, then closes the tab. The input is matched
+ * after collapsing whitespace, so these are the spellings people actually type. */
+const WIPE_COMMANDS = new Set([
+  'sudo rm -rf /',
+  'sudo rm -rf /*',
+  'sudo rm -rf / --no-preserve-root',
+  'sudo rm -rf --no-preserve-root /',
+]);
 const WIPE_LINES = [
   'rm: removing /home ...',
   'rm: removing /usr ...',
