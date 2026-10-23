@@ -46,11 +46,16 @@ const badges = [
   solved?.length && 'Flag solver',
   `Member since ${String(p.created_at).slice(0, 4)}`,
 ].filter(Boolean) as string[];
+// The counts beside the photo; each links down to its list when there is one (an <a> without href is inert).
+const stats = [
+  { count: posts?.length || 0, label: posts?.length === 1 ? 'post' : 'posts', href: '#posts' },
+  { count: regs?.length || 0, label: regs?.length === 1 ? 'event' : 'events', href: '#events' },
+];
 ---
 
 <BaseLayout title={p.name || p.handle} description={p.bio || `${p.name} at the KFUPM Computer Club.`}>
   <section class="page-head page-head--compact">
-    <div class="container profile__head">
+    <div class="container profile__head profile__head--top">
       {p.avatar_url ? (
         <img class="avatar avatar--lg" src={p.avatar_url} alt="" />
       ) : (
@@ -58,7 +63,7 @@ const badges = [
           {(p.name || '?').slice(0, 1)}
         </span>
       )}
-      <div>
+      <div class="profile__info">
         <span class="eyebrow">@{p.handle}</span>
         <h1 class="h1" style="margin:0">
           {p.name}
@@ -66,6 +71,30 @@ const badges = [
         {(p.major || p.year) && (
           <p class="mono" style="margin:8px 0 0">
             {[p.major, p.year].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        <ul class="profile__stats">
+          {stats.map((s) => (
+            <li>
+              <a href={s.count ? s.href : undefined}>
+                <b>{s.count}</b> {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        {p.bio && <p class="profile__bio">{p.bio}</p>}
+        {(p.github || p.linkedin) && (
+          <p class="links-row profile__links">
+            {p.github && (
+              <a class="link-arrow" href={`https://github.com/${p.github}`} target="_blank" rel="noopener">
+                GitHub ↗
+              </a>
+            )}
+            {p.linkedin && (
+              <a class="link-arrow" href={p.linkedin} target="_blank" rel="noopener">
+                LinkedIn ↗
+              </a>
+            )}
           </p>
         )}
         <ul class="badges">
@@ -78,23 +107,6 @@ const badges = [
   </section>
   <section class="section">
     <div class="container">
-      {p.bio && (
-        <p class="lead" style="max-width:60ch">
-          {p.bio}
-        </p>
-      )}
-      <p class="links-row">
-        {p.github && (
-          <a class="link-arrow" href={`https://github.com/${p.github}`} target="_blank" rel="noopener">
-            GitHub ↗
-          </a>
-        )}
-        {p.linkedin && (
-          <a class="link-arrow" href={p.linkedin} target="_blank" rel="noopener">
-            LinkedIn ↗
-          </a>
-        )}
-      </p>
       {current && (
         <article class="idcard" style="max-width:420px;margin:32px 0">
           <div class="idcard__top">
@@ -131,7 +143,7 @@ const badges = [
       )}
       {posts?.length ? (
         <>
-          <h2 class="h2" style="margin-top:40px">
+          <h2 class="h2" id="posts" style="margin-top:40px">
             Posts
           </h2>
           <div class="posts">
@@ -152,7 +164,7 @@ const badges = [
       ) : null}
       {regs?.length ? (
         <>
-          <h2 class="h2" style="margin-top:40px">
+          <h2 class="h2" id="events" style="margin-top:40px">
             Events
           </h2>
           <ul>
