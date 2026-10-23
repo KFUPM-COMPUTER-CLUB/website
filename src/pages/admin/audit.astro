@@ -12,7 +12,7 @@ const { data } = await serviceClient()
   .limit(200);
 const summary = (e: any) => {
   const a = e.after || e.before || {};
-  return a.title || a.name || a.term || a.q_en || a.label || a.key || a.role || a.status || e.row_id || '';
+  return a.title || a.name || a.term || a.q_en || a.label || a.reason || a.key || a.role || a.status || e.row_id || '';
 };
 const undoable = (e: any) =>
   !e.undone_at &&

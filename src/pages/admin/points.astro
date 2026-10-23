@@ -1,0 +1,188 @@
+---
+/* Points (officer and up): award or take back points by hand, and read the ledger. Automatic awards
+ * (attendance, published posts, the flag) come from the triggers in 0005_points.sql and appear here
+ * too, marked "automatic"; only manual ones can be removed. ?member=<handle> narrows the list to one
+ * member and shows their total. Writes go to /api/admin/points, which logs every change. */
+import AdminLayout from '../../components/AdminLayout.astro';
+import { serviceClient } from '../../lib/supabase';
+import { atLeast, POINT_CATEGORIES, POINT_LABELS, POINT_VALUES } from '../../lib/types';
+import { fmtRiyadh } from '../../lib/content';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+const sb = serviceClient();
+const memberHandle = (Astro.url.searchParams.get('member') || '').replace(/^@/, '').trim().toLowerCase();
+const [{ data: members }, { data: events }] = await Promise.all([
+  sb.from('profiles').select('id,name,handle').eq('onboarded', true).order('name').limit(1000),
+  sb.from('events').select('id,title,starts_at').order('starts_at', { ascending: false }).limit(40),
+]);
+const member = memberHandle ? (members || []).find((m: any) => m.handle === memberHandle) : null;
+let query = sb
+  .from('points')
+  .select(
+    'id,amount,category,reason,auto,awarded_at, member:profiles!points_user_id_fkey(name,handle), by:profiles!points_awarded_by_fkey(name), event:events(title)',
+  )
+  .order('awarded_at', { ascending: false })
+  .limit(member ? 500 : 100);
+if (member) query = query.eq('user_id', member.id);
+const { data: rows } = await query;
+const total = member ? (rows || []).reduce((s: number, r: any) => s + r.amount, 0) : 0;
+const when = (d: string) => fmtRiyadh(new Date(d), { day: 'numeric', month: 'short', year: 'numeric' });
+---
+
+<AdminLayout
+  title="Points"
+  lead={`Automatic: ${POINT_VALUES.events} for attending an event, ${POINT_VALUES.posts} for a published post, ${POINT_VALUES.flag} for the flag. Competitions and anything else are awarded here.`}
+>
+  <form data-astro-reload class="form card" method="post" action="/api/admin/points">
+    <h2 class="h3">Award points</h2>
+    <div class="form__row">
+      <div class="field">
+        <label for="handle">Member handle</label>
+        <input
+          class="input"
+          id="handle"
+          name="handle"
+          required
+          list="member-handles"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          placeholder="john_doe"
+          value={member?.handle || ''}
+        />
+        <datalist id="member-handles">
+          {(members || []).map((m: any) => (
+            <option value={m.handle}>{m.name}</option>
+          ))}
+        </datalist>
+      </div>
+      <div class="field">
+        <label for="amount">Points</label>
+        <input class="input" id="amount" name="amount" type="number" required min="-1000" max="1000" step="1" />
+        <small>Negative to take points back.</small>
+      </div>
+    </div>
+    <div class="form__row">
+      <div class="field">
+        <label for="category">Category</label>
+        <select class="select" id="category" name="category">
+          {POINT_CATEGORIES.map((c) => (
+            <option value={c} selected={c === 'competitions'}>
+              {POINT_LABELS[c]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div class="field">
+        <label for="event_id">Event (optional)</label>
+        <select class="select" id="event_id" name="event_id">
+          <option value="">None</option>
+          {(events || []).map((e: any) => (
+            <option value={e.id}>
+              {e.title} · {when(e.starts_at)}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="reason">Reason</label>
+      <input
+        class="input"
+        id="reason"
+        name="reason"
+        required
+        maxlength="200"
+        placeholder="Techathon 2026, first place"
+      />
+      <small>The member sees this next to the points.</small>
+    </div>
+    <div class="form__actions">
+      <button class="btn" type="submit">
+        Award
+      </button>
+    </div>
+  </form>
+
+  <form class="inline-form" method="get" style="margin:24px 0 16px">
+    <input
+      class="input"
+      name="member"
+      list="member-handles"
+      value={memberHandle}
+      placeholder="handle"
+      style="max-width:240px"
+    />
+    <button class="btn btn--small" type="submit">
+      Show member
+    </button>
+    {memberHandle && (
+      <a class="btn btn--small btn--ghost" href="/admin/points">
+        All awards
+      </a>
+    )}
+  </form>
+  {memberHandle && !member && <p class="flash--error">No member with the handle @{memberHandle}.</p>}
+  {member && (
+    <p class="lead" style="margin-bottom:16px">
+      {member.name} <span class="mono">@{member.handle}</span> has <b>{total}</b> {total === 1 ? 'point' : 'points'}.
+    </p>
+  )}
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Points</th>
+          <th>Category</th>
+          <th>Reason</th>
+          <th>Counts for</th>
+          <th>By</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {(rows || []).map((r: any) => (
+          <tr>
+            <td>
+              <a href={`/admin/points?member=${r.member?.handle}`}>{r.member?.name}</a>
+              <br />
+              <span class="mono">@{r.member?.handle}</span>
+            </td>
+            <td class="mono">{r.amount > 0 ? `+${r.amount}` : r.amount}</td>
+            <td>{POINT_LABELS[r.category as keyof typeof POINT_LABELS] || r.category}</td>
+            <td>
+              {r.reason}
+              {r.event?.title && !r.auto && <span class="hint"> · {r.event.title}</span>}
+            </td>
+            <td class="mono">{when(r.awarded_at)}</td>
+            <td>{r.auto ? <span class="chip">automatic</span> : r.by?.name || '—'}</td>
+            <td>
+              {!r.auto && (
+                <form
+                  data-astro-reload
+                  method="post"
+                  action="/api/admin/points"
+                  onsubmit="return confirm('Remove this award?')"
+                >
+                  <input type="hidden" name="_action" value="remove" />
+                  <input type="hidden" name="id" value={r.id} />
+                  <button class="btn btn--tiny btn--ghost" type="submit">
+                    Remove
+                  </button>
+                </form>
+              )}
+            </td>
+          </tr>
+        ))}
+        {!rows?.length && (
+          <tr>
+            <td colspan="7" class="hint">
+              No points yet.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

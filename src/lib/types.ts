@@ -9,6 +9,20 @@ export type Role = 'member' | 'editor' | 'reviewer' | 'officer' | 'admin';
 export const ROLE_RANK: Record<Role, number> = { member: 0, editor: 1, reviewer: 2, officer: 3, admin: 4 };
 export const atLeast = (role: Role | 'guest', min: Role) => role !== 'guest' && ROLE_RANK[role] >= ROLE_RANK[min];
 
+/* Points (supabase/migrations/0005_points.sql). The categories match the check on points.category,
+ * and POINT_VALUES mirrors point_value() there: the automatic award for each kind of activity.
+ * Competitions and "other" have no fixed value; officers enter the amount on /admin/points. */
+export const POINT_CATEGORIES = ['events', 'posts', 'flag', 'competitions', 'other'] as const;
+export type PointCategory = (typeof POINT_CATEGORIES)[number];
+export const POINT_LABELS: Record<PointCategory, string> = {
+  events: 'Events',
+  posts: 'Posts',
+  flag: 'Flag',
+  competitions: 'Competitions',
+  other: 'Other',
+};
+export const POINT_VALUES = { events: 10, posts: 25, flag: 50 } as const;
+
 /* The public handle rule, shared by onboarding, the profile form and both APIs. Handles are URLs
  * (/u/<handle>) and are stored lowercase. The forms accept capitals because the API lowercases them,
  * so "JohnDoe" is saved as "johndoe" instead of failing with the browser's bare "match the requested
