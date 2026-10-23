@@ -68,3 +68,13 @@
 .sortable li { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .hint { color: var(--muted); font-size: 13px; }
 .live { font: 600 11px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+/* Check-in: the member's code on /me/registrations and the officer's scanner. The code stays black on
+ * white in both themes, with its quiet zone, because that is what cameras read. */
+.qr { margin-top: 8px; }
+.qr summary { cursor: pointer; font: 600 11px/1.6 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); }
+.qr__code { width: min(240px, 70vw); margin: 10px 0 6px; background: #fff; }
+.qr__code svg { display: block; width: 100%; height: auto; }
+.checkin__video { display: block; width: 100%; max-width: 420px; aspect-ratio: 1; object-fit: cover; margin-top: 12px; background: #000; }
+.checkin__result { margin: 12px 0 0; font-weight: 600; }
+.checkin__result:empty { display: none; }
+.checkin__result.is-ok { color: #34D399; } .checkin__result.is-bad { color: #F87171; }

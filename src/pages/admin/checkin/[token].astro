@@ -1,0 +1,55 @@
+---
+/* What a member's check-in code opens when an officer scans it with a phone's camera app. Reading it
+ * changes nothing (a link preview or a prefetch must not check anyone in): it shows who and for which
+ * event, and the officer confirms with the button, which posts to /api/admin/events/<id>/checkin.
+ * Officer and up; the middleware already keeps everyone else out of /admin. */
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { serviceClient } from '../../../lib/supabase';
+import { atLeast } from '../../../lib/types';
+import { fmtRiyadh } from '../../../lib/content';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+const token = (Astro.params.token || '').toLowerCase();
+if (!/^[0-9a-f]{32}$/.test(token)) return new Response(null, { status: 404 });
+const { data: reg } = await serviceClient()
+  .from('registrations')
+  .select('id,event_id,attended,attended_at, profiles(name,handle,major,avatar_url), events(id,title,starts_at)')
+  .eq('checkin_token', token)
+  .maybeSingle();
+const r: any = reg;
+const at = r?.attended_at ? fmtRiyadh(new Date(r.attended_at), { hour: 'numeric', minute: '2-digit' }) : '';
+const when = r?.events
+  ? fmtRiyadh(new Date(r.events.starts_at), { weekday: 'short', day: 'numeric', month: 'short' })
+  : '';
+---
+
+<AdminLayout title="Check-in" live={false}>
+  {r ? (
+    <div class="card checkin">
+      <span class="eyebrow">{r.events?.title}</span>
+      <h2 class="h2" style="margin:0">
+        {r.profiles?.name}
+      </h2>
+      <p class="mono">
+        @{r.profiles?.handle} · {r.profiles?.major} · {when}
+      </p>
+      {r.attended ? (
+        <p class="checkin__result is-bad">Already checked in{at && ` at ${at}`}.</p>
+      ) : (
+        <form data-astro-reload method="post" action={`/api/admin/events/${r.event_id}/checkin`}>
+          <input type="hidden" name="token" value={token} />
+          <input type="hidden" name="next" value={`/admin/events/${r.event_id}/checkin`} />
+          <button class="btn" type="submit">
+            Check in <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      )}
+      <p style="margin:16px 0 0">
+        <a class="link-arrow" href={`/admin/events/${r.event_id}/checkin`}>
+          Event check-in list →
+        </a>
+      </p>
+    </div>
+  ) : (
+    <p class="flash--error">No reservation matches this code. It may have been cancelled.</p>
+  )}
+</AdminLayout>

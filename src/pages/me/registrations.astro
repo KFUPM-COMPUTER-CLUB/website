@@ -1,15 +1,18 @@
 ---
 /* The member's reservations. Upcoming and past are split with a day of grace after the end. The
  * Shown/Hidden switch toggles show_on_profile: reservations are private until the member opts one
- * event into their public profile. Both the switch and Cancel post to the register route. */
+ * event into their public profile. Both the switch and Cancel post to the register route.
+ * Each upcoming reservation carries its check-in code (0007_checkin.sql): a QR of the link an officer
+ * opens at the door, drawn on the server by src/lib/qr.ts. */
 import MeLayout from '../../components/MeLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { fmtRiyadh } from '../../lib/content';
+import { qrSvg } from '../../lib/qr';
 const { user } = Astro.locals;
 const { data: regs } = await serviceClient()
   .from('registrations')
   .select(
-    'id,event_id,email_copy,attended,show_on_profile,created_at,events(id,slug,title,starts_at,ends_at,location,x_url)',
+    'id,event_id,email_copy,attended,show_on_profile,checkin_token,created_at,events(id,slug,title,starts_at,ends_at,location,x_url)',
   )
   .eq('user_id', user!.id)
   .order('created_at', { ascending: false });
@@ -17,6 +20,10 @@ const upcoming = (regs || []).filter(
   (r: any) => r.events && new Date(r.events.ends_at || r.events.starts_at).valueOf() >= Date.now() - 86_400_000,
 );
 const past = (regs || []).filter((r: any) => !upcoming.includes(r));
+const code = (r: any) =>
+  r.checkin_token
+    ? qrSvg(`${Astro.url.origin}/admin/checkin/${r.checkin_token}`, `Check-in code for ${r.events.title}`)
+    : '';
 const when = (e: any) =>
   fmtRiyadh(new Date(e.starts_at), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 ---
@@ -44,6 +51,14 @@ const when = (e: any) =>
               <tr>
                 <td>
                   <a href={`/timeline#ev-${r.events.slug}`}>{r.events.title}</a>
+                  {r.checkin_token && !r.attended && (
+                    <details class="qr">
+                      <summary>Check-in code</summary>
+                      <div class="qr__code" set:html={code(r)} />
+                      <p class="hint">Show this at the door. It works once.</p>
+                    </details>
+                  )}
+                  {r.attended && <span class="chip chip--published">checked in</span>}
                 </td>
                 <td class="mono">{when(r.events)}</td>
                 <td>{r.events.location}</td>
