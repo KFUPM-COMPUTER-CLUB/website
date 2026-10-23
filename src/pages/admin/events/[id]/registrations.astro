@@ -31,6 +31,9 @@ const admin = atLeast(Astro.locals.role, 'admin');
     <a class="btn btn--small btn--ghost" href={`/api/admin/events/${ev.id}/registrations`}>
       Export CSV
     </a>{' '}
+    <a class="btn btn--small" href={`/admin/events/${ev.id}/checkin`}>
+      Check-in at the door
+    </a>{' '}
     <a class="btn btn--small btn--ghost" href={`/admin/events/${ev.id}`}>
       Edit event
     </a>

@@ -1,0 +1,125 @@
+---
+/* Door check-in for one event (officer and up). Three ways in, all posting to
+ * /api/admin/events/<id>/checkin: the camera scanner on this page (src/scripts/checkin.js, on browsers
+ * with the BarcodeDetector API), any phone's camera app (the member's code is a link that opens
+ * /admin/checkin/<token>), and the list below, searchable by name or handle, which needs neither a
+ * camera nor JavaScript. live is off: nothing here reaches a public page. */
+import AdminLayout from '../../../../components/AdminLayout.astro';
+import { serviceClient } from '../../../../lib/supabase';
+import { atLeast } from '../../../../lib/types';
+import { isUuid } from '../../../../lib/api';
+import { fmtRiyadh } from '../../../../lib/content';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
+const sb = serviceClient();
+const [{ data: ev }, { data: regs }] = await Promise.all([
+  sb.from('events').select('id,title,starts_at').eq('id', Astro.params.id).maybeSingle(),
+  sb
+    .from('registrations')
+    .select('id,attended,attended_at, profiles(name,handle,major)')
+    .eq('event_id', Astro.params.id)
+    .order('created_at'),
+]);
+if (!ev) return new Response(null, { status: 404 });
+const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase().replace(/^@/, '');
+const all = (regs || []).map((r: any) => ({
+  id: r.id,
+  name: r.profiles?.name || '(no name)',
+  handle: r.profiles?.handle || '',
+  major: r.profiles?.major || '',
+  attended: r.attended,
+  at: r.attended_at ? fmtRiyadh(new Date(r.attended_at), { hour: 'numeric', minute: '2-digit' }) : '',
+}));
+const checked = all.filter((r) => r.attended).length;
+// Not yet checked in first, so the person at the door is near the top.
+const shown = all
+  .filter((r) => !q || r.name.toLowerCase().includes(q) || r.handle.includes(q))
+  .sort((a, b) => Number(a.attended) - Number(b.attended) || a.name.localeCompare(b.name));
+const next = `/admin/events/${ev.id}/checkin`;
+---
+
+<AdminLayout
+  title={`Check-in · ${ev.title}`}
+  lead={`${fmtRiyadh(new Date(ev.starts_at), { weekday: 'long', day: 'numeric', month: 'long' })} · ${checked} of ${all.length} checked in`}
+  live={false}
+>
+  <div class="card checkin" data-checkin={ev.id}>
+    <h2 class="h3">Scan</h2>
+    <p class="hint" data-checkin-fallback>
+      Open the member's code with your phone's camera app: it opens the check-in page for that member. Or find them in
+      the list below.
+    </p>
+    <div class="checkin__scanner" data-checkin-scanner hidden>
+      <button class="btn btn--small" type="button" data-checkin-start>
+        Start camera
+      </button>
+      <video class="checkin__video" data-checkin-video playsinline muted hidden></video>
+    </div>
+    <p class="checkin__result" data-checkin-result role="status" aria-live="polite"></p>
+  </div>
+
+  <form class="inline-form" method="get" style="margin:24px 0 16px">
+    <label class="visually-hidden" for="q">
+      Name or handle
+    </label>
+    <input class="input" id="q" name="q" value={q} placeholder="name or handle" style="max-width:280px" />
+    <button class="btn btn--small" type="submit">
+      Find
+    </button>
+    {q && (
+      <a class="btn btn--small btn--ghost" href={next}>
+        Everyone
+      </a>
+    )}
+    <a class="btn btn--small btn--ghost" href={`/admin/events/${ev.id}/registrations`}>
+      Registrations
+    </a>
+  </form>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {shown.map((r) => (
+          <tr>
+            <td>
+              {r.name}
+              <br />
+              <span class="mono">
+                @{r.handle} · {r.major}
+              </span>
+            </td>
+            <td>
+              {r.attended ? (
+                <span class="chip chip--published">checked in {r.at}</span>
+              ) : (
+                <form data-astro-reload method="post" action={`/api/admin/events/${ev.id}/checkin`}>
+                  <input type="hidden" name="registration_id" value={r.id} />
+                  <input type="hidden" name="next" value={next} />
+                  <button class="btn btn--tiny" type="submit">
+                    Check in
+                  </button>
+                </form>
+              )}
+            </td>
+          </tr>
+        ))}
+        {!shown.length && (
+          <tr>
+            <td colspan="2" class="hint">
+              {q ? 'Nobody with a reservation matches.' : 'No reservations yet.'}
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
+
+<script>
+  import '../../../../scripts/checkin.js';
+</script>
