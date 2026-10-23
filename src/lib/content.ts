@@ -22,6 +22,9 @@ import type {
   Settings,
   PostSummary,
   PostFull,
+  LeaderRow,
+  LeaderPeriod,
+  PointCategory,
 } from './types';
 import siteJson from '../data/site.json';
 import committeesJson from '../data/committees.json';
@@ -452,6 +455,24 @@ export async function getContributors(): Promise<
     async () =>
       ((await db().from('contributors').select('*').order('posts', { ascending: false }).limit(24)).data || []) as any,
   );
+}
+
+/* ── Leaderboard ───────────────────────────────────────────────────────── */
+/* Totals come from the security-definer leaderboard() (0006_leaderboard.sql), which names only members
+ * who opted in. Seed mode has no points, so the page shows its empty state. */
+export async function getLeaderboard(period: LeaderPeriod, category: PointCategory | 'all'): Promise<LeaderRow[]> {
+  if (!dbReady()) return [];
+  return cached(`leaderboard:${period}:${category}`, async () => {
+    const { data, error } = await db().rpc('leaderboard', { p_period: period, p_category: category });
+    if (error) throw error;
+    return ((data || []) as any[]).map((r) => ({
+      rank: r.rank,
+      handle: r.handle,
+      name: r.name,
+      avatar: r.avatar_url,
+      total: r.total,
+    }));
+  });
 }
 
 /* ── FAQ ───────────────────────────────────────────────────────────────── */

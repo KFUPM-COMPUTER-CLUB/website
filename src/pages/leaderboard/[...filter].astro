@@ -1,0 +1,125 @@
+---
+/* The public leaderboard, cached like every public page. The filter lives in the path rather than a
+ * query string so each view is its own ISR page and works without JavaScript: /leaderboard (this
+ * term, every category), /leaderboard/<category>, /leaderboard/all-time and
+ * /leaderboard/all-time/<category>. Totals come from leaderboard() in 0006_leaderboard.sql, which
+ * names only members who ticked "Show me on the leaderboard" on their profile; everyone else keeps
+ * their place as "A member", so ranks stay honest. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLeaderboard, termOf } from '../../lib/content';
+import { dbReady } from '../../lib/env';
+import { POINT_CATEGORIES, POINT_LABELS, POINT_VALUES, type LeaderPeriod, type PointCategory } from '../../lib/types';
+
+type Filter = PointCategory | 'all';
+const parts = (Astro.params.filter || '').split('/').filter(Boolean);
+const period: LeaderPeriod = parts[0] === 'all-time' ? 'all' : 'term';
+if (period === 'all') parts.shift();
+const category = (parts[0] || 'all') as Filter;
+if (parts.length > 1 || (category !== 'all' && !POINT_CATEGORIES.includes(category)))
+  return new Response(null, { status: 404 });
+
+const rows = await getLeaderboard(period, category);
+const term = termOf(new Date());
+const href = (p: LeaderPeriod, c: Filter) =>
+  `/leaderboard${p === 'all' ? '/all-time' : ''}${c === 'all' ? '' : `/${c}`}`;
+const periods = [
+  { p: 'term' as LeaderPeriod, label: term },
+  { p: 'all' as LeaderPeriod, label: 'All time' },
+].map((x) => ({ ...x, href: href(x.p, category), on: x.p === period }));
+const filters = (['all', 'events', 'posts', 'flag', 'competitions'] as Filter[]).map((c) => ({
+  label: c === 'all' ? 'Everything' : POINT_LABELS[c],
+  href: href(period, c),
+  on: c === category,
+}));
+const leaders = rows.map((r) => ({
+  ...r,
+  label: r.handle ? r.name || `@${r.handle}` : 'A member',
+  initial: (r.name || '?').slice(0, 1),
+}));
+const scope = `${period === 'term' ? term : 'all time'}${category === 'all' ? '' : `, ${POINT_LABELS[category].toLowerCase()}`}`;
+const empty = !dbReady()
+  ? 'The leaderboard appears once the site is connected to its database.'
+  : `No points yet for ${scope}.`;
+---
+
+<BaseLayout
+  title="Leaderboard"
+  description="The most active members of the KFUPM Computer Club: events attended, posts published, the flag and competitions."
+>
+  <section class="page-head page-head--compact">
+    <div class="container">
+      <span class="eyebrow">Leaderboard</span>
+      <h1 class="h1">Who shows up.</h1>
+      <p class="lead">
+        Points for attending events, publishing posts, finding the flag and placing in competitions. Top 20, {scope}.
+      </p>
+    </div>
+  </section>
+
+  <nav class="filters" aria-label="Leaderboard filters">
+    <div class="container filters__inner leaders__filters">
+      <div class="chips">
+        {periods.map((x) => (
+          <a class={x.on ? 'chip is-on' : 'chip'} href={x.href} aria-current={x.on ? 'page' : undefined}>
+            {x.label}
+          </a>
+        ))}
+      </div>
+      <div class="chips">
+        {filters.map((x) => (
+          <a class={x.on ? 'chip is-on' : 'chip'} href={x.href} aria-current={x.on ? 'page' : undefined}>
+            {x.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </nav>
+
+  <section class="section">
+    <div class="container leaders__grid">
+      <div>
+        {leaders.length ? (
+          <ol class="leaders">
+            {leaders.map((r) => (
+              <li class={r.handle ? 'leader' : 'leader leader--anon'}>
+                <span class="leader__rank">{r.rank}</span>
+                {r.avatar ? (
+                  <img class="leader__photo" src={r.avatar} alt="" width="44" height="44" loading="lazy" />
+                ) : (
+                  <span class="leader__photo leader__photo--blank" aria-hidden="true">
+                    {r.handle ? r.initial : '·'}
+                  </span>
+                )}
+                <span class="leader__name">{r.handle ? <a href={`/u/${r.handle}`}>{r.label}</a> : r.label}</span>
+                <span class="leader__total">
+                  <b>{r.total}</b> pts
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p class="lead lead--muted">{empty}</p>
+        )}
+      </div>
+      <aside class="card leaders__how">
+        <h2 class="h3">How points work</h2>
+        <ul>
+          <li>
+            <b>{POINT_VALUES.events}</b> for each event you attend
+          </li>
+          <li>
+            <b>{POINT_VALUES.posts}</b> for each post published on the blog
+          </li>
+          <li>
+            <b>{POINT_VALUES.flag}</b> for finding the <a href="/flag">flag</a>
+          </li>
+          <li>Competition placings, awarded by the board</li>
+        </ul>
+        <p class="hint">
+          Your name shows here only if you tick <i>Show me on the leaderboard</i> on your{' '}
+          <a href="/me/profile">profile</a>. Until then you keep your place as "A member".
+        </p>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

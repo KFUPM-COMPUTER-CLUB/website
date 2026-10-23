@@ -24,6 +24,7 @@
 | **Timeline**    | Every club event in one place, split into upcoming and past, with a mini calendar                  |
 | **Blog**        | Members write in a rich editor; reviewers approve each post before it is published                 |
 | **Community**   | The board, member count, contributors and public member profiles                                   |
+| **Leaderboard** | Points for events, posts, the flag and competitions; top members by term or all time, names opt-in |
 | **Admin panel** | Events, home page, partners, FAQ, media, settings and the review queue, with an audit log and undo |
 | **Calendar**    | One-click add to Google or Outlook, `.ics` files and a club-wide feed                              |
 | **Accounts**    | Sign-in with Google or GitHub, onboarding, event reservations and members-only group links         |
