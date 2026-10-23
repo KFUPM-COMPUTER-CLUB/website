@@ -10,7 +10,7 @@ import { getWhatsappGroups } from '../../lib/whatsapp';
 import { fmtRiyadh } from '../../lib/content';
 const { user, profile, role } = Astro.locals;
 const sb = serviceClient();
-const [{ data: posts }, { data: regs }, groups] = await Promise.all([
+const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promise.all([
   sb
     .from('posts')
     .select('id,slug,title,status,updated_at')
@@ -24,7 +24,14 @@ const [{ data: posts }, { data: regs }, groups] = await Promise.all([
     .order('created_at', { ascending: false })
     .limit(5),
   getWhatsappGroups(),
+  // Every award is a row (0005_points.sql), so the total is their sum and the latest few explain it.
+  sb
+    .from('points')
+    .select('amount,reason,awarded_at')
+    .eq('user_id', user!.id)
+    .order('awarded_at', { ascending: false }),
 ]);
+const pointsTotal = (points || []).reduce((s: number, r: any) => s + r.amount, 0);
 const welcome = Astro.url.searchParams.has('welcome');
 ---
 
@@ -62,6 +69,10 @@ const welcome = Astro.url.searchParams.has('welcome');
     <div class="stat">
       <b>{regs?.length || 0}</b>
       <span>reservations</span>
+    </div>
+    <div class="stat">
+      <b>{pointsTotal}</b>
+      <span>points</span>
     </div>
     <div class="stat">
       <b style="font-size:20px">{role}</b>
@@ -135,6 +146,23 @@ const welcome = Astro.url.searchParams.has('welcome');
       <p class="hint">
         No reservations yet. Upcoming events are on the <a href="/timeline">timeline</a>.
       </p>
+    )}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2 class="h3">My points</h2>
+    {points?.length ? (
+      <ul>
+        {points.slice(0, 5).map((r: any) => (
+          <li>
+            <b class="mono">{r.amount > 0 ? `+${r.amount}` : r.amount}</b> {r.reason} ·{' '}
+            <span class="mono">
+              {fmtRiyadh(new Date(r.awarded_at), { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="hint">No points yet. Attend an event, publish a post or find the flag, and they add up here.</p>
     )}
   </div>
   {profile?.handle && (
