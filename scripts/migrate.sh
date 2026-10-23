@@ -37,4 +37,8 @@ for f in supabase/migrations/*.sql; do
   psql_ -c "insert into public.schema_migrations (name) values ('$name');"
   applied=$((applied + 1))
 done
-echo "done      $applied applied"
+# The Data API (PostgREST) serves from a cached copy of the schema, so a new function or column can
+# answer "not found" until that cache reloads. Ask for the reload after every run; it is harmless when
+# nothing changed.
+psql_ -c "notify pgrst, 'reload schema';"
+echo "done      $applied applied, API schema reloaded"
