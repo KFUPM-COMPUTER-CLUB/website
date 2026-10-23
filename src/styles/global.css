@@ -707,7 +707,7 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 @keyframes hint { to { top: 100%; } }
 body.scrolled .scroll-hint { opacity: 0; }
 .site-main > :not(.screen--one) { position: relative; z-index: 1; }
-.screen--two { position: relative; z-index: 1; padding-top: 600px; overflow: clip; }
+.screen--two { position: relative; z-index: 1; padding-top: 600px; overflow-x: clip; overflow-y: visible; }
 .collage { top: 170px; }
 @media (max-width: 760px) { .screen--two { padding-top: 40px; } }
 @media (prefers-reduced-motion: reduce) { .scroll-hint i::after { animation: none; top: 30%; } .screen--one .screen__inner { transform: none !important; opacity: 1 !important; } }
