@@ -56,7 +56,7 @@ onPage(() => {
       if (!formats.includes('qr_code')) return;
       const detector = new BarcodeDetector({ formats: ['qr_code'] });
       scanner.hidden = false;
-      fallback.textContent = 'Point the camera at the member’s code, or use the camera app or the list below.';
+      fallback.textContent = "Point the camera at the member's code, or use the camera app or the list below.";
       const tick = async () => {
         if (stopped) return;
         if (!busy && video.readyState >= 2) {
