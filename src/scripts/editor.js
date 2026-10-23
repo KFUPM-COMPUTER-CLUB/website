@@ -558,7 +558,9 @@ onPage(() => {
   for (const [v, l] of LANGS) lang.append(new Option(l, v));
   off.add(
     listen(lang, 'change', () => {
-      const language = lang.value; // To fix codeblock language issue, read before chain() refocuses the editor and refresh() resets the select
+      // Read the choice first: chain() refocuses the editor, the focus transaction runs refresh(), and that
+      // resets the select to the block's current language before lang.value would be read.
+      const language = lang.value;
       chain().updateAttributes('codeBlock', { language }).run();
     }),
   );
