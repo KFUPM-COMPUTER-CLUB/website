@@ -173,6 +173,8 @@ body.past-hero .site-header { background: color-mix(in srgb, var(--bg-live) 82%,
 .site-nav a:not(.btn)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--blue); transform: scaleX(0); transform-origin: right; transition: transform 0.3s; }
 .site-nav a:not(.btn):hover::after, .site-nav a[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
 .site-nav .btn { margin-left: 6px; }
+/* Six links and the next-event pill share the bar from 1024 px; tighten both until the wide layout has room. */
+@media (min-width: 1024px) and (max-width: 1279px) { .site-nav { gap: 18px; } .site-header .next-pill__title { max-width: 16ch; } }
 .nav-toggle { display: none; align-items: center; height: 40px; padding: 0 14px; border: 1px solid var(--line-strong); background: var(--card); color: inherit; font: 700 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
 .site-header__tools { display: flex; align-items: center; gap: 10px; }
 @media (max-width: 1023px) {
@@ -875,6 +877,28 @@ body.scrolled .scroll-hint { opacity: 0; }
 .person img, .person__blank { width: 48px; height: 48px; object-fit: cover; flex: none; }
 .person__blank, .author-card__blank { display: grid; place-items: center; background: var(--blue-deep); color: #fff; font: 800 20px/1 var(--font-head); }
 .person span { display: grid; line-height: 1.3; } .person small { color: var(--muted); font: 500 12px/1.4 var(--font-mono); }
+/* Leaderboard (/leaderboard): rank, photo, name and total in one row; anonymous rows are muted. */
+.leaders__filters { justify-content: space-between; }
+.leaders__filters .chip { display: inline-flex; align-items: center; text-decoration: none; }
+.leaders__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+.leaders { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.leader { display: grid; grid-template-columns: 44px 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 10px 16px; border: 1px solid var(--line); background: var(--card); }
+.leader:nth-child(-n + 3) { border-color: var(--line-strong); }
+.leader__rank { font: 800 22px/1 var(--font-head); font-variation-settings: var(--wide); color: var(--blue); text-align: center; }
+.leader__photo { width: 44px; height: 44px; object-fit: cover; }
+.leader__photo--blank { display: grid; place-items: center; background: var(--blue-deep); color: #fff; font: 800 18px/1 var(--font-head); }
+.leader__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.leader__name a { color: inherit; text-decoration: none; } .leader__name a:hover { color: var(--blue); }
+.leader__total { font: 600 12px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.leader__total b { margin-right: 4px; font: 800 20px/1 var(--font-head); color: var(--text); letter-spacing: 0; }
+.leader--anon .leader__name { color: var(--muted); font-weight: 400; font-style: italic; }
+.leader--anon .leader__photo--blank { background: var(--card-2); color: var(--muted); }
+.leaders__how { border: 1px solid var(--line-strong); background: var(--card); padding: 22px; }
+.leaders__how ul { display: grid; gap: 10px; margin: 12px 0 16px; padding: 0; list-style: none; }
+.leaders__how li b { display: inline-block; min-width: 32px; color: var(--blue); font-family: var(--font-head); }
+.leaders__how .hint { color: var(--muted); font-size: 14px; }
+@media (max-width: 900px) { .leaders__grid { grid-template-columns: 1fr; } .leaders__filters { justify-content: flex-start; } }
+@media (max-width: 480px) { .leader { grid-template-columns: 32px 36px minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; } .leader__photo { width: 36px; height: 36px; } .leader__rank { font-size: 18px; } }
 .alumni__term + .alumni__term { margin-top: 28px; }
 .alumni__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 24px; margin: 0; padding: 0; list-style: none; }
 .alumni__list li { display: grid; padding: 10px 0; border-bottom: 1px solid var(--line); } .alumni__list span { color: var(--muted); font-size: 14px; }

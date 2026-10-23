@@ -22,6 +22,16 @@ export const POINT_LABELS: Record<PointCategory, string> = {
   other: 'Other',
 };
 export const POINT_VALUES = { events: 10, posts: 25, flag: 50 } as const;
+/* One row of /leaderboard from leaderboard() in 0006_leaderboard.sql. handle, name and avatar are null
+ * for members who did not opt in: they keep their rank and total but show as "A member". */
+export type LeaderRow = {
+  rank: number;
+  handle: string | null;
+  name: string | null;
+  avatar: string | null;
+  total: number;
+};
+export type LeaderPeriod = 'term' | 'all';
 
 /* The public handle rule, shared by onboarding, the profile form and both APIs. Handles are URLs
  * (/u/<handle>) and are stored lowercase. The forms accept capitals because the API lowercases them,
@@ -65,6 +75,8 @@ export type Profile = {
   bio: string | null;
   avatar_url: string | null;
   show_in_contributors: boolean;
+  /* Name and photo on /leaderboard and points on /u/<handle> (0006_leaderboard.sql); off by default. */
+  show_on_leaderboard?: boolean;
   onboarded: boolean;
   suspended: boolean;
   created_at: string;

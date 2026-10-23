@@ -11,11 +11,12 @@ const settings = await getSettings();
 const site = { name: settings.site.name, links: settings.links };
 import NextEvent from './NextEvent.astro';
 
-// The logo is the home link. Everything else lives in these five entries.
+// The logo is the home link. Everything else lives in these six entries.
 const links = [
   { href: '/timeline', label: 'Timeline' },
   { href: '/blog', label: 'Blog' },
   { href: '/community', label: 'Community' },
+  { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/faq', label: 'FAQ' },
 ];
 
