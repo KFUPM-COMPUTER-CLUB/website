@@ -21,7 +21,8 @@ export const prerender = false;
 /* Edits the signed-in member's own profile (ownership is the session's user id; no role needed).
  * Only fields present in the body change, so a JSON client may PATCH one field; the HTML form on
  * /me/profile sends them all. Checkboxes are the exception: an unticked box is simply absent from a
- * form post, so for HTML requests show_in_contributors and show_on_leaderboard are always taken from the form. */
+ * form post, so for HTML requests show_in_contributors, show_on_leaderboard and show_badges are always taken
+ * from the form. */
 export const POST: APIRoute = handle(async (ctx) => {
   const user = requireUser(ctx);
   await guardRate(ctx.request, 'profile', 20, 600);
@@ -55,6 +56,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   }
   if ('show_in_contributors' in b || wantsHtml(ctx.request)) patch.show_in_contributors = bool(b.show_in_contributors);
   if ('show_on_leaderboard' in b || wantsHtml(ctx.request)) patch.show_on_leaderboard = bool(b.show_on_leaderboard);
+  if ('show_badges' in b || wantsHtml(ctx.request)) patch.show_badges = bool(b.show_badges);
   if (b.avatar instanceof File && b.avatar.size > 0)
     patch.avatar_url = (await storeImage(b.avatar, 'Profile photo', user.id, ['avatar'])).sizes['480'];
   const { data, error } = await serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();

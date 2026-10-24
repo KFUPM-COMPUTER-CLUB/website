@@ -1,0 +1,24 @@
+---
+/* A member's badges with icon, name and date (src/lib/badges.ts), for /u/<handle> and /me. The
+ * reference (the first post's title, the hackathon, the semester) sits under the name when there is
+ * one, in <bdi> so an Arabic title keeps its own direction. */
+import { Image } from 'astro:assets';
+import type { MemberBadge } from '../lib/badges';
+import { fmtRiyadh, riyadhDate } from '../lib/content';
+const { badges } = Astro.props as { badges: MemberBadge[] };
+---
+
+<ul class="badge-list">
+  {badges.map((b) => (
+    <li title={b.description}>
+      <Image src={b.icon} alt="" width={40} height={40} />
+      <span>
+        <b>{b.name}</b>
+        {b.reference && <bdi class="badge-list__ref">{b.reference}</bdi>}
+        <time class="mono" datetime={riyadhDate(b.awardedAt)}>
+          {fmtRiyadh(b.awardedAt, { day: 'numeric', month: 'short', year: 'numeric' })}
+        </time>
+      </span>
+    </li>
+  ))}
+</ul>

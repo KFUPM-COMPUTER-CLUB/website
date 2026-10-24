@@ -103,6 +103,10 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
       <input type="checkbox" name="show_on_leaderboard" value="1" checked={p.show_on_leaderboard} /> Show me on the
       leaderboard, with my points on my public profile
     </label>
+    <label class="check">
+      <input type="checkbox" name="show_badges" value="1" checked={p.show_badges !== false} /> Show my badges on my
+      public profile
+    </label>
     <div class="form__actions">
       <button class="btn" type="submit">
         Save

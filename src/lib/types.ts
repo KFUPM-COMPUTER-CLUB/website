@@ -77,6 +77,8 @@ export type Profile = {
   show_in_contributors: boolean;
   /* Name and photo on /leaderboard and points on /u/<handle> (0006_leaderboard.sql); off by default. */
   show_on_leaderboard?: boolean;
+  /* Badges on /u/<handle> (0014_badges.sql); on by default. */
+  show_badges?: boolean;
   onboarded: boolean;
   suspended: boolean;
   created_at: string;
