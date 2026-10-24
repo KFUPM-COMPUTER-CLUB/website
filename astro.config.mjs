@@ -1,6 +1,8 @@
 import { defineConfig, envField } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
+
+
 // Rendered on demand on Vercel. Public pages are cached by ISR for 60 seconds, so an admin's edit
 // is live within about a minute without a deploy (API writes also clear the in-memory memo in
 // src/lib/content.ts). Routes that depend on the visitor are excluded from ISR; keep that list in
@@ -44,6 +46,16 @@ export default defineConfig({
     },
   },
   redirects: { '/officers': '/community' },
+  
+// English stays at /xxx, Arabic lives at /ar/xxx
+// any /ar/...page that doesn't exist yet quietly shows the English page.
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'ar'],
+    routing: { prefixDefaultLocale: false, fallbackType: 'rewrite' },
+    fallback: { ar: 'en' },
+  },
+  
   // All optional on purpose: without keys the site runs from seed data (see src/lib/env.ts).
   // Keep this schema, src/lib/env.ts and .env.example in step.
   env: {
