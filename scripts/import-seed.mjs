@@ -672,7 +672,15 @@ export function mapSettings(site, impact) {
 }
 
 export const mapFaq = (faq) =>
-  faq.map((f, i) => ({ id: uuidFrom(`faq:${f.q}`), q_en: f.q, a_en: f.a, sort: i, visible: true }));
+  faq.map((f, i) => ({
+    id: uuidFrom(`faq:${f.q}`),
+    q_en: f.q,
+    a_en: f.a,
+    q_ar: f.qAr ?? null,
+    a_ar: f.aAr ?? null,
+    sort: i,
+    visible: true,
+  }));
 
 export const mapCommittees = (committees) =>
   committees.map((c, i) => ({

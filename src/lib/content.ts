@@ -465,8 +465,8 @@ export function getFaq(): Promise<FaqItem[]> {
         id: `seed-${i}`,
         q: f.q,
         a: f.a,
-        qAr: null,
-        aAr: null,
+        qAr: f.qAr ?? null,
+        aAr: f.aAr ?? null,
         sort: i,
       }));
     const { data } = await db().from('faq').select('*').eq('visible', true).order('sort');
