@@ -15,6 +15,9 @@ const site = {
 };
 import CopyEmail from './CopyEmail.astro';
 
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+
 const isReal = (value: unknown) => typeof value === 'string' && value.length > 0 && !value.includes('REPLACE');
 const icons = {
   instagram: {
@@ -57,7 +60,7 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="container">
     <div class="site-footer__row">
-      <a class="site-logo" href="/" aria-label={`${site.name} home`}>
+      <a class="site-logo" href={localePath(lang, '/')} aria-label={`${site.name} home`}>
         <span class="site-logo__stack">
           <Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} />
           <Image
@@ -78,7 +81,7 @@ const year = new Date().getFullYear();
 
       {showCredit && makers.length > 0 && (
         <div class="made-by">
-          <span class="made-by__label">Made by</span>
+          <span class="made-by__label">{t(lang, 'footer.madeBy')}</span>
           <p class="made-by__names">
             {makers.map((m, i) => (
               <>
@@ -98,12 +101,12 @@ const year = new Date().getFullYear();
             ))}
           </p>
           <a class="made-by__more" href={contributorsUrl} target="_blank" rel="noopener">
-            All contributors <span aria-hidden="true">→</span>
+            {t(lang, 'footer.allContributors')} <span aria-hidden="true">→</span>
           </a>
         </div>
       )}
 
-      <ul class="site-footer__social" aria-label="Follow the club">
+      <ul class="site-footer__social" aria-label={t(lang, 'footer.follow')}>
         {follow.map((l) => (
           <li>
             <a href={l.href} target="_blank" rel="noopener" aria-label={l.label} title={l.label}>
@@ -118,17 +121,18 @@ const year = new Date().getFullYear();
 
     <div class="site-footer__bottom">
       <p>
-        © {year} {site.name}. A student club at KFUPM.
+        © {year} {site.name}. {t(lang, 'footer.tagline')}
       </p>
       {isReal(site.email) && (
         <p>
-          <CopyEmail email={site.email} label="Club email" />
+          <CopyEmail email={site.email} label={t(lang, 'footer.clubEmail')} />
         </p>
       )}
       <p>
-        <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·{' '}
+        <a href={localePath(lang, '/privacy')}>{t(lang, 'footer.privacy')}</a> ·{' '}
+        <a href={localePath(lang, '/terms')}>{t(lang, 'footer.terms')}</a> ·{' '}
         <a href="https://github.com/KFUPM-COMPUTER-CLUB/website" target="_blank" rel="noopener">
-          Source on GitHub
+          {t(lang, 'footer.source')}
         </a>
       </p>
     </div>
