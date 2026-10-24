@@ -226,6 +226,8 @@ export type PostSummary = {
   tags: string[];
   dir: 'ltr' | 'rtl';
   status: string;
+  /* When the content last changed (posts.edited_at, 0013_post_edited_at.sql); null for seed posts. */
+  updatedAt: Date | null;
 };
 /* Exactly one of html (editor HTML from the database) and entry (an Astro content entry, seed mode) is set. */
 export type PostFull = PostSummary & { html: string | null; entry: any | null; coverKey: string | null };
