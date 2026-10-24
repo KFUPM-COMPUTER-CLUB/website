@@ -9,9 +9,10 @@ import Partners from '../components/Partners.astro';
 import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
-import { getSettings } from '../lib/content';
+import { getSettings, getMemberCount } from '../lib/content';
 
 const settings = await getSettings();
+const memberCount = await getMemberCount();
 const site = settings.site;
 const home = settings.home;
 const joinHref = settings.links.join || '/join';
@@ -88,6 +89,9 @@ const stageTabs = ['Moments', 'In pictures'];
   <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
       <h2 class="h1">{home.buildWithUs.title}</h2>
+      {memberCount !== null && (
+        <p class="lead lead--muted">{memberCount.toLocaleString('en-US')} members and growing.</p>
+      )}
       <p class="lead lead--muted">{home.buildWithUs.text}</p>
       <div class="hero__actions">
         <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
