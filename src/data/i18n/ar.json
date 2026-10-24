@@ -1,0 +1,20 @@
+{
+  "nav.timeline": "الجدول الزمني",
+  "nav.blog": "المدونة",
+  "nav.community": "المجتمع",
+  "nav.leaderboard": "لوحة الصدارة",
+  "nav.faq": "الأسئلة الشائعة",
+  "nav.join": "انضم",
+  "nav.menu": "القائمة",
+  "nav.openMenu": "فتح القائمة",
+  "nav.openTerminal": "فتح الطرفية",
+  "nav.terminal": "الطرفية",
+  "footer.madeBy": "صُنع بواسطة",
+  "footer.allContributors": "جميع المساهمين",
+  "footer.follow": "تابع النادي",
+  "footer.clubEmail": "بريد النادي",
+  "footer.tagline": "نادٍ طلابي في جامعة الملك فهد للبترول والمعادن.",
+  "footer.privacy": "الخصوصية",
+  "footer.terms": "الشروط",
+  "footer.source": "الكود المصدري على GitHub"
+}

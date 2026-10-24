@@ -1,0 +1,20 @@
+{
+  "nav.timeline": "Timeline",
+  "nav.blog": "Blog",
+  "nav.community": "Community",
+  "nav.leaderboard": "Leaderboard",
+  "nav.faq": "FAQ",
+  "nav.join": "Join",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Open menu",
+  "nav.openTerminal": "Open terminal",
+  "nav.terminal": "Terminal",
+  "footer.madeBy": "Made by",
+  "footer.allContributors": "All contributors",
+  "footer.follow": "Follow the club",
+  "footer.clubEmail": "Club email",
+  "footer.tagline": "A student club at KFUPM.",
+  "footer.privacy": "Privacy",
+  "footer.terms": "Terms",
+  "footer.source": "Source on GitHub"
+}
