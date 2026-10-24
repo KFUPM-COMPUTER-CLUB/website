@@ -9,6 +9,8 @@ const partnerHref = (await getSettings()).links.partner || '/community';
 const partnerExt = partnerHref.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {};
 const friends = all.filter((c) => c.kind !== 'visited');
 const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUrl || e.url || undefined;
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <section class="section partners bg-black" data-bg="#0B0B0F">

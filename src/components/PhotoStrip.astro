@@ -16,6 +16,8 @@ const fmt = (d: string) =>
         timeZone: 'UTC',
       })
     : '';
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <div class="strip" data-strip>

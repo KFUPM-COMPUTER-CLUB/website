@@ -3,6 +3,8 @@
 import { photoImg } from '../lib/photos';
 const { photoKey, line, eyebrow } = Astro.props;
 const img = await photoImg(photoKey);
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 {img && (

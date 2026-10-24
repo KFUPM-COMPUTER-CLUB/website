@@ -13,6 +13,8 @@ const scenes = (await getImpact())
 const sar = (n: number) => n.toLocaleString('en-US');
 const totalNum = settings.home.totalPrizesSar;
 const stats = settings.home.stats;
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <section class="reel bg-black" data-bg="#0B0B0F" data-reel style={`--n:${scenes.length}`} id="impact">

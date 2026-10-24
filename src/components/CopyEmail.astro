@@ -1,5 +1,7 @@
 ---
 /* The club email as a button: one click copies it and a small "Copied" tip confirms. */
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const { email, label } = Astro.props;
 ---
 

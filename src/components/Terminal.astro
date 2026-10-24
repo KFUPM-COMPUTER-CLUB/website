@@ -34,6 +34,10 @@ const data = {
     join: settings.links.join || '/join',
   },
 };
+
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+
 // "<" is escaped so the JSON can never close its own script tag.
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
 ---

@@ -4,16 +4,18 @@
 import { getHighlights } from '../lib/content';
 const items = await getHighlights();
 const fmt = (d: string) =>
-  new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 // Photos that also appear on the timeline morph into place there; names must be unique per page.
 const seen = new Set<string>();
-const morph = (key: string | null) => {
-  if (!key) return undefined;
-  const n = `photo-${key.replace(/\.[a-z]+$/i, '')}`;
-  if (seen.has(n)) return undefined;
-  seen.add(n);
-  return n;
-};
+  const morph = (key: string | null) => {
+    if (!key) return undefined;
+    const n = `photo-${key.replace(/\.[a-z]+$/i, '')}`;
+    if (seen.has(n)) return undefined;
+    seen.add(n);
+    return n;
+  };
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <div class="collage" aria-label="Club highlights">

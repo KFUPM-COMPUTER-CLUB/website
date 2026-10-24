@@ -7,6 +7,9 @@ const { variant = 'bar' } = Astro.props;
 const list = (await getUpcomingEvents())
   .slice(0, 5)
   .map((e) => ({ id: e.slug, t: e.title, s: e.start.getTime(), e: eventEnd(e).getTime() }));
+
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 {list.length > 0 && (
