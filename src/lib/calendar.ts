@@ -2,8 +2,8 @@
  * .ics route and the registration email. Events carry UTC instants entered in Riyadh time; all-day
  * events use date-only values so calendars do not shift them across zones, and their end date is
  * exclusive, as RFC 5545 requires (the day after the last day). */
-import type { EventItem } from './types';
-import { eventEnd, riyadhDate } from './content';
+import type { EventItem } from './types.ts';
+import { eventEnd, riyadhDate } from './event-time.ts';
 
 const stamp = (d: Date) =>
   d
