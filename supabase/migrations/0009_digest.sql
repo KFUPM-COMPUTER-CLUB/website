@@ -20,5 +20,7 @@ create table if not exists public.digest_runs (
   events int not null default 0,
   posts int not null default 0
 );
--- No policies: only the service key reaches it, like email_queue.
+-- New tables are not exposed to the Data API by default, so the service key needs its grant. No
+-- policies and no grants for tokens: only the service key reaches it, like email_queue.
 alter table public.digest_runs enable row level security;
+grant all on public.digest_runs to service_role;
