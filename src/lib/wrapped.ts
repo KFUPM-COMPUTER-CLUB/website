@@ -1,5 +1,5 @@
 /* Semester Wrapped on the server: a member's numbers for a term (member_stats() in
- * 0012_member_stats.sql) and the 1080×1920 image /api/me/wrapped.png returns. The image is an SVG
+ * 0015_member_dashboard.sql) and the 1080×1920 image /api/me/wrapped.png returns. The image is an SVG
  * template (background, frames, the club logo) turned into a PNG by sharp, with every piece of text
  * drawn by sharp's own text renderer (Pango) in Readex Pro, the site's Arabic face, which also covers
  * Latin. Pango shapes Arabic and sets right-to-left text, so an Arabic name comes out joined and in
