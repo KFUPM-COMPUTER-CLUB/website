@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getPosts } from '../lib/content';
 /* /sitemap.xml: the public pages and every published post, for search engines. Referenced from public/robots.txt. */
-const PAGES = ['/', '/timeline', '/blog', '/community', '/faq', '/privacy', '/terms'];
+const PAGES = ['/', '/timeline', '/blog', '/community', '/leaderboard', '/faq', '/privacy', '/terms'];
 const esc = (s: string) =>
   s.replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[c]!);
 const url = (loc: string, lastmod?: Date) =>
