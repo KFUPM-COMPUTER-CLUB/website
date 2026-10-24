@@ -227,5 +227,8 @@ export type PostSummary = {
   dir: 'ltr' | 'rtl';
   status: string;
 };
+/* One row of the writers' leaderboard on /blog (writers_leaderboard() in 0011_featured_posts.sql):
+ * posts published this term and reads this term. handle is null in seed mode. */
+export type Writer = { handle: string | null; name: string; avatarUrl: string | null; posts: number; reads: number };
 /* Exactly one of html (editor HTML from the database) and entry (an Astro content entry, seed mode) is set. */
 export type PostFull = PostSummary & { html: string | null; entry: any | null; coverKey: string | null };

@@ -24,7 +24,7 @@ const short = (d: Date) =>
   </section>
   <section class="section">
     <div class="container">
-      <article class="prose" dir={post.dir} data-prose>
+      <article class="prose" dir={post.dir} data-prose data-read={post.entry ? undefined : post.id}>
         {Content ? <Content /> : <Fragment set:html={post.html || ''} />}
       </article>
       {post.tags.length > 0 && (
@@ -65,4 +65,5 @@ const short = (d: Date) =>
 
 <script>
   import '../../scripts/highlight.js';
+  import '../../scripts/read.js';
 </script>

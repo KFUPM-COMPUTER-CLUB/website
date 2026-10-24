@@ -836,6 +836,20 @@ body.scrolled .scroll-hint { opacity: 0; }
 .post:hover .post__title { color: var(--blue); }
 .post__author { margin: 0; font: 600 11px/1.4 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .post__excerpt { margin: 4px 0 0; color: var(--text-2); font-size: 15px; line-height: 1.55; }
+.blog__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+.blog__grid .posts { max-width: none; margin: 0; }
+.blog__side { position: sticky; top: calc(var(--header-h) + 24px); }
+.post--featured { grid-template-columns: minmax(0, 1fr); padding: 28px; border-color: var(--blue); background: var(--blue-soft); }
+.post--featured .post__title { font-size: clamp(26px, 3.2vw, 36px); }
+.post__flag { margin: 0; color: var(--blue); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+.writers { padding: 20px 22px; border: 1px solid var(--line-strong); }
+.writers h2 { margin: 0; }
+.writers__term { margin: 4px 0 0; color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.writers .hint { margin: 12px 0 0; }
+.writers ol { margin: 12px 0; padding-left: 20px; display: grid; gap: 8px; }
+.writers li { display: grid; gap: 2px; }
+.writers li .mono { color: var(--muted); font-size: 12px; }
+@media (max-width: 900px) { .blog__grid { grid-template-columns: 1fr; } .blog__side { position: static; } }
 @media (max-width: 520px) { .post { grid-template-columns: 70px minmax(0, 1fr); gap: 14px; padding: 16px; } .post__date b { font-size: 18px; } }
 
 /* CC | Blogs and CC | Events page marks, same build as the CC | KFUPM mark on the home page */
