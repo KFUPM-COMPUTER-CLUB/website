@@ -108,6 +108,11 @@ const extra = res.key === 'impact' ? [{ href: '/admin/impact-items', label: 'Imp
                   Registrations
                 </a>
               )}
+              {res.key === 'events' && (
+                <a class="btn btn--tiny btn--ghost" href={`/admin/events/${r.id}/results`}>
+                  Results
+                </a>
+              )}
               {toggleCol && (
                 <form data-astro-reload method="post" action={`/api/admin/${res.key}`}>
                   <input type="hidden" name="_action" value="toggle" />

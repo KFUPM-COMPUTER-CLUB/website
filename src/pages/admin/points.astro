@@ -30,7 +30,7 @@ const when = (d: string) => fmtRiyadh(new Date(d), { day: 'numeric', month: 'sho
 
 <AdminLayout
   title="Points"
-  lead={`Automatic: ${POINT_VALUES.events} for attending an event, ${POINT_VALUES.posts} for a published post, ${POINT_VALUES.flag} for the flag. Competitions and anything else are awarded here.`}
+  lead={`Automatic: ${POINT_VALUES.events} for attending an event, ${POINT_VALUES.posts} for a published post, ${POINT_VALUES.flag} for the flag. Competition placings come from each event's Results page; anything else is awarded here.`}
 >
   <form data-astro-reload class="form card" method="post" action="/api/admin/points">
     <h2 class="h3">Award points</h2>
@@ -66,7 +66,7 @@ const when = (d: string) => fmtRiyadh(new Date(d), { day: 'numeric', month: 'sho
         <label for="category">Category</label>
         <select class="select" id="category" name="category">
           {POINT_CATEGORIES.map((c) => (
-            <option value={c} selected={c === 'competitions'}>
+            <option value={c} selected={c === 'other'}>
               {POINT_LABELS[c]}
             </option>
           ))}

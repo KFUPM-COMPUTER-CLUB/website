@@ -575,6 +575,11 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 .ev__title a { text-decoration: none; } .ev__title a:hover { color: var(--blue); }
 .ev__where { margin: 0; color: var(--muted); font-size: 11px; }
 .ev__summary { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 62ch; }
+.ev__results { margin: 12px 0 0; padding: 10px 12px; border-left: 2px solid var(--blue); background: var(--blue-soft); max-width: 62ch; }
+.ev__results > p { margin: 0 0 6px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+.ev__results ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; }
+.ev__results a { color: var(--text); }
+.ev__results .mono { color: var(--muted); font-size: 12px; }
 .ev__cal { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 10px 0 0; font-size: 12px; }
 .ev__cal a { color: var(--text-2); font: 700 11px/1 var(--font-head); letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--line-strong); padding-bottom: 2px; }
 .ev__cal a:hover { color: var(--blue); border-color: var(--blue); }
