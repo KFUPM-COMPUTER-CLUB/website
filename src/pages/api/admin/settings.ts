@@ -63,6 +63,7 @@ export const POST: APIRoute = handle(async (ctx) => {
         welcome: { subject: str(b.welcome_subject, 160), html: str(b.welcome_html, 5000) },
         status: { subject: str(b.status_subject, 160), html: str(b.status_html, 5000) },
         registration: { subject: str(b.registration_subject, 160), html: str(b.registration_html, 5000) },
+        digest: { subject: str(b.digest_subject, 160), html: str(b.digest_html, 5000) },
       };
       break;
     case 'home':

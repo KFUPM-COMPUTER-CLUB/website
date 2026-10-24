@@ -1,0 +1,53 @@
+---
+/* Where the unsubscribe link in the weekly digest lands; no sign-in needed. The page checks the link
+ * and asks for one click, which posts to /api/digest/unsubscribe: opening the link alone changes
+ * nothing, because mail scanners open links. The page depends on its query string, so it is listed
+ * in PERSONAL (src/middleware.ts) and left out of ISR (astro.config.mjs). */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { serviceReady, serviceKey } from '../lib/env';
+import { isUuid } from '../lib/api';
+import { verifyUnsubscribe } from '../lib/digest';
+import '../styles/app.css';
+const q = Astro.url.searchParams;
+const done = q.get('done') === '1';
+const error = q.get('error');
+const u = q.get('u') || '',
+  t = q.get('t') || '';
+const valid = !done && serviceReady() && isUuid(u) && (await verifyUnsubscribe(u, t, serviceKey));
+---
+
+<BaseLayout title="Weekly digest" noindex={true}>
+  <section class="page-head page-head--compact">
+    <div class="container">
+      <span class="eyebrow">Email</span>
+      <h1 class="h1">Weekly digest</h1>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {error && <p class="flash--error">{error}</p>}
+      {done ? (
+        <p class="flash--ok">
+          Done: you will not get the weekly digest any more. You can turn it back on from your{' '}
+          <a href="/me/profile">profile</a>.
+        </p>
+      ) : valid ? (
+        <form data-astro-reload class="form" method="post" action="/api/digest/unsubscribe">
+          <input type="hidden" name="u" value={u} />
+          <input type="hidden" name="t" value={t} />
+          <p class="lead">Stop the weekly email of upcoming events and new posts?</p>
+          <div class="form__actions">
+            <button class="btn" type="submit">
+              Unsubscribe
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p>
+          This unsubscribe link is not valid. <a href="/me/profile">Sign in</a> and untick the weekly digest on your
+          profile instead.
+        </p>
+      )}
+    </div>
+  </section>
+</BaseLayout>

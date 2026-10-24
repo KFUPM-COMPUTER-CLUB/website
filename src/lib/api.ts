@@ -5,7 +5,8 @@
  * only (the policies in supabase/migrations/0001_init.sql have no write rules), which keeps all
  * validation and sanitising in one place that cannot be skipped by calling PostgREST directly. */
 import type { APIContext } from 'astro';
-import { serviceReady } from './env';
+import { cronSecret, serviceReady } from './env';
+import { sameSecret } from './secret';
 import { serviceClient } from './supabase';
 import { atLeast, type Role } from './types';
 
@@ -34,6 +35,10 @@ export function requireRole(ctx: APIContext, min: Role) {
   if (!atLeast(ctx.locals.role, min)) throw new ApiError('You do not have permission to do that.', 403);
   return u;
 }
+/* The cron routes (/api/cron/*): Vercel sends "Authorization: Bearer <CRON_SECRET>"; when the secret
+ * is set, nothing else gets through. */
+export const cronAuthorized = (request: Request) =>
+  !cronSecret || sameSecret(request.headers.get('authorization') || '', `Bearer ${cronSecret}`);
 
 export const clientIp = (request: Request) =>
   request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'local';
