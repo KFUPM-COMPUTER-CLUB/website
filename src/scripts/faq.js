@@ -1,3 +1,7 @@
+/* In the latest commit, this file is not being used anymore.
+I'm keeping it in case I'll use its code for the language switch button in future commit
+same with couple lines in src/styles/global.css
+
 /* FAQ language toggle: shows the English or Arabic text of every entry. Only rendered when at
  * least one entry has an Arabic version. Loaded by src/pages/faq.astro. */
 import { onPage } from './page.js';

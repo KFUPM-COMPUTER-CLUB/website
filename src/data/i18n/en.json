@@ -16,5 +16,12 @@
   "footer.tagline": "A student club at KFUPM.",
   "footer.privacy": "Privacy",
   "footer.terms": "Terms",
-  "footer.source": "Source on GitHub"
+  "footer.source": "Source on GitHub",
+  "faq.pageTitle": "Questions",
+  "faq.description": "Common questions about joining and taking part in the KFUPM Computer Club.",
+  "faq.eyebrow": "Frequently asked questions",
+  "faq.title": "Questions people ask us.",
+  "faq.lead": "Short answers. If yours is not here, ask on X or at any event.",
+  "faq.join": "Join the club",
+  "faq.email": "Email us"
 }

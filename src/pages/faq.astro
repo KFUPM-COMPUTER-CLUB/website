@@ -2,68 +2,47 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CopyEmail from '../components/CopyEmail.astro';
 import { getFaq, getSettings } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const [faq, settings] = await Promise.all([getFaq(), getSettings()]);
 const email = settings.site.email;
-const hasArabic = faq.some((f) => f.qAr && f.aAr);
+const items = faq.map((f) => {
+  if (lang === 'ar' && f.qAr && f.aAr) return { q: f.qAr, a: f.aAr, lang: 'ar' };
+  return { q: f.q, a: f.a, lang: 'en' };
+});
 ---
 
-<BaseLayout title="Questions" description="Common questions about joining and taking part in the KFUPM Computer Club.">
+<BaseLayout title={t(lang, 'faq.pageTitle')} description={t(lang, 'faq.description')}>
   <section class="page-head">
     <div class="container">
-      <span class="eyebrow">Frequently asked questions</span>
-      <h1 class="h-display">Questions people ask us.</h1>
-      <p class="lead">Short answers. If yours is not here, ask on X or at any event.</p>
-      {hasArabic && (
-        <p class="faq__lang">
-          <button type="button" class="btn btn--ghost btn--small" data-faq-lang="en" aria-pressed="true">
-            English
-          </button>{' '}
-          <button type="button" class="btn btn--ghost btn--small" data-faq-lang="ar" aria-pressed="false">
-            العربية
-          </button>
-        </p>
-      )}
+      <span class="eyebrow">{t(lang, 'faq.eyebrow')}</span>
+      <h1 class="h-display">{t(lang, 'faq.title')}</h1>
+      <p class="lead">{t(lang, 'faq.lead')}</p>
     </div>
   </section>
   <section class="section">
     <div class="container" style="max-width:860px">
-      <div class="faq reveal" data-faq>
-        {faq.map((f, i) => (
+      <div class="faq reveal">
+        {items.map((f, i) => (
           <details open={i === 0}>
-            <summary>
-              <span data-lang="en">{f.q}</span>
-              {f.qAr && (
-                <span data-lang="ar" lang="ar" dir="rtl" hidden>
-                  {f.qAr}
-                </span>
-              )}
-            </summary>
+            <summary><span lang={f.lang} dir="auto">{f.q}</span></summary>
             <div class="faq__a">
-              <p data-lang="en">{f.a}</p>
-              {f.aAr && (
-                <p data-lang="ar" lang="ar" dir="rtl" hidden>
-                  {f.aAr}
-                </p>
-              )}
+              <p lang={f.lang} dir="auto">{f.a}</p>
             </div>
           </details>
         ))}
       </div>
       <div class="hero__actions" style="margin-top:40px">
         <a class="btn" href="/join">
-          Join the club <span aria-hidden="true">→</span>
+          {t(lang, 'faq.join')} <span aria-hidden="true">→</span>
         </a>
         {email && (
           <a class="btn btn--ghost" href={`mailto:${email}`}>
-            Email us
+            {t(lang, 'faq.email')}
           </a>
         )}
-        {email && <CopyEmail email={email} label="Club email" />}
+        {email && <CopyEmail email={email} label={t(lang, 'footer.clubEmail')} />}
       </div>
     </div>
   </section>
 </BaseLayout>
-
-<script>
-  import '../scripts/faq.js';
-</script>
