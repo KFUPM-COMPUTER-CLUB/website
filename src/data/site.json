@@ -17,10 +17,10 @@
   },
   "faq": [
     {
-      "q": "Do I need to study computer science?",
+      "q": "Do I need to be studying a technical field to join the club?",
       "a": "No. Members come from every college at KFUPM. If you are curious about technology, you belong here.",
-      "qAr": "هل يجب أن أدرس علوم الحاسب؟",
-      "aAr": "لا. ينتمي أعضاؤنا إلى جميع كليات جامعة الملك فهد للبترول والمعادن. إذا كان لديك فضول تجاه التقنية، فمكانك معنا."
+      "qAr": "هل يجب أن أدرس في تخصص تقني لأنضم للنادي؟",
+      "aAr": "لا. يأتي أعضاؤنا من مختلف كليات جامعة الملك فهد للبترول والمعادن. إذا كان لديك فضول تجاه التقنية، فمكانك معنا."
     },
     {
       "q": "Is it free?",
@@ -67,14 +67,14 @@
     {
       "q": "How do I get involved beyond attending?",
       "a": "Join a team: events, media or technical. Write for the blog. Or propose a workshop you want to run; the officers will help you set it up.",
-      "qAr": "كيف أشارك بما هو أكثر من الحضور؟",
-      "aAr": "انضم إلى أحد الفرق: الفعاليات أو الإعلام أو الفريق التقني. اكتب في المدونة. أو اقترح ورشة عمل تود تقديمها، وستساعدك الهيئة الإدارية على تنظيمها."
+      "qAr": "كيف أشارك بأكثر من مجرد الحضور؟",
+      "aAr": "انضم إلى أحد الفرق: الفعاليات أو الإعلام أو الفريق التقني. اكتب في المدونة. أو اقترح ورشة عمل تود تقديمها، وسيساعدك اﻹداريون على تنظيمها."
     },
     {
       "q": "Can I write for the blog?",
       "a": "Yes. Members write the posts: event recaps, tutorials, and what they learned. Talk to any officer and they will get you started.",
       "qAr": "هل يمكنني الكتابة في المدونة؟",
-      "aAr": "نعم. الأعضاء هم من يكتبون المقالات: ملخصات الفعاليات، والدروس التعليمية، وما تعلموه. تحدث إلى أي عضو في الهيئة الإدارية وسيساعدك على البدء."
+      "aAr": "نعم. الأعضاء هم من يكتبون المقالات: ملخصات الفعاليات، والدروس التعليمية، وما تعلموه. تحدث إلى أي عضو إداري وسيساعدك على البدء."
     },
     {
       "q": "My company wants to work with the club. Who do I contact?",
