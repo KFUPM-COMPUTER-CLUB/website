@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   DIGEST_DAYS,
+  DIGEST_RESERVE,
+  SEND_BUDGET_MS,
   digestSince,
   digestWeek,
   postsSince,
+  stopBefore,
   unsubscribeToken,
   upcomingFor,
   verifyUnsubscribe,
@@ -72,6 +75,35 @@ test('unsubscribe token: works for its own member only', async () => {
   assert.equal(await verifyUnsubscribe(alice, token, 'another-secret'), false);
   assert.equal(await verifyUnsubscribe(alice, token, ''), false);
   assert.equal(await verifyUnsubscribe(alice, '', secret), false);
+});
+
+test('queue run: stops starting sends once its time is used up, whatever the kind', () => {
+  assert.equal(stopBefore('welcome', 90, SEND_BUDGET_MS - 1), null);
+  assert.equal(stopBefore('welcome', 90, SEND_BUDGET_MS), 'time');
+  assert.equal(stopBefore('digest', 90, SEND_BUDGET_MS + 5_000), 'time');
+  // Well inside the 60 s function limit, with room for the last send and the counts after it.
+  assert.ok(SEND_BUDGET_MS <= 45_000);
+});
+
+test('queue run: digests leave the reserve free, other mail may use it', () => {
+  assert.equal(stopBefore('digest', DIGEST_RESERVE + 1, 0), null);
+  assert.equal(stopBefore('digest', DIGEST_RESERVE, 0), 'reserve');
+  assert.equal(stopBefore('digest', 0, 0), 'reserve');
+  for (const kind of ['welcome', 'status', 'registration', 'other']) assert.equal(stopBefore(kind, 1, 0), null);
+});
+
+test('queue run: a fresh day with a digest backlog sends the urgent mail and stops at the reserve', () => {
+  // The rows a run sees, in priority order: two welcomes, a reservation copy, then a large digest backlog.
+  const rows = ['welcome', 'welcome', 'registration', ...Array<string>(200).fill('digest')];
+  let left = 90,
+    sent = 0;
+  for (const kind of rows) {
+    if (stopBefore(kind, left, 0)) break;
+    sent++;
+    left--;
+  }
+  assert.equal(sent, 90 - DIGEST_RESERVE);
+  assert.equal(left, DIGEST_RESERVE);
 });
 
 test('sameSecret compares content and length', () => {

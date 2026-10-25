@@ -12,7 +12,8 @@ const run: APIRoute = async ({ request }) => {
   if (!cronAuthorized(request)) return json({ ok: false, error: 'Unauthorized' }, 401);
   if (!serviceReady()) return json({ ok: false, reason: 'database not configured' });
   const keepalive = await pingKeepAlive();
-  // 80 of the 90-a-day budget: the rest stays free for emails sent straight away during the day.
+  // At most 80 of the 90-a-day budget, so the rest stays free for emails sent straight away during the
+  // day; digests stop earlier (DIGEST_RESERVE), and the run stops after SEND_BUDGET_MS (src/lib/digest.ts).
   const r = await sendPending(80);
   return json({ ok: true, keepalive, ...r, quota: await quota() });
 };

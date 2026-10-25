@@ -7,14 +7,29 @@
  * 3000 a month) with a margin: DAILY_LIMIT is 90 so a retry or a test from the Resend dashboard
  * never hits the hard cap. What does not fit today rolls to tomorrow and goes out on the next
  * daily run, highest priority first (welcome mails before registration copies). Days are counted
- * on the Riyadh calendar (UTC+3, no daylight saving). Server only: everything here uses the
- * service key, and every function is a no-op that never throws when the database or Resend is
- * not configured, so a missing email never fails the request that triggered it. */
+ * on the Riyadh calendar (UTC+3, no daylight saving).
+ *
+ * A run starts no new send after 40 seconds (SEND_BUDGET_MS), so it ends inside the 60 s function
+ * limit and the rest waits for the next run. Digests go last and never use the last 30 sends of a day
+ * (DIGEST_RESERVE), which stay free for mail sent straight away. Each weekly run first drops the
+ * digests still queued from earlier weeks, and turning the digest off drops the member's queued one.
+ *
+ * Server only: everything here uses the service key, and every function is a no-op that never throws
+ * when the database or Resend is not configured, so a missing email never fails the request that
+ * triggered it. */
 import { Resend } from 'resend';
 import { serviceReady, resendReady, resendKey, emailFrom, siteUrl, serviceKey } from './env';
 import { serviceClient } from './supabase';
 import { getWhatsappGroups, type Group } from './whatsapp';
-import { digestSince, digestWeek, postsSince, unsubscribeToken, upcomingFor } from './digest';
+import {
+  digestSince,
+  digestWeek,
+  postsSince,
+  stopBefore,
+  unsubscribeToken,
+  upcomingFor,
+  type SendStop,
+} from './digest';
 import type { EventItem, PostSummary } from './types';
 
 export const DAILY_LIMIT = 90; // Resend free tier: 100 a day
@@ -29,7 +44,16 @@ export const PRIORITY: Record<EmailKind, number> = { welcome: 1, status: 3, regi
 export type Template = { subject: string; html: string };
 export type Templates = Record<TemplateKind, Template>;
 export type Vars = Record<string, string | number | null | undefined>;
-export type SendResult = { sent: number; rolled: number; failed: number; error?: string };
+/* held: rows the run picked but left queued, because its time ran out or only digests past the reserve
+ * were left (stopped says which). */
+export type SendResult = {
+  sent: number;
+  rolled: number;
+  failed: number;
+  held: number;
+  stopped?: SendStop;
+  error?: string;
+};
 export type Quota = {
   sentToday: number;
   sentMonth: number;
@@ -41,7 +65,7 @@ export type Quota = {
   warnMonthly: boolean;
   configured: boolean;
 };
-type QueueRow = { id: string; to_email: string; subject: string; html: string; attempts: number };
+type QueueRow = { id: string; to_email: string; subject: string; html: string; attempts: number; kind: string };
 const NOT_QUEUED = { queued: false, sent: false };
 
 /* ── Pure helpers (no database) ──────────────────────────────────────────── */
@@ -224,8 +248,8 @@ export async function enqueue({
 
 /* Sends what is due, highest priority (lowest number) first, within today's budget. Returns the counts; see drain() for the rules. */
 export async function sendPending(max = 50): Promise<SendResult> {
-  const { sent, rolled, failed, error } = await drain(max);
-  return error ? { sent, rolled, failed, error } : { sent, rolled, failed };
+  const { sent, rolled, failed, held, stopped, error } = await drain(max);
+  return { sent, rolled, failed, held, ...(stopped ? { stopped } : {}), ...(error ? { error } : {}) };
 }
 
 const sentSince = (sb: ReturnType<typeof serviceClient>, iso: string) =>
@@ -238,12 +262,16 @@ async function count(sb: ReturnType<typeof serviceClient>, where: (q: any) => an
 /* One pass over the queue:
  *  - picks queued rows due today (scheduled_for <= today), lowest priority number first, oldest first;
  *  - sends up to min(max, daily budget left, monthly budget left);
- *  - a row is claimed by bumping attempts before the send, so two overlapping runs cannot both send it;
- *  - success: status sent, sent_at; failure: error kept, retried tomorrow, failed for good after MAX_ATTEMPTS;
+ *  - stops early (stopBefore in digest.ts) once SEND_BUDGET_MS have passed, or when only digests are left
+ *    and the budget is down to DIGEST_RESERVE; those rows stay queued for a later run;
+ *  - a row is claimed by bumping attempts just before the send, so two overlapping runs cannot both send it;
+ *  - success: status sent, sent_at, written straight after the send; failure: error kept, retried tomorrow,
+ *    failed for good after MAX_ATTEMPTS;
  *  - when today's budget is used up, every row still due today rolls to tomorrow.
  * Without a database or Resend the queue is left untouched. */
 async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
-  const out = { sent: 0, rolled: 0, failed: 0, sentIds: [] as string[] };
+  const started = Date.now();
+  const out: SendResult & { sentIds: string[] } = { sent: 0, rolled: 0, failed: 0, held: 0, sentIds: [] };
   if (!serviceReady() || !resendReady() || max <= 0) return out;
   try {
     const sb = serviceClient();
@@ -255,7 +283,7 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
     if (budget > 0) {
       const { data, error } = await sb
         .from('email_queue')
-        .select('id,to_email,subject,html,attempts')
+        .select('id,to_email,subject,html,attempts,kind')
         .eq('status', 'queued')
         .lte('scheduled_for', b.today)
         .order('priority')
@@ -266,6 +294,15 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
       const rows = (data || []) as QueueRow[];
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        // Checked before the claim, so a run that stops leaves nothing claimed and unsent.
+        const stop = stopBefore(row.kind, Math.min(dayLeft, monthLeft), Date.now() - started);
+        if (stop) {
+          out.held = rows.length - i;
+          out.stopped = stop;
+          break;
+        }
+        // The pause comes before the claim, so the claim, the send and marking it sent follow each other.
+        if (i > 0) await sleep(SEND_GAP_MS);
         const attempts = (row.attempts || 0) + 1;
         const { data: claimed } = await sb
           .from('email_queue')
@@ -275,13 +312,14 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
           .eq('attempts', row.attempts || 0)
           .select('id');
         if (!claimed?.length) continue; // another run took it
-        if (i > 0) await sleep(SEND_GAP_MS);
         const failure = await deliver(resend, row);
         if (!failure) {
-          await sb
+          const { error: markError } = await sb
             .from('email_queue')
             .update({ status: 'sent', sent_at: new Date().toISOString(), error: null })
             .eq('id', row.id);
+          // The message went out; a row left queued here would be sent again by the next run.
+          if (markError) console.error(`email ${row.id} sent but not marked sent: ${markError.message}`);
           out.sent++;
           out.sentIds.push(row.id);
           dayLeft--;
@@ -461,7 +499,7 @@ export async function sendRegistrationCopy(profile: ProfileLike, event: EventLik
 /* ── The weekly digest ───────────────────────────────────────────────────── */
 
 type DigestEvent = Pick<EventItem, 'slug' | 'title' | 'start' | 'allDay' | 'location'>;
-type DigestPost = Pick<PostSummary, 'slug' | 'title' | 'date' | 'authorName'>;
+type DigestPost = Pick<PostSummary, 'slug' | 'title' | 'date' | 'authorName' | 'dir'>;
 type DigestMember = { id: string; email: string | null; name: string | null; handle: string | null };
 export type DigestResult = {
   ok: boolean;
@@ -471,18 +509,21 @@ export type DigestResult = {
   posts?: number;
   recipients?: number;
   queued?: number;
+  dropped?: number;
   error?: string;
 };
 const PAGE_ROWS = 1000; // PostgREST's default cap on rows per request
 const INSERT_ROWS = 500;
 
-/* The digest's two lists ({{eventsList}} and {{postsList}}), built from escaped parts. */
+/* The digest's two lists ({{eventsList}} and {{postsList}}), built from escaped parts. The email is
+ * lang="en", so titles, names and places, which may be Arabic, carry their own direction: dir="auto"
+ * (from the first strong letter), or rtl for a post written right to left. */
 export function eventsList(events: DigestEvent[], site = siteUrl): string {
   if (!events.length) return '<p>No events in the next two weeks.</p>';
   const items = events.map(
     (e) =>
-      `<li style="margin:0 0 8px"><a href="${escapeHtml(`${site}/timeline#ev-${e.slug}`)}" style="color:#2563EB">${escapeHtml(e.title)}</a><br>` +
-      `${escapeHtml(fmtWhen(e.start, e.allDay))}${e.location ? `, ${escapeHtml(e.location)}` : ''}</li>`,
+      `<li style="margin:0 0 8px"><a href="${escapeHtml(`${site}/timeline#ev-${e.slug}`)}" dir="auto" style="color:#2563EB">${escapeHtml(e.title)}</a><br>` +
+      `${escapeHtml(fmtWhen(e.start, e.allDay))}${e.location ? `, <span dir="auto">${escapeHtml(e.location)}</span>` : ''}</li>`,
   );
   return `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>`;
 }
@@ -490,8 +531,8 @@ export function postsList(posts: DigestPost[], site = siteUrl): string {
   if (!posts.length) return '<p>No new posts since the last digest.</p>';
   const items = posts.map(
     (p) =>
-      `<li style="margin:0 0 8px"><a href="${escapeHtml(`${site}/blog/${encodeURIComponent(p.slug)}`)}" style="color:#2563EB">${escapeHtml(p.title)}</a>` +
-      `${p.authorName ? ` by ${escapeHtml(p.authorName)}` : ''}</li>`,
+      `<li style="margin:0 0 8px"><a href="${escapeHtml(`${site}/blog/${encodeURIComponent(p.slug)}`)}" dir="${p.dir === 'rtl' ? 'rtl' : 'auto'}" style="color:#2563EB">${escapeHtml(p.title)}</a>` +
+      `${p.authorName ? ` by <span dir="auto">${escapeHtml(p.authorName)}</span>` : ''}</li>`,
   );
   return `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>`;
 }
@@ -519,13 +560,16 @@ async function digestMembers(sb: ReturnType<typeof serviceClient>): Promise<Dige
  * Nothing is queued either when there are no events in the next two weeks and no posts since the last
  * digest. Otherwise it queues one message per opted-in member at the lowest priority and sends none
  * itself: the daily cron delivers them after everything more urgent, and what does not fit in a day's
- * budget rolls to the next day. Each message carries the member's own unsubscribe link. */
+ * budget rolls to the next day. Each message carries the member's own unsubscribe link. Digests from
+ * earlier weeks that are still queued are dropped first, empty week or not: their events are partly
+ * past, and a backlog must not run into this week's. */
 export async function queueDigest(events: DigestEvent[], posts: DigestPost[], now = new Date()): Promise<DigestResult> {
   if (!serviceReady()) return { ok: false, error: 'database not configured' };
   const sb = serviceClient();
   const week = digestWeek(now);
   let claimed = false,
-    queued = 0;
+    queued = 0,
+    dropped = 0;
   try {
     const { data: prev, error: prevError } = await sb
       .from('digest_runs')
@@ -540,11 +584,20 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
     if (claimError) throw new Error(claimError.message);
     claimed = true;
 
+    // This week's claim was free, so every digest still queued belongs to an earlier week.
+    const { count: stale, error: dropError } = await sb
+      .from('email_queue')
+      .delete({ count: 'exact' })
+      .eq('kind', 'digest')
+      .eq('status', 'queued');
+    if (dropError) throw new Error(dropError.message);
+    dropped = stale || 0;
+
     const upcoming = upcomingFor(events, now);
     const fresh = postsSince(posts, digestSince(prev?.ran_at, now), now);
     const counts = { events: upcoming.length, posts: fresh.length };
     if (!upcoming.length && !fresh.length)
-      return { ok: true, week, ...counts, recipients: 0, queued: 0, skipped: 'no events and no posts' };
+      return { ok: true, week, ...counts, recipients: 0, queued: 0, dropped, skipped: 'no events and no posts' };
 
     const members = (await digestMembers(sb)).flatMap((m) => (isEmail(m.email) ? [{ ...m, email: m.email }] : []));
     const tpl = (await loadTemplates()).digest;
@@ -574,7 +627,7 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
       .from('digest_runs')
       .update({ ...counts, recipients: rows.length })
       .eq('week', week);
-    return { ok: true, week, ...counts, recipients: rows.length, queued };
+    return { ok: true, week, ...counts, recipients: rows.length, queued, dropped };
   } catch (e) {
     // With nothing queued yet, give the week back so a run by hand can retry. After a partial queue the
     // claim stays, or the retry would queue a second copy for the members already queued.
@@ -582,4 +635,20 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
     console.error('digest', e);
     return { ok: false, week, queued, error: errorText(e) };
   }
+}
+
+/* Turning the digest off (the unsubscribe link or the box on /me/profile) also drops the member's
+ * digest that is queued but not sent, or it could still arrive after the page said it is off. Queue
+ * rows carry the address, not the member, so pass every address the digest may have been queued to.
+ * Throws on a database error so the caller does not report success. */
+export async function dropQueuedDigest(emails: (string | null | undefined)[]): Promise<void> {
+  const to = [...new Set(emails.filter(isEmail).map((e) => e.trim()))];
+  if (!serviceReady() || !to.length) return;
+  const { error } = await serviceClient()
+    .from('email_queue')
+    .delete()
+    .eq('kind', 'digest')
+    .eq('status', 'queued')
+    .in('to_email', to);
+  if (error) throw new Error(error.message);
 }

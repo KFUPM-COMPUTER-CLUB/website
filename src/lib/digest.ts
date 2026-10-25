@@ -1,12 +1,31 @@
 /* The weekly digest's rules, without a database: which events and posts go in, which week a run
- * belongs to, and the unsubscribe token. src/lib/email.ts (queueDigest) supplies the data and the
- * secret; tests/digest.test.ts runs this file under plain node, which is why it imports no astro module. */
+ * belongs to, the unsubscribe token, and when a queue run stops sending. src/lib/email.ts (queueDigest,
+ * drain) supplies the data and the secret; tests/digest.test.ts runs this file under plain node, which
+ * is why it imports no astro module. */
 import type { EventItem, PostSummary } from './types.ts';
 import { hmac, sameSecret } from './secret.ts';
 
 export const DIGEST_DAYS = 14; // events starting within the next two weeks
 const DAY_MS = 86_400_000;
 const RIYADH_OFFSET_MS = 3 * 3_600_000; // Saudi Arabia has no daylight saving
+
+/* A queue run starts no new send after SEND_BUDGET_MS, well inside the 60 s function limit (maxDuration in
+ * astro.config.mjs): a run the platform cuts off can leave a message that went out still marked queued,
+ * and the next run sends it again. What a run leaves stays queued for the next one. */
+export const SEND_BUDGET_MS = 40_000;
+/* Digests never take the last DIGEST_RESERVE sends of the day (or month), so a welcome mail or a
+ * reservation copy sent during the day always has room, however many members take the digest. With
+ * the daily limit of 90 that is at most 60 digests a day. */
+export const DIGEST_RESERVE = 30;
+export type SendStop = 'time' | 'reserve';
+/* Whether a run may send its next row: null to go ahead, otherwise why it stops. `left` is the smaller
+ * of what remains of the day's and the month's budget. Rows come in priority order with digests last,
+ * so once a digest is held back everything after it is too. */
+export function stopBefore(kind: string, left: number, elapsedMs: number): SendStop | null {
+  if (elapsedMs >= SEND_BUDGET_MS) return 'time';
+  if (kind === 'digest' && left <= DIGEST_RESERVE) return 'reserve';
+  return null;
+}
 
 /* Events that start from now until DIGEST_DAYS from now, soonest first. One already under way is left
  * out: members heard about it in an earlier digest. */
