@@ -140,6 +140,12 @@ h3, .h3 { font-size: clamp(20px, 2vw, 24px); line-height: 1.25; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .skip-link { position: absolute; left: -9999px; }
 .skip-link:focus { left: 16px; top: 16px; z-index: 200; padding: 8px 16px; background: var(--blue); color: #fff; }
+.badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.badge-list li { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line-strong); }
+.badge-list img { flex: none; width: 40px; height: 40px; }
+.badge-list span { display: grid; gap: 2px; font-size: 15px; line-height: 1.35; }
+.badge-list time { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
+.badge-list__ref { color: var(--text-2); font-size: 14px; }
 .back-to-top { display: flex; justify-content: flex-end; padding-top: 8px; padding-bottom: 48px; }
 .meta { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; font: 500 13px/1.6 var(--font-mono); color: var(--muted); }
 .meta span::before { content: "// "; color: var(--c, var(--blue)); }

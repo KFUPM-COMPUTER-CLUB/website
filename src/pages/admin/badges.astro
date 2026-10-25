@@ -1,0 +1,135 @@
+---
+/* Badges (officer and up): award the badges officers give (Hackathon winner, Top writer of the semester)
+ * and see the latest awards of every kind. Automatic badges (First post, 5 events, Flag solver) come
+ * from the database triggers in 0014_badges.sql and are listed for reference only. Posts to
+ * /api/admin/badges. */
+import AdminLayout from '../../components/AdminLayout.astro';
+import { serviceClient } from '../../lib/supabase';
+import { atLeast } from '../../lib/types';
+import { fmtRiyadh, riyadhDate } from '../../lib/content';
+import { BADGES, OFFICER_BADGES, badgeName } from '../../lib/badges';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+const sb = serviceClient();
+const [{ data: awards, error }, { data: members }] = await Promise.all([
+  sb
+    .from('member_badges')
+    .select('id,badge,awarded_at,reference,auto, member:profiles!member_badges_user_id_fkey(name,handle)')
+    .order('awarded_at', { ascending: false })
+    .limit(200),
+  sb.from('profiles').select('handle,name').eq('onboarded', true).not('handle', 'is', null).order('name'),
+]);
+---
+
+<AdminLayout title="Badges" lead="Milestones on member profiles. Three are automatic; officers award the other two.">
+  {error && <p class="flash--error">The badges tables are missing: run the 0014_badges.sql migration.</p>}
+  <form data-astro-reload class="form card" method="post" action="/api/admin/badges">
+    <h2 class="h3">Award a badge</h2>
+    <datalist id="members">
+      {(members || []).map((m: any) => (
+        <option value={m.handle}>{m.name}</option>
+      ))}
+    </datalist>
+    <div class="form__row">
+      <div class="field">
+        <label for="member">Member handle</label>
+        <input
+          class="input"
+          id="member"
+          name="member"
+          list="members"
+          required
+          placeholder="john_doe"
+          autocapitalize="none"
+          spellcheck="false"
+        />
+      </div>
+      <div class="field">
+        <label for="badge">Badge</label>
+        <select class="select" id="badge" name="badge">
+          {OFFICER_BADGES.map((k) => (
+            <option value={k}>{BADGES[k].name}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+    <div class="form__row">
+      <div class="field">
+        <label for="reference">For</label>
+        <input
+          class="input"
+          id="reference"
+          name="reference"
+          required
+          maxlength="120"
+          placeholder="Techathon 2026 or Fall 2026"
+        />
+      </div>
+      <div class="field">
+        <label for="date">Date</label>
+        <input class="input" id="date" name="date" type="date" value={riyadhDate(new Date())} />
+      </div>
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--small" type="submit">
+        Award
+      </button>
+    </div>
+  </form>
+
+  <div class="table-wrap" style="margin-top:24px">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Badge</th>
+          <th>For</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {(awards || []).map((a: any) => (
+          <tr>
+            <td>
+              {a.member?.name}
+              <br />
+              <span class="mono">@{a.member?.handle}</span>
+            </td>
+            <td>{badgeName(a.badge)}</td>
+            <td>
+              <bdi>{a.reference || ''}</bdi>
+            </td>
+            <td class="mono">
+              {fmtRiyadh(new Date(a.awarded_at), { day: 'numeric', month: 'short', year: 'numeric' })}
+            </td>
+            <td>
+              {a.auto ? (
+                <span class="chip">automatic</span>
+              ) : (
+                <form
+                  data-astro-reload
+                  method="post"
+                  action="/api/admin/badges"
+                  onsubmit="return confirm('Remove this badge?')"
+                >
+                  <input type="hidden" name="_action" value="remove" />
+                  <input type="hidden" name="id" value={a.id} />
+                  <button class="btn btn--tiny btn--ghost" type="submit">
+                    Remove
+                  </button>
+                </form>
+              )}
+            </td>
+          </tr>
+        ))}
+        {!awards?.length && (
+          <tr>
+            <td colspan="5" class="hint">
+              No badges yet.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
