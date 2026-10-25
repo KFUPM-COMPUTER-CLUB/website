@@ -15,13 +15,15 @@ import {
 } from '../../../lib/api';
 import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
+import { dropQueuedDigest } from '../../../lib/email';
 import { HANDLE_RE } from '../../../lib/types';
 
 export const prerender = false;
 /* Edits the signed-in member's own profile (ownership is the session's user id; no role needed).
  * Only fields present in the body change, so a JSON client may PATCH one field; the HTML form on
  * /me/profile sends them all. Checkboxes are the exception: an unticked box is simply absent from a
- * form post, so for HTML requests show_in_contributors and show_on_leaderboard are always taken from the form. */
+ * form post, so for HTML requests show_in_contributors, show_on_leaderboard and digest_opt_in are always
+ * taken from the form. */
 export const POST: APIRoute = handle(async (ctx) => {
   const user = requireUser(ctx);
   await guardRate(ctx.request, 'profile', 20, 600);
@@ -55,6 +57,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   }
   if ('show_in_contributors' in b || wantsHtml(ctx.request)) patch.show_in_contributors = bool(b.show_in_contributors);
   if ('show_on_leaderboard' in b || wantsHtml(ctx.request)) patch.show_on_leaderboard = bool(b.show_on_leaderboard);
+  if ('digest_opt_in' in b || wantsHtml(ctx.request)) patch.digest_opt_in = bool(b.digest_opt_in);
   if (b.avatar instanceof File && b.avatar.size > 0)
     patch.avatar_url = (await storeImage(b.avatar, 'Profile photo', user.id, ['avatar'])).sizes['480'];
   const save = () => serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();
@@ -70,6 +73,8 @@ export const POST: APIRoute = handle(async (ctx) => {
     ({ data, error } = await save());
   }
   if (error) throw new ApiError(error.message.includes('handle') ? 'That handle is taken.' : error.message);
+  // Digest off: drop one already queued, under the old address too when this save changed it.
+  if (patch.digest_opt_in === false) await dropQueuedDigest([data.email, ctx.locals.profile?.email]);
   return wantsHtml(ctx.request) ? ctx.redirect('/me/profile?ok=Saved.', 303) : ok({ profile: data });
 });
 export const PATCH = POST;

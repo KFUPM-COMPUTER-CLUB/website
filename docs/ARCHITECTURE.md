@@ -10,7 +10,7 @@ flowchart LR
   V -->|PKCE cookies| AUTH[Supabase Auth<br/>GitHub, Google]
   V -->|uploads, signed URLs| ST[Supabase Storage<br/>media · files · drafts]
   V -->|queued, max 90 a day| R[Resend]
-  CRON[Vercel cron, daily] --> V
+  CRON[Vercel cron, daily and weekly] --> V
   V -.->|no keys: seed JSON| SEED[src/data]
 ```
 
@@ -19,7 +19,7 @@ flowchart LR
 1. `src/middleware.ts` runs first. On personal routes (`/me`, `/admin`, `/onboarding`, `/auth`, `/api`, `/join`) it reads the session from cookies and puts `user`, `profile` and `role` on `Astro.locals`. Public routes skip that entirely, because a cached page must never contain one person's data. On every `/api` and `/auth` mutation it checks the request came from this site.
 2. Pages read data through `src/lib/content.ts`. With `PUBLIC_SUPABASE_URL` set it queries Postgres with the anon key (so row level security applies); without it, it serves `src/data/*.json`. Photos resolve through `src/lib/photos.ts` to WebP sizes in Storage or to seed images Astro optimises.
 3. Writes go through API routes in `src/pages/api/` with the service key, after `requireRole` or an ownership check. They log to `audit_log`, call `bust()` to clear the in-memory memo, and ISR expiry does the rest.
-4. Email goes into `email_queue`; `src/lib/email.ts` sends immediately while under the daily budget and the daily cron (`/api/cron/daily`) sends the rest by priority and keeps the free Supabase project awake.
+4. Email goes into `email_queue`; `src/lib/email.ts` sends immediately while under the daily budget and the daily cron (`/api/cron/daily`) sends the rest by priority and keeps the free Supabase project awake. The weekly cron (`/api/cron/weekly`) queues the opt-in digest at the lowest priority for the daily run to send.
 
 ## Roles
 
@@ -54,7 +54,7 @@ Roles are ranks: an officer can do what a reviewer can. `has_role()` in SQL and 
 | `settings`                                                                                     | key → JSON: `site`, `links`, `home`, `banner`, `made_by` (public); `whatsapp_groups`, `email_templates` (admins) | public keys only                                    | a trigger refuses invite links under any public key                                                                                                                                                                                                 |
 | `flag_solvers`                                                                                 | names from the hidden challenge                                                                                  | approved rows                                       | moderated in admin                                                                                                                                                                                                                                  |
 | `points` (migrations 0005, 0006)                                                               | one row per award: member, amount, category, reason, event or post, automatic or by whom                         | own rows; officers all                              | never a running total; automatic awards are triggers on `registrations`, `posts`, `flag_solvers` and `event_results`; public totals through `member_points()` and `leaderboard()`; names on `/leaderboard` only with `profiles.show_on_leaderboard` |
-| `email_queue`, `audit_log`, `rate_limits`, `keepalive`                                         | operations                                                                                                       | none                                                | service key only                                                                                                                                                                                                                                    |
+| `email_queue`, `audit_log`, `rate_limits`, `keepalive`, `digest_runs` (0009)                   | operations; `digest_runs` holds one row per weekly digest, which stops a second run in the same week             | none                                                | service key only; the digest goes to members with `profiles.digest_opt_in`                                                                                                                                                                          |
 
 Everything is in `supabase/migrations/0001_init.sql`, commented. New tables go in new migration files.
 

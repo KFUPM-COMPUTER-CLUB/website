@@ -98,6 +98,8 @@ export type Profile = {
   show_in_contributors: boolean;
   /* Name and photo on /leaderboard and points on /u/<handle> (0006_leaderboard.sql); off by default. */
   show_on_leaderboard?: boolean;
+  /* The weekly digest email (0009_digest.sql); off by default, also turned off by its unsubscribe link. */
+  digest_opt_in?: boolean;
   onboarded: boolean;
   suspended: boolean;
   created_at: string;

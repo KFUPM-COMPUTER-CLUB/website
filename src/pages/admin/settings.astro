@@ -156,10 +156,15 @@ const LINKS = [
         '{{name}} {{siteUrl}} {{whatsappLinks}} {{postTitle}} {{status}} {{comment}} {{eventTitle}} {{eventWhen}} {{eventLocation}} {{calendarLinks}}'
       }
     </p>
+    <p class="hint">
+      Weekly digest: {'{{name}} {{siteUrl}} {{eventsList}} {{postsList}}'}, the lists of events in the next two weeks
+      and posts since the last digest. Every digest ends with the member's unsubscribe link, whatever the template says.
+    </p>
     {[
       ['welcome', 'Welcome'],
       ['status', 'Post status change'],
       ['registration', 'Reservation copy'],
+      ['digest', 'Weekly digest'],
     ].map(([k, label]) => (
       <>
         <div class="field">
