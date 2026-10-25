@@ -1,8 +1,8 @@
 /* Thin bridge between the API routes and email.ts. The glob import keeps Resend and the email
  * module out of a route's bundle until a message is actually sent, and the try/catch means a
  * failed email never fails the request (onboarding, registration, review) that triggered it.
- * Callers: the onboarding route, the event registration route, the post review route, and the
- * admin dashboard for the quota. */
+ * Callers: the onboarding route, the event registration route, the post review route, the profile
+ * route (a digest turned off), and the admin dashboard for the quota. */
 const mods = import.meta.glob('./email.ts');
 const email = async () => {
   const load = mods['./email.ts'];
@@ -30,6 +30,14 @@ export async function notifyRegistration(profile: any, event: any, calendarLinks
     await m?.sendRegistrationCopy?.(profile, event, calendarLinksHtml);
   } catch (e) {
     console.error('registration email', e);
+  }
+}
+export async function dropDigest(emails: (string | null | undefined)[]) {
+  try {
+    const m = await email();
+    await m?.dropQueuedDigest?.(emails);
+  } catch (e) {
+    console.error('drop digest', e);
   }
 }
 export async function emailQuota() {

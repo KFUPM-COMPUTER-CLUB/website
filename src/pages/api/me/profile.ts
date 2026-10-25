@@ -15,7 +15,7 @@ import {
 } from '../../../lib/api';
 import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
-import { dropQueuedDigest } from '../../../lib/email';
+import { dropDigest } from '../../../lib/notify';
 import { HANDLE_RE } from '../../../lib/types';
 
 export const prerender = false;
@@ -75,7 +75,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   }
   if (error) throw new ApiError(error.message.includes('handle') ? 'That handle is taken.' : error.message);
   // Digest off: drop one already queued, under the old address too when this save changed it.
-  if (patch.digest_opt_in === false) await dropQueuedDigest([data.email, ctx.locals.profile?.email]);
+  if (patch.digest_opt_in === false) await dropDigest([data.email, ctx.locals.profile?.email]);
   return wantsHtml(ctx.request) ? ctx.redirect('/me/profile?ok=Saved.', 303) : ok({ profile: data });
 });
 export const PATCH = POST;

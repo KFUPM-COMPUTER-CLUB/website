@@ -2,9 +2,9 @@
 -- kept in step by triggers like the points in 0005: First post (a published post), 5 events (five
 -- published events attended) and Flag solver (an approved solve). Two are awarded by officers on
 -- /admin/badges: Hackathon winner and Top writer of the semester, each with a reference ("Techathon
--- 2026", "Fall 2026"). Badges show on /me and, while the member leaves "Show my badges" ticked
--- (profiles.show_badges, off by default, a member opts in), on their public profile. Every award, change and removal is in
--- the audit log; the automatic ones cannot be undone there. Safe to run again.
+-- 2026", "Fall 2026"). Badges show on /me and, once the member ticks "Show my badges"
+-- (profiles.show_badges, off by default), on their public profile. Every award, change and removal is
+-- in the audit log; the automatic ones cannot be undone there. Safe to run again.
 
 create table if not exists public.badges (
   key text primary key,
