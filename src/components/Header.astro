@@ -33,7 +33,12 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 <header class="site-header">
   <div class="container site-header__inner">
     <div class="site-header__brand">
-      <a class="site-logo" href={localePath(lang, '/')} aria-label={`${site.name} home`} aria-current={path === '/' ? 'page' : undefined}>
+      <a
+        class="site-logo"
+        href={localePath(lang, '/')}
+        aria-label={`${site.name} home`}
+        aria-current={path === '/' ? 'page' : undefined}
+      >
         <span class="site-logo__stack">
           <Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} />
           <Image
@@ -74,10 +79,22 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         </a>
       </nav>
       <div class="site-header__tools">
-        <button type="button" class="term-open" data-term-open aria-label={t(lang, 'nav.openTerminal')} title={t(lang, 'nav.terminal')}>
+        <button
+          type="button"
+          class="term-open"
+          data-term-open
+          aria-label={t(lang, 'nav.openTerminal')}
+          title={t(lang, 'nav.terminal')}
+        >
           &gt;_
         </button>
-        <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label={t(lang, 'nav.openMenu')}>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-controls="site-nav"
+          aria-expanded="false"
+          aria-label={t(lang, 'nav.openMenu')}
+        >
           {t(lang, 'nav.menu')}
         </button>
       </div>

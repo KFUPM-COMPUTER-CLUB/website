@@ -926,3 +926,15 @@ body.scrolled .scroll-hint { opacity: 0; }
 .hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable { color: #BFDBFE; }
 .prose hr { margin: 48px 0; border: 0; border-top: 1px solid var(--line-strong); }
 .prose [dir="rtl"] { text-align: right; } .prose [dir="rtl"] ul { padding-right: 1.4em; padding-left: 0; }
+
+/* RTL overrides (Arabic) */
+[dir="rtl"] .site-nav a:not(.btn)::after { transform-origin: left; }
+[dir="rtl"] .site-nav a:not(.btn):hover::after, [dir="rtl"] .site-nav a[aria-current="page"]::after { transform-origin: right; }
+[dir="rtl"] .bars__fill { transform-origin: right; }
+[dir="rtl"] .stage__tab i::after { transform-origin: right; }
+[dir="rtl"] .btn:hover span, [dir="rtl"] .btn:hover svg { transform: translateX(-4px); }
+[dir="rtl"] .reel__link:hover, [dir="rtl"] .reel__link[data-active] { transform: translateX(-4px); }
+[dir="rtl"] .marquee__track { animation-name: marquee-rtl; }
+@keyframes marquee-rtl { to { transform: translateX(50%); } }
+[dir="rtl"] .strip--moving .strip__track { animation-name: strip-rtl; }
+@keyframes strip-rtl { to { transform: translateX(50%); } }
