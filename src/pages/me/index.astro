@@ -38,6 +38,8 @@ const [{ data: posts }, { data: regs }, groups, { data: points }, dashboard] = a
   getDashboard(user!.id),
 ]);
 const tiles = dashboard ? dashboardTiles(dashboard) : [];
+// The small counters below repeat posts, reservations and points, so they only show when the tiles
+// could not load; otherwise the same numbers would appear twice with different meanings.
 const pointsTotal = (points || []).reduce((s: number, r: any) => s + r.amount, 0);
 const welcome = Astro.url.searchParams.has('welcome');
 ---
@@ -89,18 +91,22 @@ const welcome = Astro.url.searchParams.has('welcome');
     </p>
   </div>
   <div class="cards" style="margin-top:16px">
-    <div class="stat">
-      <b>{posts?.length || 0}</b>
-      <span>recent posts</span>
-    </div>
-    <div class="stat">
-      <b>{regs?.length || 0}</b>
-      <span>reservations</span>
-    </div>
-    <div class="stat">
-      <b>{pointsTotal}</b>
-      <span>points</span>
-    </div>
+    {tiles.length === 0 && (
+      <>
+        <div class="stat">
+          <b>{posts?.length || 0}</b>
+          <span>recent posts</span>
+        </div>
+        <div class="stat">
+          <b>{regs?.length || 0}</b>
+          <span>reservations</span>
+        </div>
+        <div class="stat">
+          <b>{pointsTotal}</b>
+          <span>points</span>
+        </div>
+      </>
+    )}
     <div class="stat">
       <b style="font-size:20px">{role}</b>
       <span>role</span>
