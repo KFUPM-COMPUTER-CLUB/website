@@ -1,11 +1,12 @@
 ---
-/* Placings for one event (officer and up): add, edit, reorder and remove winners. Each row posts to
- * /api/admin/events/<id>/results; its inputs sit in the table cells and join the row's form through
- * the form attribute. Results appear on the event's card on /timeline once the event is past, and as
- * "Wins" on the member's profile. A result naming a member awards its points once (0010_event_results.sql). */
+/* Placings for one competition or hackathon (officer and up): add, edit, reorder and remove winners.
+ * Each row posts to /api/admin/events/<id>/results; its inputs sit in the table cells and join the
+ * row's form through the form attribute. Results appear on the event's card on /timeline once the event
+ * is past, and as "Wins" on the member's profile. A result naming a member awards its points once
+ * (0010_event_results.sql). */
 import AdminLayout from '../../../../components/AdminLayout.astro';
 import { serviceClient } from '../../../../lib/supabase';
-import { atLeast, placePoints } from '../../../../lib/types';
+import { atLeast, hasResults, placePoints } from '../../../../lib/types';
 import { isUuid } from '../../../../lib/api';
 import { fmtRiyadh, ordinal } from '../../../../lib/content';
 if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
@@ -25,6 +26,9 @@ if (!ev) return new Response(null, { status: 404 });
 const rows: any[] = results || [];
 const next = rows.length ? Math.max(...rows.map((r) => r.place)) + 1 : 1;
 const action = `/api/admin/events/${ev.id}/results`;
+// Other event types get no placings (the API refuses them too); rows left from before a type change can
+// still be removed, which takes their points back.
+const open = hasResults(ev.type);
 ---
 
 <AdminLayout
@@ -49,6 +53,7 @@ const action = `/api/admin/events/${ev.id}/results`;
     page. Results show on the timeline once the event is past.
   </p>
   {error && <p class="flash--error">The results table is missing: run the 0010_event_results.sql migration.</p>}
+  {!open && <p class="flash--error">Results are for competitions and hackathons. Change the event type first.</p>}
   <datalist id="members">
     {(members || []).map((m: any) => (
       <option value={m.handle}>{m.name}</option>
@@ -135,7 +140,7 @@ const action = `/api/admin/events/${ev.id}/results`;
             <td style="white-space:nowrap">
               <form data-astro-reload id={`r-${r.id}`} class="inline-form" method="post" action={action}>
                 <input type="hidden" name="id" value={r.id} />
-                <button class="btn btn--tiny" type="submit" name="_action" value="update">
+                <button class="btn btn--tiny" type="submit" name="_action" value="update" disabled={!open}>
                   Save
                 </button>
                 <button
@@ -143,7 +148,7 @@ const action = `/api/admin/events/${ev.id}/results`;
                   type="submit"
                   name="_action"
                   value="up"
-                  disabled={i === 0}
+                  disabled={!open || i === 0}
                   formnovalidate
                   aria-label="Move up"
                 >
@@ -154,7 +159,7 @@ const action = `/api/admin/events/${ev.id}/results`;
                   type="submit"
                   name="_action"
                   value="down"
-                  disabled={i === rows.length - 1}
+                  disabled={!open || i === rows.length - 1}
                   formnovalidate
                   aria-label="Move down"
                 >
@@ -185,52 +190,54 @@ const action = `/api/admin/events/${ev.id}/results`;
     </table>
   </div>
 
-  <form data-astro-reload class="form card" method="post" action={action} style="margin-top:24px">
-    <h2 class="h3">Add a result</h2>
-    <div class="form__row">
-      <div class="field">
-        <label for="new-place">Place</label>
-        <input class="input" id="new-place" name="place" type="number" min="1" max="99" required value={next} />
+  {open && (
+    <form data-astro-reload class="form card" method="post" action={action} style="margin-top:24px">
+      <h2 class="h3">Add a result</h2>
+      <div class="form__row">
+        <div class="field">
+          <label for="new-place">Place</label>
+          <input class="input" id="new-place" name="place" type="number" min="1" max="99" required value={next} />
+        </div>
+        <div class="field">
+          <label for="new-member">Member handle</label>
+          <input
+            class="input"
+            id="new-member"
+            name="member"
+            list="members"
+            placeholder="john_doe"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
       </div>
-      <div class="field">
-        <label for="new-member">Member handle</label>
-        <input
-          class="input"
-          id="new-member"
-          name="member"
-          list="members"
-          placeholder="john_doe"
-          autocapitalize="none"
-          spellcheck="false"
-        />
+      <div class="form__row">
+        <div class="field">
+          <label for="new-team">Team (optional with a member)</label>
+          <input class="input" id="new-team" name="team" maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="new-prize">Prize in SAR (optional)</label>
+          <input class="input" id="new-prize" name="prize_sar" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="new-points">Points</label>
+          <input
+            class="input"
+            id="new-points"
+            name="points"
+            type="number"
+            min="0"
+            max="1000"
+            placeholder={`default ${placePoints(next)}`}
+          />
+        </div>
       </div>
-    </div>
-    <div class="form__row">
-      <div class="field">
-        <label for="new-team">Team (optional with a member)</label>
-        <input class="input" id="new-team" name="team" maxlength="80" />
+      <div class="form__actions">
+        <button class="btn btn--small" type="submit" name="_action" value="add">
+          Add result
+        </button>
       </div>
-      <div class="field">
-        <label for="new-prize">Prize in SAR (optional)</label>
-        <input class="input" id="new-prize" name="prize_sar" inputmode="numeric" />
-      </div>
-      <div class="field">
-        <label for="new-points">Points</label>
-        <input
-          class="input"
-          id="new-points"
-          name="points"
-          type="number"
-          min="0"
-          max="1000"
-          placeholder={`default ${placePoints(next)}`}
-        />
-      </div>
-    </div>
-    <div class="form__actions">
-      <button class="btn btn--small" type="submit" name="_action" value="add">
-        Add result
-      </button>
-    </div>
-  </form>
+    </form>
+  )}
 </AdminLayout>

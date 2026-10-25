@@ -30,6 +30,7 @@ import type {
   EventResult,
   Win,
 } from './types';
+import { hasResults } from './types';
 import siteJson from '../data/site.json';
 import committeesJson from '../data/committees.json';
 import eventsJson from '../data/events.json';
@@ -239,18 +240,20 @@ export function getResults(): Promise<Map<string, EventResult[]>> {
   });
 }
 /* A member's placings for the "Wins" section of /u/<handle>, newest event first. Only results of
- * published events come back (the read policy), and the event itself comes from getEvents(). */
+ * published events come back (the read policy). The event comes from getPastEvents() and must be a
+ * competition type, the same rule /timeline uses for its Results block, so a profile never shows a win
+ * before the timeline does. */
 export async function getWins(userId: string): Promise<Win[]> {
   if (!dbReady()) return [];
-  const [{ data, error }, events] = await Promise.all([
+  const [{ data, error }, past] = await Promise.all([
     db().from('event_results').select('event_id,place,team,prize_sar').eq('user_id', userId),
-    getEvents(),
+    getPastEvents(),
   ]);
   if (error) {
     console.error('wins', error.message);
     return [];
   }
-  const byId = new Map(events.map((e) => [e.id, e]));
+  const byId = new Map(past.filter((e) => hasResults(e.type)).map((e) => [e.id, e]));
   return (data || [])
     .flatMap((r: any) => {
       const event = byId.get(r.event_id);

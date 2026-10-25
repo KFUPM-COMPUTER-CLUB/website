@@ -53,7 +53,8 @@ const badges = [
   current && `Officer · ${current.title}`,
   committee?.name && `${committee.name} committee`,
   (officer || []).some((o: any) => !o.is_current) && 'Past officer',
-  wins.length > 0 && 'Competition winner',
+  // A podium finish, not any placing: the Wins list below still shows every place.
+  wins.some((w) => w.place <= 3) && 'Competition winner',
   (posts?.length || 0) > 0 && 'Writer',
   (regs || []).some((r: any) => r.attended) && 'Attended events',
   solved?.length && 'Flag solver',

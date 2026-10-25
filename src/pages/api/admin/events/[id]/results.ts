@@ -1,28 +1,19 @@
 import type { APIRoute } from 'astro';
-import {
-  handle,
-  requireRole,
-  readBody,
-  ApiError,
-  str,
-  int,
-  isUuid,
-  wantsHtml,
-  ok,
-  audit,
-} from '../../../../../lib/api';
+import { handle, requireRole, readBody, ApiError, str, isUuid, wantsHtml, ok, audit } from '../../../../../lib/api';
 import { serviceClient } from '../../../../../lib/supabase';
 import { bust } from '../../../../../lib/content';
-import { placePoints } from '../../../../../lib/types';
+import { hasResults, placePoints, wholeNumber } from '../../../../../lib/types';
 
 export const prerender = false;
 type Sb = ReturnType<typeof serviceClient>;
 
 /* The fields of one result from the form. A member is named by handle; a free-text team stands alone
- * or beside a member. An empty points field takes the default for the place; 0 means no points. */
+ * or beside a member. An empty points field takes the default for the place; 0 means no points.
+ * Numbers are read with wholeNumber(), not int(): parseInt saves "5k" as 5 and "1.5" as 1. An empty
+ * prize means no prize; a mistyped one is refused. */
 async function fields(sb: Sb, b: Record<string, any>) {
-  const place = int(b.place);
-  if (!place || place < 1 || place > 99) throw new ApiError('Place must be a number from 1 to 99.');
+  const place = wholeNumber(b.place);
+  if (!place || place > 99) throw new ApiError('Place must be a whole number from 1 to 99.');
   const handle = str(b.member, 40).replace(/^@/, '').toLowerCase();
   let user_id: string | null = null;
   if (handle) {
@@ -32,13 +23,11 @@ async function fields(sb: Sb, b: Record<string, any>) {
   }
   const team = str(b.team, 80) || null;
   if (!user_id && !team) throw new ApiError('Name a member (their handle), a team, or both.');
-  const prizeText = str(b.prize_sar, 20).replace(/[,\s]/g, '');
-  const prize_sar = prizeText ? int(prizeText) : null;
-  if (prize_sar !== null && (prize_sar < 0 || prize_sar > 10_000_000))
-    throw new ApiError('Prize must be in SAR, 0 or more.');
-  const pointsText = str(b.points, 10);
-  const points = pointsText ? int(pointsText) : placePoints(place);
-  if (points === null || points < 0 || points > 1000) throw new ApiError('Points must be a number from 0 to 1000.');
+  const prize_sar = wholeNumber(b.prize_sar);
+  if (Number.isNaN(prize_sar)) throw new ApiError('Prize must be a whole number of riyals, like 5000.');
+  if (prize_sar !== null && prize_sar > 10_000_000) throw new ApiError('Prize must be at most 10,000,000 SAR.');
+  const points = wholeNumber(b.points) ?? placePoints(place);
+  if (Number.isNaN(points) || points > 1000) throw new ApiError('Points must be a whole number from 0 to 1000.');
   return { place, user_id, team, prize_sar, points };
 }
 
@@ -51,10 +40,14 @@ export const POST: APIRoute = handle(async (ctx) => {
   const eventId = ctx.params.id;
   if (!isUuid(eventId)) throw new ApiError('Not found.', 404);
   const sb = serviceClient();
-  const { data: ev } = await sb.from('events').select('id').eq('id', eventId).maybeSingle();
+  const { data: ev } = await sb.from('events').select('id,type').eq('id', eventId).maybeSingle();
   if (!ev) throw new ApiError('Not found.', 404);
   const b = await readBody(ctx.request);
   const action = str(b._action, 10) || 'add';
+  // Placings are for competitions. Removing stays open so a result left behind when an event's type
+  // changed can still be cleared, which also takes its points back.
+  if (!hasResults(ev.type) && action !== 'remove')
+    throw new ApiError('Results are for competition and hackathon events only. Change the event type first.');
   const done = (message: string) => {
     bust();
     return wantsHtml(ctx.request)

@@ -1,8 +1,10 @@
 ---
 /* Points (officer and up): award or take back points by hand, and read the ledger. Automatic awards
- * (attendance, published posts, the flag) come from the triggers in 0005_points.sql and appear here
- * too, marked "automatic"; only manual ones can be removed. ?member=<handle> narrows the list to one
- * member and shows their total. Writes go to /api/admin/points, which logs every change. */
+ * (attendance, published posts, the flag, competition placings) come from the triggers in
+ * 0005_points.sql and 0010_event_results.sql and appear here too, marked "automatic"; only manual ones
+ * can be removed. Competitions are not offered as a manual category: the event's results pay them.
+ * ?member=<handle> narrows the list to one member and shows their total. Writes go to
+ * /api/admin/points, which logs every change. */
 import AdminLayout from '../../components/AdminLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { atLeast, POINT_CATEGORIES, POINT_LABELS, POINT_VALUES } from '../../lib/types';
@@ -65,7 +67,7 @@ const when = (d: string) => fmtRiyadh(new Date(d), { day: 'numeric', month: 'sho
       <div class="field">
         <label for="category">Category</label>
         <select class="select" id="category" name="category">
-          {POINT_CATEGORIES.map((c) => (
+          {POINT_CATEGORIES.filter((c) => c !== 'competitions').map((c) => (
             <option value={c} selected={c === 'other'}>
               {POINT_LABELS[c]}
             </option>
@@ -92,7 +94,7 @@ const when = (d: string) => fmtRiyadh(new Date(d), { day: 'numeric', month: 'sho
         name="reason"
         required
         maxlength="200"
-        placeholder="Techathon 2026, first place"
+        placeholder="Volunteered at the registration desk"
       />
       <small>The member sees this next to the points.</small>
     </div>

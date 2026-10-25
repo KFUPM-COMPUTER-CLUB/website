@@ -19,7 +19,7 @@ import {
 import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
-import type { EventItem, EventResult } from '../lib/types';
+import { hasResults, type EventItem, type EventResult } from '../lib/types';
 
 const [upcoming, past, results] = await Promise.all([getUpcomingEvents(), getPastEvents(), getResults()]);
 // Who placed: the member's name (linked while their profile is public), with the team name when there is one.
@@ -148,7 +148,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                       </h3>
                       <p class="ev__where mono">{e.location}</p>
                       <p class="ev__summary">{e.summary}</p>
-                      {!sec.up && results.get(e.id)?.length ? (
+                      {!sec.up && hasResults(e.type) && results.get(e.id)?.length ? (
                         <div class="ev__results">
                           <p class="mono">Results</p>
                           <ol>
