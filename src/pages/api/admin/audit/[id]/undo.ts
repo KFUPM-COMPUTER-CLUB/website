@@ -29,7 +29,8 @@ const UNDOABLE = new Set([
  *             or a row it references is gone. Files already removed from Storage do not come back.
  * An entry can be undone once (undone_at). The undo is itself logged with action "undo", which never
  * matches an undoable action, so there is no undo of an undo. UNDOABLE lists content tables only:
- * people, roles and reservations are deliberately left out, and the audit page hides the button for them. */
+ * people, roles and reservations are deliberately left out, and the audit page hides the button for them.
+ * Automatic badges are refused too: only the officer-awarded ones in member_badges can be undone. */
 export const POST: APIRoute = handle(async (ctx) => {
   const user = requireRole(ctx, 'admin');
   if (!isUuid(ctx.params.id)) throw new ApiError('Not found.', 404);
@@ -38,6 +39,10 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (!entry) throw new ApiError('Not found.', 404);
   if (entry.undone_at) throw new ApiError('Already undone.', 409);
   if (!UNDOABLE.has(entry.table_name)) throw new ApiError('This action cannot be undone from here.', 400);
+  // Automatic badges belong to the triggers in 0014_badges.sql. Restoring one by hand would show a badge the
+  // member no longer qualifies for, or drop one they still hold, until their next post, attendance or solve.
+  if (entry.table_name === 'member_badges' && (entry.after ?? entry.before)?.auto)
+    throw new ApiError("Automatic badges follow the member's activity and cannot be undone here.", 400);
   // Tables keyed by something other than id. Keep in step with lib/admin/resources.ts.
   const pk =
     entry.table_name === 'strip_photos'

@@ -1,9 +1,10 @@
 -- 0014: badges. A catalogue of milestones and one row per badge a member holds. Three are automatic,
 -- kept in step by triggers like the points in 0005: First post (a published post), 5 events (five
--- attended) and Flag solver (an approved solve). Two are awarded by officers on /admin/badges: Hackathon
--- winner and Top writer of the semester, each with a reference ("Techathon 2026", "Fall 2026"). Badges
--- show on /me and, while the member leaves "Show my badges" ticked (profiles.show_badges, on by
--- default), on their public profile. Every award and removal is in the audit log. Safe to run again.
+-- published events attended) and Flag solver (an approved solve). Two are awarded by officers on
+-- /admin/badges: Hackathon winner and Top writer of the semester, each with a reference ("Techathon
+-- 2026", "Fall 2026"). Badges show on /me and, while the member leaves "Show my badges" ticked
+-- (profiles.show_badges, on by default), on their public profile. Every award, change and removal is in
+-- the audit log; the automatic ones cannot be undone there. Safe to run again.
 
 create table if not exists public.badges (
   key text primary key,
@@ -39,11 +40,14 @@ create unique index if not exists member_badges_auto_once on public.member_badge
 alter table public.profiles add column if not exists show_badges boolean not null default true;
 
 -- ── Automatic badges ─────────────────────────────────────────────────────
--- One automatic badge for one member: present when p_at is set (dated p_at), gone when it is null. An
--- award or removal writes an audit row with no actor, so the log shows the system did it.
+-- One automatic badge for one member: present when p_at is set (dated p_at), gone when it is null. A
+-- badge the member already holds takes the new date and reference, so unpublishing a first post while a
+-- later one stays up moves the badge to that post instead of keeping the old title. An award, change or
+-- removal writes an audit row with no actor, so the log shows the system did it; a call that changes
+-- nothing writes nothing, which keeps the backfill below safe to run again.
 create or replace function public.set_auto_badge(p_user uuid, p_badge text, p_at timestamptz, p_reference text)
 returns void language plpgsql security definer set search_path = public as $$
-declare r public.member_badges;
+declare prev public.member_badges; r public.member_badges;
 begin
   if p_at is null then
     delete from public.member_badges where user_id = p_user and badge = p_badge and auto returning * into r;
@@ -51,18 +55,27 @@ begin
       insert into public.audit_log (action, table_name, row_id, before) values ('delete', 'member_badges', r.id::text, to_jsonb(r));
     end if;
   else
+    -- The row as it was, for the audit's "before"; locked so it cannot change before the upsert.
+    select * into prev from public.member_badges where user_id = p_user and badge = p_badge and auto for update;
     insert into public.member_badges (user_id, badge, awarded_at, reference, auto)
       values (p_user, p_badge, p_at, left(p_reference, 120), true)
-      on conflict do nothing returning * into r;
-    if found then
+      on conflict (user_id, badge) where auto do update
+        set awarded_at = excluded.awarded_at, reference = excluded.reference
+        where (member_badges.awarded_at, member_badges.reference) is distinct from (excluded.awarded_at, excluded.reference)
+      returning * into r;
+    -- No row back means the badge was already up to date.
+    if found and prev.id is null then
       insert into public.audit_log (action, table_name, row_id, after) values ('insert', 'member_badges', r.id::text, to_jsonb(r));
+    elsif found then
+      insert into public.audit_log (action, table_name, row_id, before, after)
+        values ('update', 'member_badges', r.id::text, to_jsonb(prev), to_jsonb(r));
     end if;
   end if;
 end $$;
 
 -- Makes a member's three automatic badges agree with their posts, attendance and flag, whatever changed.
 -- Each badge is dated by the moment it was earned: the first publish, the start of the fifth attended
--- event, the first approved solve.
+-- event, the first approved solve. Only published events count, like the ones on the timeline.
 create or replace function public.sync_member_badges(p_user uuid) returns void
 language plpgsql security definer set search_path = public as $$
 declare first_post record; fifth timestamptz; solved timestamptz;
@@ -72,7 +85,7 @@ begin
     where author_id = p_user and status = 'published' order by coalesce(published_at, created_at) limit 1;
   perform public.set_auto_badge(p_user, 'first_post', first_post.at, first_post.title);
   select e.starts_at into fifth from public.registrations r join public.events e on e.id = r.event_id
-    where r.user_id = p_user and r.attended order by e.starts_at offset 4 limit 1;
+    where r.user_id = p_user and r.attended and e.published order by e.starts_at offset 4 limit 1;
   perform public.set_auto_badge(p_user, 'five_events', fifth, null);
   select min(created_at) into solved from public.flag_solvers where user_id = p_user and approved;
   perform public.set_auto_badge(p_user, 'flag_solver', solved, null);
@@ -81,7 +94,10 @@ end $$;
 create or replace function public.badges_on_change() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if tg_table_name = 'posts' then
+  if tg_table_name = 'events' then
+    -- Publishing, hiding or moving an event changes what counts for 5 events, so everyone who attended it.
+    perform public.sync_member_badges(r.user_id) from public.registrations r where r.event_id = new.id and r.attended;
+  elsif tg_table_name = 'posts' then
     if tg_op <> 'INSERT' then perform public.sync_member_badges(old.author_id); end if;
     if tg_op <> 'DELETE' then perform public.sync_member_badges(new.author_id); end if;
   else
@@ -90,8 +106,9 @@ begin
   end if;
   return null;
 end $$;
+-- The title is the First post badge's reference, so a rename of that post updates it.
 drop trigger if exists posts_badges on public.posts;
-create trigger posts_badges after insert or delete or update of status, author_id, published_at
+create trigger posts_badges after insert or delete or update of status, author_id, published_at, title
   on public.posts for each row execute function public.badges_on_change();
 drop trigger if exists registrations_badges on public.registrations;
 create trigger registrations_badges after insert or delete or update of attended, user_id, event_id
@@ -99,6 +116,12 @@ create trigger registrations_badges after insert or delete or update of attended
 drop trigger if exists flag_solvers_badges on public.flag_solvers;
 create trigger flag_solvers_badges after insert or delete or update of approved, user_id
   on public.flag_solvers for each row execute function public.badges_on_change();
+-- An admin form saves every field, so only a real change of these two is worth a sync. A deleted event
+-- needs nothing here: its registrations go with it and their own trigger runs.
+drop trigger if exists events_badges on public.events;
+create trigger events_badges after update of published, starts_at on public.events for each row
+  when (old.published is distinct from new.published or old.starts_at is distinct from new.starts_at)
+  execute function public.badges_on_change();
 
 -- Award what members already earned before this table existed.
 select public.sync_member_badges(id) from public.profiles;

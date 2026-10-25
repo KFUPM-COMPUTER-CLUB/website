@@ -1,9 +1,9 @@
 ---
 /* Public member profile at /u/<handle>. Cached like every public page, so it reads with the anon
  * client and row level security does the filtering: profiles_public has no phone or email,
- * profile_events() returns only the events the member chose to show, profile_badges() only the badges
- * of a member who shows them, and only approved flag solvers are visible. The handle is lowercased
- * before the lookup, which is why handles are stored lowercase. */
+ * profile_events() returns only the events the member chose to show, and profile_badges() only the
+ * badges of a member who shows them. The handle is lowercased before the lookup, which is why handles
+ * are stored lowercase. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Badges from '../../components/Badges.astro';
 import { Image } from 'astro:assets';
@@ -17,40 +17,33 @@ if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, {
 const db = publicClient();
 const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
 if (!p) return new Response(null, { status: 404 });
-const [
-  { data: posts },
-  { data: regs },
-  { data: officer },
-  { data: solved },
-  settings,
-  { data: committee },
-  { data: points },
-  earned,
-] = await Promise.all([
-  db
-    .from('posts')
-    .select('slug,title,excerpt,published_at,category')
-    .eq('author_id', p.id)
-    .eq('status', 'published')
-    .order('published_at', { ascending: false }),
-  db.rpc('profile_events', { p_user: p.id }),
-  db
-    .from('officer_terms')
-    .select('title,committee,term,is_current')
-    .eq('user_id', p.id)
-    .order('is_current', { ascending: false })
-    .limit(3),
-  db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
-  getSettings(),
-  // committee_id is on profiles_public from 0003_committee_members.sql; before that it is undefined.
-  p.committee_id
-    ? db.from('committees').select('name').eq('id', p.committee_id).maybeSingle()
-    : Promise.resolve({ data: null as { name: string } | null }),
-  // Points show only for members who opted in on their profile (show_on_leaderboard, 0006_leaderboard.sql).
-  p.show_on_leaderboard ? db.rpc('member_points', { p_user: p.id }) : Promise.resolve({ data: null as number | null }),
-  // Badges (0014_badges.sql), empty when the member hides them.
-  getProfileBadges(p.id),
-]);
+const [{ data: posts }, { data: regs }, { data: officer }, settings, { data: committee }, { data: points }, earned] =
+  await Promise.all([
+    db
+      .from('posts')
+      .select('slug,title,excerpt,published_at,category')
+      .eq('author_id', p.id)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false }),
+    db.rpc('profile_events', { p_user: p.id }),
+    db
+      .from('officer_terms')
+      .select('title,committee,term,is_current')
+      .eq('user_id', p.id)
+      .order('is_current', { ascending: false })
+      .limit(3),
+    getSettings(),
+    // committee_id is on profiles_public from 0003_committee_members.sql; before that it is undefined.
+    p.committee_id
+      ? db.from('committees').select('name').eq('id', p.committee_id).maybeSingle()
+      : Promise.resolve({ data: null as { name: string } | null }),
+    // Points show only for members who opted in on their profile (show_on_leaderboard, 0006_leaderboard.sql).
+    p.show_on_leaderboard
+      ? db.rpc('member_points', { p_user: p.id })
+      : Promise.resolve({ data: null as number | null }),
+    // Badges (0014_badges.sql), empty when the member hides them.
+    getProfileBadges(p.id),
+  ]);
 const current = (officer || []).find((o: any) => o.is_current);
 const badges = [
   current && `Officer · ${current.title}`,
@@ -58,8 +51,7 @@ const badges = [
   (officer || []).some((o: any) => !o.is_current) && 'Past officer',
   (posts?.length || 0) > 0 && 'Writer',
   (regs || []).some((r: any) => r.attended) && 'Attended events',
-  // The Flag solver badge says it with its date, so the chip only stands in when badges are hidden.
-  solved?.length && !earned.some((b) => b.key === 'flag_solver') && 'Flag solver',
+  // Flag solver is a badge now (0014_badges.sql), shown or hidden with the member's other badges.
   `Member since ${String(p.created_at).slice(0, 4)}`,
 ].filter(Boolean) as string[];
 // The counts beside the photo; each links down to its list when there is one (an <a> without href is inert).

@@ -40,7 +40,11 @@ export const POST: APIRoute = handle(async (ctx) => {
   const day = str(b.date, 10);
   if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new ApiError('Date must be a day (YYYY-MM-DD).');
   // A bare day means that day in Riyadh; noon keeps it on the same date in any time zone nearby.
-  const awarded_at = day ? new Date(`${day}T12:00:00+03:00`).toISOString() : new Date().toISOString();
+  const at = day ? new Date(`${day}T12:00:00+03:00`) : new Date();
+  // An impossible day is either no date at all (2026-13-01) or rolls over into the next month (2026-02-30).
+  if (Number.isNaN(at.getTime()) || (day && at.toISOString().slice(0, 10) !== day))
+    throw new ApiError('Pick a valid date.');
+  const awarded_at = at.toISOString();
   const { data, error } = await sb
     .from('member_badges')
     .insert({ user_id: member.id, badge, reference, awarded_at, auto: false, awarded_by: officer.id })
