@@ -1,0 +1,243 @@
+---
+/* Placings for one competition or hackathon (officer and up): add, edit, reorder and remove winners.
+ * Each row posts to /api/admin/events/<id>/results; its inputs sit in the table cells and join the
+ * row's form through the form attribute. Results appear on the event's card on /timeline once the event
+ * is past, and as "Wins" on the member's profile. A result naming a member awards its points once
+ * (0010_event_results.sql). */
+import AdminLayout from '../../../../components/AdminLayout.astro';
+import { serviceClient } from '../../../../lib/supabase';
+import { atLeast, hasResults, placePoints } from '../../../../lib/types';
+import { isUuid } from '../../../../lib/api';
+import { fmtRiyadh, ordinal } from '../../../../lib/content';
+if (!atLeast(Astro.locals.role, 'officer')) return new Response('Officers only', { status: 403 });
+if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
+const sb = serviceClient();
+const [{ data: ev }, { data: results, error }, { data: members }] = await Promise.all([
+  sb.from('events').select('id,slug,title,type,starts_at').eq('id', Astro.params.id).maybeSingle(),
+  sb
+    .from('event_results')
+    .select('id,place,user_id,team,prize_sar,points, member:profiles(handle,name)')
+    .eq('event_id', Astro.params.id)
+    .order('place')
+    .order('created_at'),
+  sb.from('profiles').select('handle,name').eq('onboarded', true).not('handle', 'is', null).order('name'),
+]);
+if (!ev) return new Response(null, { status: 404 });
+const rows: any[] = results || [];
+const next = rows.length ? Math.max(...rows.map((r) => r.place)) + 1 : 1;
+const action = `/api/admin/events/${ev.id}/results`;
+// Other event types get no placings (the API refuses them too); rows left from before a type change can
+// still be removed, which takes their points back.
+const open = hasResults(ev.type);
+---
+
+<AdminLayout
+  title={`Results · ${ev.title}`}
+  lead={`${ev.type} · ${fmtRiyadh(new Date(ev.starts_at), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`}
+>
+  <p class="form__actions">
+    <a class="btn btn--small btn--ghost" href={`/admin/events/${ev.id}`}>
+      Edit event
+    </a>{' '}
+    <a class="btn btn--small btn--ghost" href={`/admin/events/${ev.id}/registrations`}>
+      Registrations
+    </a>{' '}
+    <a class="btn btn--small btn--ghost" href={`/timeline#ev-${ev.slug}`}>
+      View on the timeline
+    </a>
+  </p>
+  <p class="hint">
+    Name a member by their handle, a team, or both. A member earns the points once for this event (the best placing
+    counts); a team alone earns none. Leave points empty for the default ({placePoints(1)} for 1st, {placePoints(2)}
+    for 2nd, {placePoints(3)} for 3rd, {placePoints(4)} after) or type 0 for none. Do not also award these on the points
+    page. Results show on the timeline once the event is past.
+  </p>
+  {error && <p class="flash--error">The results table is missing: run the 0010_event_results.sql migration.</p>}
+  {!open && <p class="flash--error">Results are for competitions and hackathons. Change the event type first.</p>}
+  <datalist id="members">
+    {(members || []).map((m: any) => (
+      <option value={m.handle}>{m.name}</option>
+    ))}
+  </datalist>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Place</th>
+          <th>Member (handle)</th>
+          <th>Team</th>
+          <th>Prize (SAR)</th>
+          <th>Points</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="place"
+                type="number"
+                min="1"
+                max="99"
+                required
+                value={r.place}
+                style="width:5em"
+                aria-label="Place"
+              />
+              <span class="mono"> {ordinal(r.place)}</span>
+            </td>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="member"
+                list="members"
+                value={r.member?.handle || ''}
+                placeholder="handle"
+                autocapitalize="none"
+                spellcheck="false"
+                aria-label="Member handle"
+              />
+              {r.member?.name && <span class="hint">{r.member.name}</span>}
+            </td>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="team"
+                maxlength="80"
+                value={r.team || ''}
+                aria-label="Team"
+              />
+            </td>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="prize_sar"
+                inputmode="numeric"
+                value={r.prize_sar ?? ''}
+                style="width:8em"
+                aria-label="Prize in SAR"
+              />
+            </td>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="points"
+                type="number"
+                min="0"
+                max="1000"
+                value={r.points}
+                style="width:6em"
+                aria-label="Points"
+              />
+            </td>
+            <td style="white-space:nowrap">
+              <form data-astro-reload id={`r-${r.id}`} class="inline-form" method="post" action={action}>
+                <input type="hidden" name="id" value={r.id} />
+                <button class="btn btn--tiny" type="submit" name="_action" value="update" disabled={!open}>
+                  Save
+                </button>
+                <button
+                  class="btn btn--tiny btn--ghost"
+                  type="submit"
+                  name="_action"
+                  value="up"
+                  disabled={!open || i === 0}
+                  formnovalidate
+                  aria-label="Move up"
+                >
+                  ↑
+                </button>
+                <button
+                  class="btn btn--tiny btn--ghost"
+                  type="submit"
+                  name="_action"
+                  value="down"
+                  disabled={!open || i === rows.length - 1}
+                  formnovalidate
+                  aria-label="Move down"
+                >
+                  ↓
+                </button>
+                <button
+                  class="btn btn--tiny btn--ghost"
+                  type="submit"
+                  name="_action"
+                  value="remove"
+                  formnovalidate
+                  onclick="return confirm('Remove this result? Its points are taken back.')"
+                >
+                  Remove
+                </button>
+              </form>
+            </td>
+          </tr>
+        ))}
+        {!rows.length && (
+          <tr>
+            <td colspan="6" class="hint">
+              No results yet.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
+  {open && (
+    <form data-astro-reload class="form card" method="post" action={action} style="margin-top:24px">
+      <h2 class="h3">Add a result</h2>
+      <div class="form__row">
+        <div class="field">
+          <label for="new-place">Place</label>
+          <input class="input" id="new-place" name="place" type="number" min="1" max="99" required value={next} />
+        </div>
+        <div class="field">
+          <label for="new-member">Member handle</label>
+          <input
+            class="input"
+            id="new-member"
+            name="member"
+            list="members"
+            placeholder="john_doe"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
+      </div>
+      <div class="form__row">
+        <div class="field">
+          <label for="new-team">Team (optional with a member)</label>
+          <input class="input" id="new-team" name="team" maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="new-prize">Prize in SAR (optional)</label>
+          <input class="input" id="new-prize" name="prize_sar" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="new-points">Points</label>
+          <input
+            class="input"
+            id="new-points"
+            name="points"
+            type="number"
+            min="0"
+            max="1000"
+            placeholder={`default ${placePoints(next)}`}
+          />
+        </div>
+      </div>
+      <div class="form__actions">
+        <button class="btn btn--small" type="submit" name="_action" value="add">
+          Add result
+        </button>
+      </div>
+    </form>
+  )}
+</AdminLayout>

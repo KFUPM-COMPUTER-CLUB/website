@@ -11,7 +11,9 @@ export const atLeast = (role: Role | 'guest', min: Role) => role !== 'guest' && 
 
 /* Points (supabase/migrations/0005_points.sql). The categories match the check on points.category,
  * and POINT_VALUES mirrors point_value() there: the automatic award for each kind of activity.
- * Competitions and "other" have no fixed value; officers enter the amount on /admin/points. */
+ * Competitions and "other" have no fixed value: a competition placing awards the amount on its result
+ * (/admin/events/<id>/results, 0010_event_results.sql), and anything else is entered on /admin/points.
+ * Competitions are never entered by hand: the result already pays, so a manual row would pay twice. */
 export const POINT_CATEGORIES = ['events', 'posts', 'flag', 'competitions', 'other'] as const;
 export type PointCategory = (typeof POINT_CATEGORIES)[number];
 export const POINT_LABELS: Record<PointCategory, string> = {
@@ -22,6 +24,25 @@ export const POINT_LABELS: Record<PointCategory, string> = {
   other: 'Other',
 };
 export const POINT_VALUES = { events: 10, posts: 25, flag: 50 } as const;
+/* What a competition placing is worth unless the officer types another amount on the results page
+ * (0010_event_results.sql stores the amount on each result). */
+export const placePoints = (place: number) => (place === 1 ? 100 : place === 2 ? 75 : place === 3 ? 50 : 25);
+/* Event types with placings (EVENT_TYPES in admin/resources.ts). Only these get a Results page, the
+ * Results block on /timeline and Wins on profiles. */
+export const RESULT_TYPES = ['Competition', 'Hackathon'];
+export const hasResults = (type: string) => RESULT_TYPES.includes(type);
+/* A whole number typed into a form: a place, a prize, points. Commas and spaces are dropped and
+ * Arabic-Indic (٠-٩) or Persian (۰-۹) digits read as 0-9. Empty is null; anything else that is not
+ * only digits ("5k", "1.5", "SAR 5000", "-3") is NaN, so the caller refuses it instead of saving the
+ * wrong number. */
+export const wholeNumber = (v: unknown): number | null => {
+  const t = (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
+    .replace(/[,،٬\s]/g, '')
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0));
+  if (!t) return null;
+  return /^\d+$/.test(t) ? Number(t) : NaN;
+};
 /* One row of /leaderboard from leaderboard() in 0006_leaderboard.sql. handle, name and avatar are null
  * for members who did not opt in: they keep their rank and total but show as "A member". */
 export type LeaderRow = {
@@ -121,6 +142,17 @@ export type EventItem = {
   featured: boolean;
   published: boolean;
 };
+/* One placing from event_results (0010_event_results.sql). name and handle are set while the member's
+ * profile is public; team is the free-text name, alone or beside the member. */
+export type EventResult = {
+  place: number;
+  name: string | null;
+  handle: string | null;
+  team: string | null;
+  prizeSar: number | null;
+};
+/* A placing as a member's profile lists it, with the event it was won at. */
+export type Win = { place: number; team: string | null; prizeSar: number | null; event: EventItem };
 export type Highlight = {
   id: string;
   photoKey: string | null;

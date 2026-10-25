@@ -7,13 +7,24 @@
    advisory: the API makes the real capacity check when the form is posted. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BackToTop from '../components/BackToTop.astro';
-import { getUpcomingEvents, getPastEvents, termOf, riyadhDate, fmtRiyadh } from '../lib/content';
+import {
+  getUpcomingEvents,
+  getPastEvents,
+  getResults,
+  termOf,
+  riyadhDate,
+  fmtRiyadh,
+  ordinal,
+  sar,
+} from '../lib/content';
 import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
-import type { EventItem } from '../lib/types';
+import { hasResults, type EventItem, type EventResult } from '../lib/types';
 
-const [upcoming, past] = await Promise.all([getUpcomingEvents(), getPastEvents()]);
+const [upcoming, past, results] = await Promise.all([getUpcomingEvents(), getPastEvents(), getResults()]);
+// Who placed: the member's name (linked while their profile is public), with the team name when there is one.
+const winner = (r: EventResult) => (r.team && r.name ? `${r.team} (${r.name})` : r.team || r.name || 'A member');
 const site = Astro.site?.origin || '';
 const counts = new Map<string, number>();
 const open = upcoming.filter((e) => e.registrationOpen);
@@ -138,6 +149,20 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                       </h3>
                       <p class="ev__where mono">{e.location}</p>
                       <p class="ev__summary">{e.summary}</p>
+                      {!sec.up && hasResults(e.type) && results.get(e.id)?.length ? (
+                        <div class="ev__results">
+                          <p class="mono">Results</p>
+                          <ol>
+                            {results.get(e.id)!.map((r) => (
+                              <li>
+                                <b>{ordinal(r.place)}</b>{' '}
+                                {r.handle ? <a href={`/u/${r.handle}`}>{winner(r)}</a> : <span>{winner(r)}</span>}
+                                {r.prizeSar ? <span class="mono"> · {sar(r.prizeSar)}</span> : null}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      ) : null}
                       {sec.up && (
                         <p class="ev__cal">
                           {e.registerUrl && (
