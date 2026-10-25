@@ -1,4 +1,4 @@
-/* Two small primitives for links and calls that carry their own proof instead of a session: the cron
+/* Small primitives for links and calls that carry their own proof instead of a session: the cron
  * routes' bearer secret and the digest's unsubscribe token. Web Crypto only, so this runs on Vercel and
  * under plain node in tests/. */
 
@@ -10,6 +10,13 @@ export const sameSecret = (given: string, want: string) => {
   for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
   return diff === 0;
 };
+
+/* Seed-mode development needs no secret; a missing production secret must never authorize a call. */
+export const cronSecretRequired = (vercelEnv: string | undefined, productionBuild: boolean) =>
+  vercelEnv === 'production' || (!vercelEnv && productionBuild);
+
+export const cronBearerAuthorized = (authorization: string | null, secret: string, secretRequired: boolean) =>
+  secret ? sameSecret(authorization || '', `Bearer ${secret}`) : !secretRequired;
 
 /* HMAC-SHA256 of `message` under `secret`, base64url without padding (43 characters). */
 export async function hmac(secret: string, message: string): Promise<string> {
