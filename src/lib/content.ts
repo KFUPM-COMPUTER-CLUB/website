@@ -27,7 +27,10 @@ import type {
   LeaderRow,
   LeaderPeriod,
   PointCategory,
+  EventResult,
+  Win,
 } from './types';
+import { hasResults } from './types';
 import siteJson from '../data/site.json';
 import committeesJson from '../data/committees.json';
 import eventsJson from '../data/events.json';
@@ -190,6 +193,73 @@ export async function getPastEvents() {
 }
 export async function getEvent(slugOrId: string) {
   return (await getEvents()).find((e) => e.slug === slugOrId || e.id === slugOrId) || null;
+}
+
+/* ── Competition results (0010_event_results.sql) ──────────────────────── */
+/* 1st, 2nd, 3rd, 4th, 11th, 21st: the same rule as ordinal() in the migration. */
+export const ordinal = (n: number) => {
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10];
+  return `${n}${s || 'th'}`;
+};
+export const sar = (n: number) => `${n.toLocaleString('en-US')} SAR`;
+/* Placings by event id, best first, for the event cards on /timeline. A member is named (and linked)
+ * while their profile is public, through profiles_public as withAuthors() does for posts; otherwise the
+ * row shows the team name or "A member". Seed mode has no results. A failed query (the table missing
+ * before the migration runs, say) is logged and shows no results rather than taking the page down. */
+export function getResults(): Promise<Map<string, EventResult[]>> {
+  return cached('results', async () => {
+    const out = new Map<string, EventResult[]>();
+    if (!dbReady()) return out;
+    const { data, error } = await db()
+      .from('event_results')
+      .select('event_id,place,user_id,team,prize_sar')
+      .order('place')
+      .order('created_at');
+    if (error) {
+      console.error('results', error.message);
+      return out;
+    }
+    const ids = [...new Set((data || []).map((r: any) => r.user_id).filter(Boolean))];
+    const people = ids.length
+      ? (await db().from('profiles_public').select('id,name,handle').in('id', ids)).data || []
+      : [];
+    const byId = new Map(people.map((p: any) => [p.id, p]));
+    for (const r of data || []) {
+      const p: any = r.user_id ? byId.get(r.user_id) : null;
+      const list = out.get(r.event_id) || [];
+      list.push({
+        place: r.place,
+        name: p?.name || null,
+        handle: p?.handle || null,
+        team: r.team || null,
+        prizeSar: r.prize_sar ?? null,
+      });
+      out.set(r.event_id, list);
+    }
+    return out;
+  });
+}
+/* A member's placings for the "Wins" section of /u/<handle>, newest event first. Only results of
+ * published events come back (the read policy). The event comes from getPastEvents() and must be a
+ * competition type, the same rule /timeline uses for its Results block, so a profile never shows a win
+ * before the timeline does. */
+export async function getWins(userId: string): Promise<Win[]> {
+  if (!dbReady()) return [];
+  const [{ data, error }, past] = await Promise.all([
+    db().from('event_results').select('event_id,place,team,prize_sar').eq('user_id', userId),
+    getPastEvents(),
+  ]);
+  if (error) {
+    console.error('wins', error.message);
+    return [];
+  }
+  const byId = new Map(past.filter((e) => hasResults(e.type)).map((e) => [e.id, e]));
+  return (data || [])
+    .flatMap((r: any) => {
+      const event = byId.get(r.event_id);
+      return event ? [{ place: r.place, team: r.team || null, prizeSar: r.prize_sar ?? null, event }] : [];
+    })
+    .sort((a, b) => b.event.start.valueOf() - a.event.start.valueOf());
 }
 
 /* ── Home content ──────────────────────────────────────────────────────── */

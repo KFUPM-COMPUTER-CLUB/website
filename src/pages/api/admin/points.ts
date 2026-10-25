@@ -8,9 +8,11 @@ export const prerender = false;
 /* Manual points, posted from /admin/points (officer and up). The default action awards: the member is
  * named by handle, the amount may be negative to take points back, and a reason is required because
  * it is what the member and the audit log see. _action=remove deletes one manual award.
- * Automatic awards (attendance, published posts, the flag) are written by the triggers in
- * 0005_points.sql and follow their source rows, so they cannot be removed here: untick the
- * attendance, unpublish the post or unapprove the solver instead, and the points follow. */
+ * Automatic awards (attendance, published posts, the flag, competition placings) are written by the
+ * triggers in 0005_points.sql and 0010_event_results.sql and follow their source rows, so they cannot
+ * be removed here: untick the attendance, unpublish the post, unapprove the solver or change the
+ * event's results instead, and the points follow. Competition points cannot be awarded here either:
+ * the result already pays them, so a manual row would pay the winner twice. */
 export const POST: APIRoute = handle(async (ctx) => {
   const officer = requireRole(ctx, 'officer');
   const b = await readBody(ctx.request);
@@ -25,7 +27,7 @@ export const POST: APIRoute = handle(async (ctx) => {
     if (!row) throw new ApiError('Not found.', 404);
     if (row.auto)
       throw new ApiError(
-        'Automatic points follow attendance, publishing and the flag. Change those and the points follow.',
+        'Automatic points follow attendance, publishing, the flag and competition results: change those instead.',
       );
     const { error } = await sb.from('points').delete().eq('id', id);
     if (error) throw new ApiError(error.message, 500);
@@ -42,6 +44,10 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (!handleName) throw new ApiError('Pick a member by handle.');
   if (!amount || Math.abs(amount) > 1000) throw new ApiError('The amount must be between -1000 and 1000, and not 0.');
   if (!POINT_CATEGORIES.includes(category)) throw new ApiError('Unknown category.');
+  if (category === 'competitions')
+    throw new ApiError(
+      "Competition points come from the event's Results page: open Events, then Results on that event.",
+    );
   if (!reason) throw new ApiError('Give a reason: the member sees it.');
   if (eventId && !isUuid(eventId)) throw new ApiError('Unknown event.');
   const { data: member } = await sb

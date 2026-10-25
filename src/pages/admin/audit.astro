@@ -15,7 +15,20 @@ const summary = (e: any) => {
   const a = e.after || e.before || {};
   // A badge row has no title of its own: name the badge and what it was for.
   if (e.table_name === 'member_badges') return [badgeName(a.badge), a.reference].filter(Boolean).join(' · ');
-  return a.title || a.name || a.term || a.q_en || a.label || a.reason || a.key || a.role || a.status || e.row_id || '';
+  return (
+    a.title ||
+    a.name ||
+    a.term ||
+    a.q_en ||
+    a.label ||
+    a.reason ||
+    a.key ||
+    a.role ||
+    a.status ||
+    (a.place && `Place ${a.place}${a.team ? `, ${a.team}` : ''}`) ||
+    e.row_id ||
+    ''
+  );
 };
 const undoable = (e: any) =>
   !e.undone_at &&
