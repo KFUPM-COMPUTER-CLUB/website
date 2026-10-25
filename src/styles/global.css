@@ -146,6 +146,7 @@ h3, .h3 { font-size: clamp(20px, 2vw, 24px); line-height: 1.25; }
 .badge-list span { display: grid; gap: 2px; font-size: 15px; line-height: 1.35; }
 .badge-list time { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
 .badge-list__ref { color: var(--text-2); font-size: 14px; }
+.back-to-top { display: flex; justify-content: flex-end; padding-top: 8px; padding-bottom: 48px; }
 .meta { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; font: 500 13px/1.6 var(--font-mono); color: var(--muted); }
 .meta span::before { content: "// "; color: var(--c, var(--blue)); }
 .actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: auto; padding-top: 16px; }
@@ -332,6 +333,7 @@ body.past-hero .site-header { background: color-mix(in srgb, var(--bg-live) 82%,
 html.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
 html.js .reveal.is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .marquee__track, .cursor, .live__dot { animation: none; }
   html.js .reveal { opacity: 1; transform: none; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
