@@ -57,7 +57,18 @@ export const POST: APIRoute = handle(async (ctx) => {
   if ('show_on_leaderboard' in b || wantsHtml(ctx.request)) patch.show_on_leaderboard = bool(b.show_on_leaderboard);
   if (b.avatar instanceof File && b.avatar.size > 0)
     patch.avatar_url = (await storeImage(b.avatar, 'Profile photo', user.id, ['avatar'])).sizes['480'];
-  const { data, error } = await serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();
+  const save = () => serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();
+  let { data, error } = await save();
+  // PGRST204: the patch names a column the database does not have yet, because its migration has not
+  // been applied (the migrate workflow applies them on merge). Without this, a new checkbox on the form
+  // fails every member's save until then. The missing column is dropped, logged, and the rest is saved.
+  for (let tries = 0; error?.code === 'PGRST204' && tries < 5; tries++) {
+    const column = /'(\w+)' column/.exec(error.message)?.[1];
+    if (!column || !(column in patch)) break;
+    console.error(`profile save: the ${column} column is missing, saved without it`);
+    delete patch[column];
+    ({ data, error } = await save());
+  }
   if (error) throw new ApiError(error.message.includes('handle') ? 'That handle is taken.' : error.message);
   return wantsHtml(ctx.request) ? ctx.redirect('/me/profile?ok=Saved.', 303) : ok({ profile: data });
 });
