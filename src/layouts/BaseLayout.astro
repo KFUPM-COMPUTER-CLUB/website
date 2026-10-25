@@ -18,11 +18,13 @@ import Terminal from '../components/Terminal.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getSettings } from '../lib/content';
-const settings = await getSettings();
-const site = settings.site;
 import { ClientRouter } from 'astro:transitions';
 import logoColor from '../data/brand/logo-color.png';
+const settings = await getSettings();
+const site = settings.site;
 
+// Every page passes a title; the description falls back to the club's.
+// noindex keeps a page out of search results (dashboards, admin, the style guide).
 // type is the Open Graph type: 'website' for most pages, 'article' for a blog post.
 const { title, description = site.description, noindex = false, type = 'website' } = Astro.props;
 const fullTitle = `${title} · ${site.name}`;

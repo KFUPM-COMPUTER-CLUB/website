@@ -16,7 +16,7 @@ flowchart LR
 
 ## Request flow
 
-1. `src/middleware.ts` runs first. On personal routes (`/me`, `/admin`, `/onboarding`, `/auth`, `/api`, `/join`) it reads the session from cookies and puts `user`, `profile` and `role` on `Astro.locals`. Public routes skip that entirely, because a cached page must never contain one person's data. On every `/api` and `/auth` mutation it checks the request came from this site.
+1. `src/middleware.ts` runs first. On personal routes (`/me`, `/admin`, `/onboarding`, `/auth`, `/api`, `/join`, `/unsubscribe`) it reads the session from cookies and puts `user`, `profile` and `role` on `Astro.locals`. Public routes skip that entirely, because a cached page must never contain one person's data. On every `/api` and `/auth` mutation it checks the request came from this site.
 2. Pages read data through `src/lib/content.ts`. With `PUBLIC_SUPABASE_URL` set it queries Postgres with the anon key (so row level security applies); without it, it serves `src/data/*.json`. Photos resolve through `src/lib/photos.ts` to WebP sizes in Storage or to seed images Astro optimises.
 3. Writes go through API routes in `src/pages/api/` with the service key, after `requireRole` or an ownership check. They log to `audit_log`, call `bust()` to clear the in-memory memo, and ISR expiry does the rest.
 4. Email goes into `email_queue`; `src/lib/email.ts` sends immediately while under the daily budget and the daily cron (`/api/cron/daily`) sends the rest by priority and keeps the free Supabase project awake. The weekly cron (`/api/cron/weekly`) queues the opt-in digest at the lowest priority for the daily run to send.

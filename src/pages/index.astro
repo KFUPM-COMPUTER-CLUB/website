@@ -11,8 +11,7 @@ import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
 import { getSettings, getMemberCount } from '../lib/content';
 
-const settings = await getSettings();
-const memberCount = await getMemberCount();
+const [settings, memberCount] = await Promise.all([getSettings(), getMemberCount()]);
 const site = settings.site;
 const home = settings.home;
 const joinHref = settings.links.join || '/join';

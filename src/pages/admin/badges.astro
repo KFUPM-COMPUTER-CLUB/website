@@ -93,7 +93,7 @@ const [{ data: awards, error }, { data: members }] = await Promise.all([
             <td>
               {a.member?.name}
               <br />
-              <span class="mono">@{a.member?.handle}</span>
+              {a.member?.handle && <span class="mono">@{a.member.handle}</span>}
             </td>
             <td>{badgeName(a.badge)}</td>
             <td>

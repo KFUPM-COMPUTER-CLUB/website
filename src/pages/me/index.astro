@@ -220,7 +220,7 @@ const welcome = Astro.url.searchParams.has('welcome');
         No badges yet. Publish a first post, attend five events or find the flag on the site to earn your first.
       </p>
     )}
-    {profile?.show_badges === false && (
+    {badges.length > 0 && !profile?.show_badges && (
       <p class="hint" style="margin:12px 0 0">
         Hidden on your public profile. <a href="/me/profile">Show them</a>
       </p>
