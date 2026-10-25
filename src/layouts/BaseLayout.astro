@@ -21,10 +21,15 @@ import { getSettings } from '../lib/content';
 const settings = await getSettings();
 const site = settings.site;
 import { ClientRouter } from 'astro:transitions';
+import logoColor from '../data/brand/logo-color.png';
 
-// Every page passes a title; the description falls back to the club's.
-// noindex keeps a page out of search results (dashboards, admin, the style guide).
-const { title, description = site.description, noindex = false } = Astro.props;
+// type is the Open Graph type: 'website' for most pages, 'article' for a blog post.
+const { title, description = site.description, noindex = false, type = 'website' } = Astro.props;
+const fullTitle = `${title} · ${site.name}`;
+// Link previews need absolute URLs. They come from Astro.url, not Astro.site, so a preview deployment
+// points at its own copy of the image. The query string is dropped (/blog?tag=x previews as /blog).
+const pageUrl = new URL(Astro.url.pathname, Astro.url);
+const ogImage = new URL(logoColor.src, Astro.url);
 ---
 
 <!doctype html>
@@ -32,8 +37,18 @@ const { title, description = site.description, noindex = false } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{`${title} · ${site.name}`}</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={pageUrl.href} />
+    <meta property="og:image" content={ogImage.href} />
+    <meta property="og:image:width" content={String(logoColor.width)} />
+    <meta property="og:image:height" content={String(logoColor.height)} />
+    <meta property="og:image:alt" content={site.name} />
+    <meta name="twitter:card" content="summary_large_image" />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
