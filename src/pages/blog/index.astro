@@ -1,9 +1,10 @@
 ---
 /* The blog: the featured post of the month in a hero card, then every post, with the writers'
- * leaderboard for this term beside them (both from content.ts; 0011_featured_posts.sql). A tag or
- * category filter hides the hero and shows only the matching posts. */
+ * leaderboard for this term beside them (both from content.ts; 0011_featured_posts.sql). Writers who did
+ * not opt in to the leaderboard show as "A member", as on /leaderboard. A tag or category filter hides
+ * the hero and shows only the matching posts. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPosts, getFeaturedPost, getWriters, termOf, fmtRiyadh } from '../../lib/content';
+import { getPosts, getFeaturedPost, getWriters, termOf, fmtRiyadh, monthOf } from '../../lib/content';
 const [posts, featuredPost, writers] = await Promise.all([getPosts(), getFeaturedPost(), getWriters()]);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const mon = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
@@ -15,6 +16,11 @@ const shown = posts.filter(
   (p) => p.id !== featured?.id && (!tag || p.tags.includes(tag)) && (!category || p.category === category),
 );
 const count = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+// Last month's pick stays up until a reviewer picks one for this month, so it is labelled with its month.
+const flag =
+  featured && featured.month !== monthOf(new Date())
+    ? `Featured post · ${fmtRiyadh(new Date(`${featured.month}T12:00:00Z`), { month: 'long' })}`
+    : 'Featured post of the month';
 ---
 
 <BaseLayout
@@ -43,7 +49,7 @@ const count = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
         {featured && (
           <a class="post post--featured" href={`/blog/${featured.slug}`} dir={featured.dir}>
             <div class="post__body">
-              <p class="post__flag mono">Featured post of the month</p>
+              <p class="post__flag mono">{flag}</p>
               <h2 class="post__title">{featured.title}</h2>
               <p class="post__author">
                 {featured.authorName}
@@ -75,22 +81,20 @@ const count = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
       <aside class="blog__side">
         <div class="card writers">
           <h2 class="h3">Top writers</h2>
-          <p class="mono writers__term">{termOf(new Date())} · posts, then reads</p>
+          <p class="mono writers__term">{termOf(new Date())} · posts published</p>
           {writers.length ? (
             <ol>
               {writers.map((w) => (
-                <li>
-                  {w.handle ? <a href={`/u/${w.handle}`}>{w.name}</a> : <span>{w.name}</span>}
-                  <span class="mono">
-                    {count(w.posts, 'post')}
-                    {w.reads > 0 && ` · ${count(w.reads, 'read')}`}
-                  </span>
+                <li class={w.name ? undefined : 'writers__anon'}>
+                  {w.handle ? <a href={`/u/${w.handle}`}>{w.name}</a> : <span>{w.name || 'A member'}</span>}
+                  <span class="mono">{count(w.posts, 'post')}</span>
                 </li>
               ))}
             </ol>
           ) : (
             <p class="hint">No posts published this term yet. Yours could be first.</p>
           )}
+          <p class="hint">Names show only for members who chose to appear on the leaderboard.</p>
         </div>
         <p style="margin-top:16px">
           <a class="btn btn--ghost" href="/me/posts/new">

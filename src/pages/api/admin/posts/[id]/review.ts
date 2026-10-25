@@ -31,13 +31,22 @@ async function feature(ctx: APIContext, reviewerId: string, on: boolean) {
       .eq('featured_month', month)
       .neq('id', post.id)
       .maybeSingle();
+    // Two statements, because the unique index refuses the new pick while the old one still holds the
+    // month. If the second fails, the old pick gets the month back so the month is not left empty; when
+    // another reviewer featured a post in between, that restore fails on the same index and theirs stays.
     if (current) {
       const { error } = await sb.from('posts').update({ featured_month: null }).eq('id', current.id);
       if (error) throw new ApiError(error.message, 500);
-      await audit(reviewerId, 'update', 'posts', current.id, { featured_month: month }, { featured_month: null });
     }
     const { error } = await sb.from('posts').update({ featured_month: month }).eq('id', post.id);
-    if (error) throw new ApiError(error.message, 500);
+    if (error) {
+      if (current) await sb.from('posts').update({ featured_month: month }).eq('id', current.id);
+      if (error.code === '23505')
+        throw new ApiError('Another post was just featured for this month. Reload the page and try again.', 409);
+      throw new ApiError(error.message, 500);
+    }
+    if (current)
+      await audit(reviewerId, 'update', 'posts', current.id, { featured_month: month }, { featured_month: null });
     message = current
       ? `"${post.title}" is now the featured post for ${label}, replacing "${current.title}".`
       : `"${post.title}" is now the featured post for ${label}.`;

@@ -595,15 +595,16 @@ export function getPosts(): Promise<PostSummary[]> {
   });
 }
 /* The featured post (0011_featured_posts.sql): this month's pick, or last month's until a reviewer picks
- * one, so /blog does not lose its hero on the 1st. A separate query from getPosts(), so the blog still
- * lists its posts if the column is missing (the migration not run yet); that and seed mode show no hero. */
-export function getFeaturedPost(): Promise<PostSummary | null> {
+ * one, so /blog does not lose its hero on the 1st. month is the featured_month it holds, so the page can
+ * tell last month's pick from this month's. A separate query from getPosts(), so the blog still lists its
+ * posts if the column is missing (the migration not run yet); that and seed mode show no hero. */
+export function getFeaturedPost(): Promise<(PostSummary & { month: string }) | null> {
   if (!dbReady()) return Promise.resolve(null);
   return cached('featured', async () => {
     const now = new Date();
     const { data, error } = await db()
       .from('posts')
-      .select('id')
+      .select('id,featured_month')
       .eq('status', 'published')
       .in('featured_month', [monthOf(now), monthOf(now, 1)])
       .order('featured_month', { ascending: false })
@@ -612,13 +613,15 @@ export function getFeaturedPost(): Promise<PostSummary | null> {
       console.error('featured post', error.message);
       return null;
     }
-    const id = data?.[0]?.id;
-    return id ? (await getPosts()).find((p) => p.id === id) || null : null;
+    const row = data?.[0];
+    const post = row && (await getPosts()).find((p) => p.id === row.id);
+    return post ? { ...post, month: row.featured_month } : null;
   });
 }
-/* The top five writers this term: posts published this term, then reads this term (writers_leaderboard()
- * in 0011_featured_posts.sql). Seed mode counts the seed posts by author, with no reads. A failed call is
- * logged and shows an empty list. */
+/* The top five writers this term by posts published this term (writers_leaderboard() in
+ * 0011_featured_posts.sql), named only if they opted in. Seed mode counts the seed posts by byline: those
+ * are team names, not members, so they keep their names. getPosts() is newest first and the sort is
+ * stable, so ties go to the newest post there too. A failed call is logged and shows an empty list. */
 export function getWriters(): Promise<Writer[]> {
   return cached('writers', async () => {
     const since = termStart(new Date());
@@ -629,19 +632,19 @@ export function getWriters(): Promise<Writer[]> {
       return [...counts]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
-        .map(([name, posts]) => ({ handle: null, name, avatarUrl: null, posts, reads: 0 }));
+        .map(([name, posts]) => ({ handle: null, name, avatarUrl: null, posts }));
     }
     const { data, error } = await db().rpc('writers_leaderboard', { p_since: since.toISOString(), p_limit: 5 });
     if (error) {
       console.error('writers', error.message);
       return [];
     }
+    // handle, name and avatar_url are all null for a member who did not opt in.
     return (data || []).map((r: any) => ({
       handle: r.handle,
       name: r.name || r.handle,
       avatarUrl: r.avatar_url,
       posts: Number(r.posts) || 0,
-      reads: Number(r.reads) || 0,
     }));
   });
 }
