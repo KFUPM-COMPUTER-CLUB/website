@@ -8,7 +8,7 @@ import { Image } from 'astro:assets';
 import logoSmDark from '../../data/brand/logo-color-ondark-sm.png';
 import { dbReady } from '../../lib/env';
 import { publicClient } from '../../lib/supabase';
-import { getSettings, fmtRiyadh } from '../../lib/content';
+import { getSettings, getWins, fmtRiyadh, ordinal, sar } from '../../lib/content';
 const handle = (Astro.params.handle || '').toLowerCase();
 if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, { status: 404 });
 const db = publicClient();
@@ -22,6 +22,7 @@ const [
   settings,
   { data: committee },
   { data: points },
+  wins,
 ] = await Promise.all([
   db
     .from('posts')
@@ -44,12 +45,16 @@ const [
     : Promise.resolve({ data: null as { name: string } | null }),
   // Points show only for members who opted in on their profile (show_on_leaderboard, 0006_leaderboard.sql).
   p.show_on_leaderboard ? db.rpc('member_points', { p_user: p.id }) : Promise.resolve({ data: null as number | null }),
+  // Competition placings (0010_event_results.sql), public like the results on /timeline.
+  getWins(p.id),
 ]);
 const current = (officer || []).find((o: any) => o.is_current);
 const badges = [
   current && `Officer · ${current.title}`,
   committee?.name && `${committee.name} committee`,
   (officer || []).some((o: any) => !o.is_current) && 'Past officer',
+  // A podium finish, not any placing: the Wins list below still shows every place.
+  wins.some((w) => w.place <= 3) && 'Competition winner',
   (posts?.length || 0) > 0 && 'Writer',
   (regs || []).some((r: any) => r.attended) && 'Attended events',
   solved?.length && 'Flag solver',
@@ -153,6 +158,25 @@ const stats = [
           </div>
         </article>
       )}
+      {wins.length ? (
+        <>
+          <h2 class="h2" id="wins" style="margin-top:40px">
+            Wins
+          </h2>
+          <ul>
+            {wins.map((w) => (
+              <li>
+                <b>{ordinal(w.place)}</b> at <a href={`/timeline#ev-${w.event.slug}`}>{w.event.title}</a>
+                {w.team && <> with {w.team}</>} ·{' '}
+                <span class="mono">
+                  {fmtRiyadh(w.event.start, { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                {w.prizeSar ? <span class="chip">{sar(w.prizeSar)}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       {posts?.length ? (
         <>
           <h2 class="h2" id="posts" style="margin-top:40px">

@@ -19,6 +19,7 @@ const UNDOABLE = new Set([
   'posts',
   'media',
   'points',
+  'event_results',
 ]);
 /* Undo for /admin/audit, admin only. Each audit_log entry carries a before and after snapshot of the
  * row, and that is all an undo has to work with:
