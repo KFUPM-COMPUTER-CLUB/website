@@ -8,12 +8,13 @@ import MeLayout from '../../components/MeLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { getWhatsappGroups } from '../../lib/whatsapp';
 import { fmtRiyadh } from '../../lib/content';
-import { wrappedNow } from '../../lib/stats';
+import { wrappedNow, dashboardTiles } from '../../lib/stats';
+import { getDashboard } from '../../lib/dashboard';
 const { user, profile, role } = Astro.locals;
 // Semester Wrapped is linked from here in a term's last four weeks and the two weeks after (src/lib/stats.ts).
 const wrapped = wrappedNow(new Date());
 const sb = serviceClient();
-const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promise.all([
+const [{ data: posts }, { data: regs }, groups, { data: points }, dashboard] = await Promise.all([
   sb
     .from('posts')
     .select('id,slug,title,status,updated_at')
@@ -33,7 +34,12 @@ const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promis
     .select('amount,reason,awarded_at')
     .eq('user_id', user!.id)
     .order('awarded_at', { ascending: false }),
+  // The stat tiles: one member_stats() call (0015_member_dashboard.sql); null hides them if it fails.
+  getDashboard(user!.id),
 ]);
+const tiles = dashboard ? dashboardTiles(dashboard) : [];
+// The small counters below repeat posts, reservations and points, so they only show when the tiles
+// could not load; otherwise the same numbers would appear twice with different meanings.
 const pointsTotal = (points || []).reduce((s: number, r: any) => s + r.amount, 0);
 const welcome = Astro.url.searchParams.has('welcome');
 ---
@@ -46,6 +52,17 @@ const welcome = Astro.url.searchParams.has('welcome');
   }
   lead={welcome ? 'You are in. The groups below are where everything happens.' : undefined}
 >
+  {tiles.length > 0 && (
+    <ul class="dash-stats">
+      {tiles.map((t) => (
+        <li class="stat">
+          <b class={/^[#\d]/.test(t.value) ? undefined : 'stat__word'}>{t.value}</b>
+          <span>{t.label}</span>
+          <small class="hint">{t.hint}</small>
+        </li>
+      ))}
+    </ul>
+  )}
   {wrapped.linked && (
     <div class="card" style="margin-bottom:16px">
       <h2 class="h3">Your {wrapped.term.label} Wrapped</h2>
@@ -83,18 +100,22 @@ const welcome = Astro.url.searchParams.has('welcome');
     </p>
   </div>
   <div class="cards" style="margin-top:16px">
-    <div class="stat">
-      <b>{posts?.length || 0}</b>
-      <span>recent posts</span>
-    </div>
-    <div class="stat">
-      <b>{regs?.length || 0}</b>
-      <span>reservations</span>
-    </div>
-    <div class="stat">
-      <b>{pointsTotal}</b>
-      <span>points</span>
-    </div>
+    {tiles.length === 0 && (
+      <>
+        <div class="stat">
+          <b>{posts?.length || 0}</b>
+          <span>recent posts</span>
+        </div>
+        <div class="stat">
+          <b>{regs?.length || 0}</b>
+          <span>reservations</span>
+        </div>
+        <div class="stat">
+          <b>{pointsTotal}</b>
+          <span>points</span>
+        </div>
+      </>
+    )}
     <div class="stat">
       <b style="font-size:20px">{role}</b>
       <span>role</span>
