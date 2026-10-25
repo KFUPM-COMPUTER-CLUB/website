@@ -1,0 +1,12 @@
+---
+/* "Back to top" for the end of long pages (timeline, blog posts, FAQ). "#top" is the top of the document
+ * by the HTML spec, so no element or script is needed, and following it moves the keyboard's starting
+ * point back to the start of the page too. The scroll is smooth only without reduced motion
+ * (html scroll-behavior in global.css). */
+---
+
+<div class="container back-to-top">
+  <a class="link-arrow" href="#top">
+    Back to top <span aria-hidden="true">↑</span>
+  </a>
+</div>

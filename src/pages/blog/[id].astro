@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
 import { render } from 'astro:content';
 import { getPost } from '../../lib/content';
 const post = await getPost(Astro.params.id || '');
@@ -61,6 +62,7 @@ const short = (d: Date) =>
       </p>
     </div>
   </section>
+  <BackToTop />
 </BaseLayout>
 
 <script>
