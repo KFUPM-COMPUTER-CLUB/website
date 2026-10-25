@@ -12,7 +12,7 @@ const short = (d: Date) =>
 const updated = post.updatedAt && post.updatedAt.getTime() - post.date.getTime() > 86_400_000 ? post.updatedAt : null;
 ---
 
-<BaseLayout title={post.title} description={post.excerpt}>
+<BaseLayout title={post.title} description={post.excerpt} type="article">
   <section class="page-head">
     <div class="container" dir={post.dir}>
       <h1 class="h1">{post.title}</h1>
