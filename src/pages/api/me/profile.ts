@@ -15,14 +15,15 @@ import {
 } from '../../../lib/api';
 import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
+import { dropQueuedDigest } from '../../../lib/email';
 import { HANDLE_RE } from '../../../lib/types';
 
 export const prerender = false;
 /* Edits the signed-in member's own profile (ownership is the session's user id; no role needed).
  * Only fields present in the body change, so a JSON client may PATCH one field; the HTML form on
  * /me/profile sends them all. Checkboxes are the exception: an unticked box is simply absent from a
- * form post, so for HTML requests show_in_contributors, show_on_leaderboard and show_badges are always taken
- * from the form. */
+ * form post, so for HTML requests show_in_contributors, show_on_leaderboard, show_badges and
+ * digest_opt_in are always taken from the form. */
 export const POST: APIRoute = handle(async (ctx) => {
   const user = requireUser(ctx);
   await guardRate(ctx.request, 'profile', 20, 600);
@@ -57,10 +58,24 @@ export const POST: APIRoute = handle(async (ctx) => {
   if ('show_in_contributors' in b || wantsHtml(ctx.request)) patch.show_in_contributors = bool(b.show_in_contributors);
   if ('show_on_leaderboard' in b || wantsHtml(ctx.request)) patch.show_on_leaderboard = bool(b.show_on_leaderboard);
   if ('show_badges' in b || wantsHtml(ctx.request)) patch.show_badges = bool(b.show_badges);
+  if ('digest_opt_in' in b || wantsHtml(ctx.request)) patch.digest_opt_in = bool(b.digest_opt_in);
   if (b.avatar instanceof File && b.avatar.size > 0)
     patch.avatar_url = (await storeImage(b.avatar, 'Profile photo', user.id, ['avatar'])).sizes['480'];
-  const { data, error } = await serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();
+  const save = () => serviceClient().from('profiles').update(patch).eq('id', user.id).select('*').single();
+  let { data, error } = await save();
+  // PGRST204: the patch names a column the database does not have yet, because its migration has not
+  // been applied (the migrate workflow applies them on merge). Without this, a new checkbox on the form
+  // fails every member's save until then. The missing column is dropped, logged, and the rest is saved.
+  for (let tries = 0; error?.code === 'PGRST204' && tries < 5; tries++) {
+    const column = /'(\w+)' column/.exec(error.message)?.[1];
+    if (!column || !(column in patch)) break;
+    console.error(`profile save: the ${column} column is missing, saved without it`);
+    delete patch[column];
+    ({ data, error } = await save());
+  }
   if (error) throw new ApiError(error.message.includes('handle') ? 'That handle is taken.' : error.message);
+  // Digest off: drop one already queued, under the old address too when this save changed it.
+  if (patch.digest_opt_in === false) await dropQueuedDigest([data.email, ctx.locals.profile?.email]);
   return wantsHtml(ctx.request) ? ctx.redirect('/me/profile?ok=Saved.', 303) : ok({ profile: data });
 });
 export const PATCH = POST;

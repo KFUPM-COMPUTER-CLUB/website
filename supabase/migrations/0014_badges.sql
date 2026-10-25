@@ -3,7 +3,7 @@
 -- published events attended) and Flag solver (an approved solve). Two are awarded by officers on
 -- /admin/badges: Hackathon winner and Top writer of the semester, each with a reference ("Techathon
 -- 2026", "Fall 2026"). Badges show on /me and, while the member leaves "Show my badges" ticked
--- (profiles.show_badges, on by default), on their public profile. Every award, change and removal is in
+-- (profiles.show_badges, off by default, a member opts in), on their public profile. Every award, change and removal is in
 -- the audit log; the automatic ones cannot be undone there. Safe to run again.
 
 create table if not exists public.badges (
@@ -37,7 +37,7 @@ create index if not exists member_badges_user_idx on public.member_badges (user_
 -- One automatic badge of each kind per member. Officer badges may repeat (two hackathon wins).
 create unique index if not exists member_badges_auto_once on public.member_badges (user_id, badge) where auto;
 
-alter table public.profiles add column if not exists show_badges boolean not null default true;
+alter table public.profiles add column if not exists show_badges boolean not null default false;
 
 -- ── Automatic badges ─────────────────────────────────────────────────────
 -- One automatic badge for one member: present when p_at is set (dated p_at), gone when it is null. A

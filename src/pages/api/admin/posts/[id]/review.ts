@@ -1,12 +1,72 @@
-import type { APIRoute } from 'astro';
+import type { APIContext, APIRoute } from 'astro';
 import { handle, requireRole, readBody, ApiError, str, isUuid, wantsHtml, ok, audit } from '../../../../../lib/api';
 import { serviceClient } from '../../../../../lib/supabase';
-import { bust } from '../../../../../lib/content';
+import { bust, fmtRiyadh, monthOf } from '../../../../../lib/content';
 import { notifyStatus } from '../../../../../lib/notify';
 import { publishPostMedia } from '../../../../../lib/upload';
 
 export const prerender = false;
 const NEXT = ['submitted', 'changes_requested', 'published', 'unpublished', 'draft'];
+
+/* The featured post of the month (0011_featured_posts.sql), from the card on /admin/posts/<id>: one
+ * published post per Riyadh month. Featuring a post takes the feature from the one that held this month,
+ * and the message names it. Every change is audited as an update of featured_month, so /admin/audit
+ * can undo it. Does not touch the status or mail the author. */
+async function feature(ctx: APIContext, reviewerId: string, on: boolean) {
+  const sb = serviceClient();
+  const { data: post } = await sb
+    .from('posts')
+    .select('id,title,status,featured_month')
+    .eq('id', ctx.params.id!)
+    .maybeSingle();
+  if (!post) throw new ApiError('Not found.', 404);
+  const month = monthOf(new Date());
+  const label = fmtRiyadh(new Date(), { month: 'long', year: 'numeric' });
+  let message = `"${post.title}" is no longer featured.`;
+  if (on) {
+    if (post.status !== 'published') throw new ApiError('Only a published post can be featured.');
+    const { data: current } = await sb
+      .from('posts')
+      .select('id,title,featured_month')
+      .eq('featured_month', month)
+      .neq('id', post.id)
+      .maybeSingle();
+    // Two statements, because the unique index refuses the new pick while the old one still holds the
+    // month. If the second fails, the old pick gets the month back so the month is not left empty; when
+    // another reviewer featured a post in between, that restore fails on the same index and theirs stays.
+    if (current) {
+      const { error } = await sb.from('posts').update({ featured_month: null }).eq('id', current.id);
+      if (error) throw new ApiError(error.message, 500);
+    }
+    const { error } = await sb.from('posts').update({ featured_month: month }).eq('id', post.id);
+    if (error) {
+      if (current) await sb.from('posts').update({ featured_month: month }).eq('id', current.id);
+      if (error.code === '23505')
+        throw new ApiError('Another post was just featured for this month. Reload the page and try again.', 409);
+      throw new ApiError(error.message, 500);
+    }
+    if (current)
+      await audit(reviewerId, 'update', 'posts', current.id, { featured_month: month }, { featured_month: null });
+    message = current
+      ? `"${post.title}" is now the featured post for ${label}, replacing "${current.title}".`
+      : `"${post.title}" is now the featured post for ${label}.`;
+  } else {
+    const { error } = await sb.from('posts').update({ featured_month: null }).eq('id', post.id);
+    if (error) throw new ApiError(error.message, 500);
+  }
+  await audit(
+    reviewerId,
+    'update',
+    'posts',
+    post.id,
+    { featured_month: post.featured_month ?? null },
+    { featured_month: on ? month : null },
+  );
+  bust();
+  return wantsHtml(ctx.request)
+    ? ctx.redirect(`/admin/posts/${post.id}?ok=${encodeURIComponent(message)}`, 303)
+    : ok({ message });
+}
 /* The review decision, posted from /admin/posts/<id> (reviewer and up). Status flow:
  * draft -> submitted (the author, via /api/posts/<id>/submit) -> published | changes_requested here;
  * a reviewer may also unpublish or hand a post back to draft. published_at is set on the first
@@ -20,6 +80,7 @@ export const POST: APIRoute = handle(async (ctx) => {
   const reviewer = requireRole(ctx, 'reviewer');
   if (!isUuid(ctx.params.id)) throw new ApiError('Not found.', 404);
   const b = await readBody(ctx.request);
+  if (b._action === 'feature' || b._action === 'unfeature') return feature(ctx, reviewer.id, b._action === 'feature');
   const status = str(b.status, 30);
   const comment = str(b.comment, 1000);
   if (!NEXT.includes(status)) throw new ApiError('Unknown status.');

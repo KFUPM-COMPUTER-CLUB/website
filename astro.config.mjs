@@ -14,7 +14,15 @@ export default defineConfig({
     maxDuration: 60, // uploads and the admin import run sharp, which needs more than the default
     isr: {
       expiration: 60,
-      exclude: [/^\/me(\/|$)/, /^\/admin(\/|$)/, /^\/api\//, /^\/auth\//, /^\/onboarding(\/|$)/, /^\/join(\/|$)/],
+      exclude: [
+        /^\/me(\/|$)/,
+        /^\/admin(\/|$)/,
+        /^\/api\//,
+        /^\/auth\//,
+        /^\/onboarding(\/|$)/,
+        /^\/join(\/|$)/,
+        /^\/unsubscribe(\/|$)/,
+      ],
     },
   }),
   // sanitize-html is CommonJS but requires htmlparser2, which is ESM-only since v10. Left external, the
