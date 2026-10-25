@@ -72,6 +72,11 @@
 @media (max-width: 900px) { .wrapped { grid-template-columns: 1fr; } .wrapped__preview { max-width: 280px; } }
 .wa-links a { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--line-strong); background: var(--card); text-decoration: none; }
 .wa-links a:hover { border-color: var(--blue); }
+.wa-links__row { display: flex; gap: 10px; }
+.wa-links__row a { flex: 1 1 auto; min-width: 0; }
+.wa-links b { overflow-wrap: anywhere; }
+.wa-links__row .copy { flex: none; align-self: stretch; justify-content: center; min-width: 64px; padding: 0 14px; border: 1px solid var(--line-strong); background: var(--card); color: var(--blue); font: 600 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; }
+.wa-links__row .copy:hover { border-color: var(--blue); }
 .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .media-grid figure { margin: 0; display: grid; gap: 6px; }
 .media-grid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line-strong); }

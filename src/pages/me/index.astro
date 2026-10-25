@@ -77,10 +77,19 @@ const welcome = Astro.url.searchParams.has('welcome');
     {groups.length ? (
       <div class="wa-links">
         {groups.map((g) => (
-          <a href={g.url} target="_blank" rel="noopener">
-            <b>{g.label}</b>
-            <span class="mono">Open ↗</span>
-          </a>
+          <div class="wa-links__row">
+            <a href={g.url} target="_blank" rel="noopener">
+              <b>{g.label}</b>
+              <span class="mono">Open ↗</span>
+            </a>
+            <button type="button" class="copy" data-copy={g.url} aria-label={`Copy ${g.label} invite link`}>
+              Copy
+              <span class="copy__tip" aria-hidden="true">
+                Copied ✓
+              </span>
+              <span class="visually-hidden" aria-live="polite" data-copy-status />
+            </button>
+          </div>
         ))}
       </div>
     ) : (

@@ -78,6 +78,7 @@ type Text = {
   weight?: number;
   color?: string;
   spacing?: number; // letter spacing in px
+  fit?: boolean; // shrink until the text fits width × height (sharp picks the size); lines break only at \n
 };
 /* One text layer, centred horizontally in its box (default: the page between the margins). */
 async function text(t: Text, fontPath: string): Promise<{ input: Buffer; left: number; top: number }> {
@@ -91,9 +92,11 @@ async function text(t: Text, fontPath: string): Promise<{ input: Buffer; left: n
       fontfile: fontPath,
       width,
       align: 'centre',
-      dpi: 72,
+      // sharp takes either a dpi or a height to fit, never both.
+      dpi: t.fit ? undefined : 72,
+      height: t.fit ? t.height : undefined,
       rgba: true,
-      wrap: 'word',
+      wrap: t.fit ? 'none' : 'word',
     },
   })
     .png()
@@ -106,12 +109,36 @@ async function text(t: Text, fontPath: string): Promise<{ input: Buffer; left: n
   };
 }
 
+/* The name as drawn. Control characters become spaces (a NUL breaks Pango's markup parser, the others draw
+ * as boxes), runs of space become one, and a name with nothing visible left is no name, since Pango
+ * refuses to draw an empty layout. */
+function shownName(name: string | null) {
+  const s = (name || '').replace(/[\p{Cc}\s]+/gu, ' ').trim();
+  return /[\p{L}\p{N}\p{P}\p{S}]/u.test(s) ? s : null;
+}
+/* The name in its 120px box above the tiles, on one line at 60px when it fits. Names run to 80 characters
+ * (src/pages/api/me/profile.ts), so a longer one is split at the space nearest its middle and shrunk
+ * until both lines fit the box. */
+async function nameText(name: string, fontPath: string) {
+  const box = { text: name, size: 60, weight: 500, top: 640, height: 120 };
+  const line = await text(box, fontPath);
+  const m = await sharp(line.input).metadata();
+  // Width too: Pango does not break a word longer than the line, it lets it run past the edge.
+  if ((m.width || 0) <= W - 2 * PAD && (m.height || 0) <= box.height) return line;
+  let at = -1;
+  for (let i = name.indexOf(' '); i >= 0; i = name.indexOf(' ', i + 1))
+    if (at < 0 || Math.abs(i - name.length / 2) < Math.abs(at - name.length / 2)) at = i;
+  const two = at < 0 ? name : `${name.slice(0, at)}\n${name.slice(at + 1)}`;
+  return text({ ...box, text: two, fit: true }, fontPath);
+}
+
 /* The member's term as a 1080×1920 PNG (a phone story). `name` is null unless the member asked for it. */
 export async function renderWrapped({ term, stats, name }: { term: Term; stats: Stats; name: string | null }) {
   const fontPath = await font();
+  const shown = shownName(name);
   const tileW = (W - 2 * PAD - 24) / 2,
     tileH = 290;
-  const gridTop = name ? 820 : 740;
+  const gridTop = shown ? 820 : 740;
   const tiles = [
     { value: String(stats.events), label: stats.events === 1 ? 'event attended' : 'events attended' },
     { value: String(stats.posts), label: stats.posts === 1 ? 'post published' : 'posts published' },
@@ -140,7 +167,7 @@ export async function renderWrapped({ term, stats, name }: { term: Term; stats: 
   const layers = await Promise.all([
     t({ text: 'SEMESTER WRAPPED', size: 30, weight: 600, color: C.blue, spacing: 6, top: 380 }),
     t({ text: term.label, size: 128, weight: 700, top: 430 }),
-    ...(name ? [t({ text: name, size: 60, weight: 500, top: 640, height: 120 })] : []),
+    ...(shown ? [nameText(shown, fontPath)] : []),
     ...tiles.flatMap((tile) => [
       t({
         text: tile.value,
