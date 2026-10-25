@@ -6,6 +6,7 @@
    a security-definer function that returns numbers without exposing who registered. "Full" here is
    advisory: the API makes the real capacity check when the form is posted. */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BackToTop from '../components/BackToTop.astro';
 import {
   getUpcomingEvents,
   getPastEvents,
@@ -259,6 +260,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
       </aside>
     </div>
   </section>
+  <BackToTop />
 </BaseLayout>
 
 <script>
