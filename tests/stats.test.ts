@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   EMPTY_STATS,
+  dashboardTiles,
   isEmptyTerm,
   makeTerm,
   previousTerm,
@@ -68,4 +69,25 @@ test('badges and the empty term', () => {
   assert.deepEqual(termBadges(busy), ['Regular', 'Writer', 'Competitor', 'Flag solver', '100+ points']);
   assert.deepEqual(termBadges({ ...EMPTY_STATS, events: 2, points: 20 }), ['Attended events']);
   assert.equal(isEmptyTerm({ ...EMPTY_STATS, points: 10 }), false);
+});
+
+test('dashboard tiles: rank reads "unranked" until there are points, and labels follow the numbers', () => {
+  const none = dashboardTiles({ events: 0, posts: 1, points: 0, rank: null, streak: 1 });
+  assert.deepEqual(
+    none.map((t) => [t.value, t.label]),
+    [
+      ['0', 'events attended'],
+      ['1', 'post published'],
+      ['0', 'points'],
+      ['unranked', 'rank'],
+      ['1', 'semester in a row'],
+    ],
+  );
+  const busy = dashboardTiles({ events: 12, posts: 3, points: 1240, rank: 4, streak: 3 });
+  assert.deepEqual(
+    busy.map((t) => t.value),
+    ['12', '3', '1,240', '#4', '3'],
+  );
+  assert.equal(busy[4].label, 'semesters in a row');
+  assert.ok(busy.every((t) => t.hint.length > 0));
 });

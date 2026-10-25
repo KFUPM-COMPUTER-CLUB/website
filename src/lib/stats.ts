@@ -1,8 +1,9 @@
-/* Semester Wrapped, the rules without a database: which terms exist, which one /me/wrapped opens on,
- * when /me links to it, and what the numbers earn. Terms follow term_start() in 0006_leaderboard.sql:
- * Fall from 1 August, Spring from 1 January, Summer from 1 June, each starting at Riyadh midnight.
- * src/lib/wrapped.ts reads the numbers (member_stats() in 0012_member_stats.sql) and draws the image;
- * tests/stats.test.ts runs this file under plain node, which is why it imports no astro module. */
+/* Member stats, the rules without a database: the /me stat tiles and Semester Wrapped (which terms
+ * exist, which one /me/wrapped opens on, when /me links to it, and what the numbers earn). Terms follow
+ * term_start() in 0006_leaderboard.sql: Fall from 1 August, Spring from 1 January, Summer from 1 June,
+ * each starting at Riyadh midnight. The numbers come from member_stats() (0015_member_dashboard.sql),
+ * read by src/lib/dashboard.ts for /me and src/lib/wrapped.ts for Wrapped; tests/stats.test.ts runs
+ * this file under plain node, which is why it imports no astro module. */
 
 const DAY_MS = 86_400_000;
 const RIYADH_OFFSET_MS = 3 * 3_600_000; // Saudi Arabia has no daylight saving
@@ -91,3 +92,41 @@ export function termBadges(s: Stats): string[] {
   ].filter(Boolean) as string[];
 }
 export const isEmptyTerm = (s: Stats) => !s.events && !s.posts && !s.points && !s.flag;
+
+/* ── The /me stat tiles ───────────────────────────────────────────────── */
+
+/* All-time numbers for /me. rank is null until the member has points; streak counts Fall and Spring
+ * semesters in a row with at least one attended event (see semester_streak() in the migration). */
+export type Dashboard = { events: number; posts: number; points: number; rank: number | null; streak: number };
+export type Tile = { value: string; label: string; hint: string };
+const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : many);
+/* The five tiles, each with the short line that explains it. */
+export function dashboardTiles(d: Dashboard): Tile[] {
+  return [
+    {
+      value: String(d.events),
+      label: plural(d.events, 'event attended', 'events attended'),
+      hint: 'Every event an officer marked you at.',
+    },
+    {
+      value: String(d.posts),
+      label: plural(d.posts, 'post published', 'posts published'),
+      hint: 'Posts live on the blog now.',
+    },
+    {
+      value: d.points.toLocaleString('en-US'),
+      label: plural(d.points, 'point'),
+      hint: 'From events, posts, the flag and competitions.',
+    },
+    {
+      value: d.rank ? `#${d.rank}` : 'unranked',
+      label: 'rank',
+      hint: d.rank ? 'Among all members by all-time points.' : 'You get a rank with your first points.',
+    },
+    {
+      value: String(d.streak),
+      label: plural(d.streak, 'semester in a row', 'semesters in a row'),
+      hint: 'Fall and Spring semesters in a row with an event. Summer does not break it.',
+    },
+  ];
+}

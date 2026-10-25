@@ -59,6 +59,11 @@
 .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
 .links-row { display: flex; flex-wrap: wrap; gap: 14px; }
 .wa-links { display: grid; gap: 10px; }
+.dash-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; padding: 0; list-style: none; }
+@media (max-width: 1180px) { .dash-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dash-stats .stat small { margin-top: 4px; line-height: 1.4; }
+.dash-stats .stat__word { font-size: 22px; line-height: 32px; }
 .wrapped { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 32px; align-items: start; }
 .wrapped__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .wrapped__stats .stat b { overflow-wrap: anywhere; }
