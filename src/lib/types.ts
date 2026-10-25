@@ -226,6 +226,8 @@ export type PostSummary = {
   tags: string[];
   dir: 'ltr' | 'rtl';
   status: string;
+  /* When the content last changed (posts.edited_at, 0013_post_edited_at.sql); null for seed posts. */
+  updatedAt: Date | null;
 };
 /* One row of the writers' leaderboard on /blog (writers_leaderboard() in 0011_featured_posts.sql): posts
  * published this term. handle, name and avatarUrl are null for members who did not opt in, like LeaderRow:

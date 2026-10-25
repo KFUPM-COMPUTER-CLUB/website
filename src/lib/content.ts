@@ -550,6 +550,8 @@ const rowToPost = (r: any): PostSummary => ({
   tags: r.tags || [],
   dir: r.dir || 'ltr',
   status: r.status,
+  // The last content edit (0013_post_edited_at.sql). getPost() reads it; the list query does not select it.
+  updatedAt: r.edited_at ? new Date(r.edited_at) : null,
 });
 /* Authors are fetched from profiles_public and joined here instead of a PostgREST embed such as
  * select('*, profiles(...)'). An embed through the profiles table is filtered by its policy, which
@@ -583,6 +585,7 @@ export function getPosts(): Promise<PostSummary[]> {
           tags: e.data.tags,
           dir: 'ltr' as const,
           status: 'published',
+          updatedAt: null,
         }))
         .sort((a, b) => b.date.valueOf() - a.date.valueOf());
     }
@@ -666,6 +669,7 @@ export async function getPost(slug: string): Promise<PostFull | null> {
       tags: e.data.tags,
       dir: 'ltr',
       status: 'published',
+      updatedAt: null, // seed posts have no edit date, so the "Updated" line stays hidden
       html: null,
       entry: e,
       coverKey: null,

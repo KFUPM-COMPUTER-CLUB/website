@@ -3,7 +3,9 @@
 #
 # Requires one repository secret: SUPABASE_DB_URL, the "Session pooler" connection string from
 # Supabase -> Connect (Settings -> Secrets and variables -> Actions). If the secret is missing the
-# job skips with a warning instead of failing, so a fork without a database still has green checks.
+# job fails on KFUPM-COMPUTER-CLUB/website, so a merge never looks green while nothing reaches the
+# database. On a fork it skips with a warning instead, so a fork without a database still has green
+# checks.
 
 name: migrate
 
@@ -32,9 +34,16 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Apply pending migrations
+        # Named explicitly so the step runs with pipefail; the default shell would let tee's exit
+        # status hide a failed migration.
+        shell: bash
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "::warning::The SUPABASE_DB_URL secret is missing. A maintainer must add it (Settings -> Secrets and variables -> Actions). Skipping."
+            if [ "$GITHUB_REPOSITORY" = "KFUPM-COMPUTER-CLUB/website" ]; then
+              echo "::error::The SUPABASE_DB_URL secret is missing, so no migration was applied. Copy the connection string from Supabase -> Connect -> Session pooler (with the database password filled in), add it as the repository secret SUPABASE_DB_URL under Settings -> Secrets and variables -> Actions, then re-run this workflow."
+              exit 1
+            fi
+            echo "::warning::The SUPABASE_DB_URL secret is missing. Skipping, since $GITHUB_REPOSITORY is a fork without a database."
             exit 0
           fi
           bash scripts/migrate.sh | tee -a "$GITHUB_STEP_SUMMARY"
