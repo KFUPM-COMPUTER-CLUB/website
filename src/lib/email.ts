@@ -568,8 +568,7 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
   const sb = serviceClient();
   const week = digestWeek(now);
   let claimed = false,
-    queued = 0,
-    dropped = 0;
+    queued = 0;
   try {
     const { data: prev, error: prevError } = await sb
       .from('digest_runs')
@@ -591,7 +590,7 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
       .eq('kind', 'digest')
       .eq('status', 'queued');
     if (dropError) throw new Error(dropError.message);
-    dropped = stale || 0;
+    const dropped = stale || 0;
 
     const upcoming = upcomingFor(events, now);
     const fresh = postsSince(posts, digestSince(prev?.ran_at, now), now);
