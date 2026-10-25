@@ -1,0 +1,123 @@
+---
+/* Semester Wrapped: one member's term in numbers, with the 1080×1920 image to share. Opens on the term
+ * wrappedNow() picks (src/lib/stats.ts) and lets the member pick any term since they joined. The
+ * numbers come from member_stats() (0015_member_dashboard.sql) for the signed-in member only. The name goes
+ * on the image only when the box is ticked; it starts ticked for members who show on the leaderboard.
+ * Names are wrapped in <bdi> so an Arabic name sits correctly inside English text. */
+import MeLayout from '../../components/MeLayout.astro';
+import { EMPTY_STATS, isEmptyTerm, termBadges, termByKey, termsSince, wrappedNow, type Stats } from '../../lib/stats';
+import { getStats } from '../../lib/wrapped';
+const { user, profile } = Astro.locals;
+const now = new Date();
+const terms = termsSince(new Date(profile?.created_at || now), now);
+const asked = termByKey(Astro.url.searchParams.get('term'));
+const term = (asked && terms.find((t) => t.key === asked.key)) || wrappedNow(now).term;
+let stats: Stats = EMPTY_STATS,
+  failed = false;
+try {
+  stats = await getStats(user!.id, term);
+} catch (e) {
+  console.error('wrapped', e);
+  failed = true;
+}
+const badges = termBadges(stats);
+const empty = isEmptyTerm(stats);
+const name = (profile?.name || '').trim();
+const nameOn = !!profile?.show_on_leaderboard && !!name;
+const image = (withName: boolean) => `/api/me/wrapped.png?term=${term.key}&view=1${withName ? '&name=1' : ''}`;
+---
+
+<MeLayout title="Semester Wrapped" lead={`${term.label} in numbers.`}>
+  <form class="inline-form" method="get" action="/me/wrapped" style="margin-bottom:24px">
+    <label for="term" class="mono">
+      Term
+    </label>
+    <select class="select" id="term" name="term" style="max-width:200px">
+      {terms.map((t) => (
+        <option value={t.key} selected={t.key === term.key}>
+          {t.label}
+        </option>
+      ))}
+    </select>
+    <button class="btn btn--small btn--ghost" type="submit">
+      Show
+    </button>
+  </form>
+
+  {failed && <p class="flash--error">The numbers could not be loaded. Try again in a minute.</p>}
+
+  <div class="wrapped">
+    <div>
+      <div class="wrapped__stats">
+        <div class="stat">
+          <b>{stats.events}</b>
+          <span>{stats.events === 1 ? 'event attended' : 'events attended'}</span>
+          {stats.registered > stats.events && <small class="hint">{stats.registered} reserved</small>}
+        </div>
+        <div class="stat">
+          <b>{stats.posts}</b>
+          <span>{stats.posts === 1 ? 'post published' : 'posts published'}</span>
+        </div>
+        <div class="stat">
+          <b>{stats.points.toLocaleString('en-US')}</b>
+          <span>{stats.points === 1 ? 'point' : 'points'}</span>
+        </div>
+        <div class="stat">
+          <b>{stats.favouriteType || '–'}</b>
+          <span>favourite kind of event</span>
+        </div>
+      </div>
+      {badges.length > 0 && (
+        <ul class="badges" style="margin-top:16px">
+          {badges.map((b) => (
+            <li class="chip">{b}</li>
+          ))}
+        </ul>
+      )}
+      {empty ? (
+        <p class="hint" style="margin-top:24px">
+          Nothing in {term.label} yet. Come to an event or publish a post, and your Wrapped fills in.
+        </p>
+      ) : (
+        <form
+          data-astro-reload
+          class="form card wrapped__download"
+          method="get"
+          action="/api/me/wrapped.png"
+          data-wrapped
+          data-src-name={image(true)}
+          data-src-plain={image(false)}
+        >
+          <input type="hidden" name="term" value={term.key} />
+          {name ? (
+            <label class="check">
+              <input type="checkbox" name="name" value="1" checked={nameOn} data-wrapped-name /> Put my name on the
+              image (<bdi>{name}</bdi>)
+            </label>
+          ) : null}
+          <div class="form__actions">
+            <button class="btn" type="submit">
+              Download image
+            </button>
+            <span class="hint">1080 × 1920 PNG, sized for stories.</span>
+          </div>
+        </form>
+      )}
+    </div>
+    {!empty && !failed && (
+      <img
+        class="wrapped__preview"
+        src={image(nameOn)}
+        width="1080"
+        height="1920"
+        alt={`Semester Wrapped for ${term.label}`}
+        loading="lazy"
+        data-wrapped-preview
+      />
+    )}
+  </div>
+</MeLayout>
+
+<script>
+  import '../../scripts/wrapped.js';
+</script>
