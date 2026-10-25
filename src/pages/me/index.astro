@@ -8,7 +8,10 @@ import MeLayout from '../../components/MeLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { getWhatsappGroups } from '../../lib/whatsapp';
 import { fmtRiyadh } from '../../lib/content';
+import { wrappedNow } from '../../lib/stats';
 const { user, profile, role } = Astro.locals;
+// Semester Wrapped is linked from here in a term's last four weeks and the two weeks after (src/lib/stats.ts).
+const wrapped = wrappedNow(new Date());
 const sb = serviceClient();
 const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promise.all([
   sb
@@ -43,6 +46,15 @@ const welcome = Astro.url.searchParams.has('welcome');
   }
   lead={welcome ? 'You are in. The groups below are where everything happens.' : undefined}
 >
+  {wrapped.linked && (
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="h3">Your {wrapped.term.label} Wrapped</h2>
+      <p class="hint">Your term in numbers, with an image to share.</p>
+      <a class="btn btn--small" href={`/me/wrapped?term=${wrapped.term.key}`}>
+        Open Wrapped
+      </a>
+    </div>
+  )}
   <div class="card">
     <h2 class="h3">WhatsApp groups</h2>
     {groups.length ? (
