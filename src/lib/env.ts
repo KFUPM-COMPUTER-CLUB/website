@@ -18,6 +18,7 @@ import {
   CRON_SECRET,
   SITE_URL,
 } from 'astro:env/server';
+import { cronSecretRequired } from './secret';
 
 export const supabaseUrl = PUBLIC_SUPABASE_URL || '';
 /* Supabase's newer key names (publishable / secret) work the same as anon / service_role. */
@@ -32,6 +33,8 @@ export const resendReady = () => !!RESEND_API_KEY;
 export const resendKey = RESEND_API_KEY || '';
 export const emailFrom = EMAIL_FROM || 'KFUPM Computer Club <onboarding@resend.dev>';
 export const cronSecret = CRON_SECRET || '';
+/* A production build without VERCEL_ENV must not leave the cron routes open. */
+export const isCronSecretRequired = () => cronSecretRequired(process.env.VERCEL_ENV, import.meta.env.PROD);
 /* For emails and calendar links, where there is no request to read the origin from. */
 export const siteUrl = SITE_URL || 'https://cckfupm.vercel.app';
 export const adminEmails = () =>
