@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 import { getOfficers, getMemberCount, getContributors, getSettings, getCommittees } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
 const [officers, memberCount, contributors, settings, groups] = await Promise.all([
   getOfficers(),
   getMemberCount(),
@@ -16,25 +17,25 @@ const committees = [...new Set(current.map((o) => o.committee || 'Board'))];
 const past = officers.filter((o) => !o.isCurrent);
 const terms = [...new Set(past.map((o) => o.term))].sort().reverse();
 const pad = (n: number) => String(n).padStart(3, '0');
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
-<BaseLayout
-  title="Community"
-  description="The people of the KFUPM Computer Club: the board, the members, and the ones who write."
->
+<BaseLayout title={t(lang, 'community.title')} description={t(lang, 'community.description')}>
   <section class="page-head">
     <div class="container">
       <h1 class="ccmark ccmark--text" aria-label="CC Community">
         <b>CC</b>
-        <span>Community</span>
+        <span>{t(lang, 'community.heading')}</span>
       </h1>
       <p class="lead">
-        {memberCount !== null ? `${memberCount.toLocaleString('en-US')} members and growing.` : 'Students, like you.'}{' '}
-        Here is who runs it, and who writes.
+        {memberCount !== null
+          ? `${memberCount.toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} ${t(lang, 'community.membersGrowing')}`
+          : t(lang, 'community.studentsLikeYou')}{' '}
+        {t(lang, 'community.intro')}
       </p>
       <p style="margin-top:20px">
         <a class="link-arrow" href="/leaderboard">
-          See the leaderboard →
+          {t(lang, 'community.leaderboard')} →
         </a>
       </p>
     </div>
@@ -42,8 +43,8 @@ const pad = (n: number) => String(n).padStart(3, '0');
 
   <section class="section" id="board">
     <div class="container">
-      <span class="eyebrow">The board</span>
-      {current.length === 0 && <p class="lead lead--muted">The board for this term is being added.</p>}
+      <span class="eyebrow">{t(lang, 'community.board')}</span>
+      {current.length === 0 && <p class="lead lead--muted">{t(lang, 'community.boardAdding')}</p>}
       {committees.map((c) => (
         <div class="board__group">
           <h2 class="h2">{c}</h2>
@@ -56,7 +57,10 @@ const pad = (n: number) => String(n).padStart(3, '0');
                     <span class="idcard__brand">
                       <Image src={logoSmDark} alt="" width={32} densities={[1, 2, 3]} /> {settings.site.name}
                     </span>
-                    <span class="mono">Officer{m.term && ` · ${m.term}`}</span>
+                    <span class="mono">
+                      {t(lang, 'community.officer')}
+                      {m.term && ` · ${m.term}`}
+                    </span>
                   </div>
                   <div class="idcard__body">
                     {m.photo ? (
@@ -72,13 +76,13 @@ const pad = (n: number) => String(n).padStart(3, '0');
                       <dl>
                         {m.committee && (
                           <div>
-                            <dt>Committee</dt>
+                            <dt>{t(lang, 'community.committee')}</dt>
                             <dd>{m.committee}</dd>
                           </div>
                         )}
                         {m.major && (
                           <div>
-                            <dt>Major</dt>
+                            <dt>{t(lang, 'community.major')}</dt>
                             <dd>{m.major}</dd>
                           </div>
                         )}
@@ -109,8 +113,8 @@ const pad = (n: number) => String(n).padStart(3, '0');
   {groups.length > 0 && (
     <section class="section section--lined" id="committees">
       <div class="container">
-        <span class="eyebrow">Who runs the club</span>
-        <h2 class="h2">What each committee owns</h2>
+        <span class="eyebrow">{t(lang, 'community.whoRuns')}</span>
+        <h2 class="h2">{t(lang, 'community.committeeOwns')}</h2>
         <div class="committees">
           {groups.map((c) => (
             <article class="card committee reveal">
@@ -141,8 +145,8 @@ const pad = (n: number) => String(n).padStart(3, '0');
   {contributors.length > 0 && (
     <section class="section section--lined" id="writers">
       <div class="container">
-        <span class="eyebrow">Members who write</span>
-        <h2 class="h2">Top contributors</h2>
+        <span class="eyebrow">{t(lang, 'community.writers')}</span>
+        <h2 class="h2">{t(lang, 'community.topContributors')}</h2>
         <ul class="people">
           {contributors.map((c) => (
             <li>
@@ -157,7 +161,7 @@ const pad = (n: number) => String(n).padStart(3, '0');
                 <span>
                   <b>{c.name}</b>
                   <small>
-                    {c.posts} {c.posts === 1 ? 'post' : 'posts'}
+                    {c.posts} {c.posts === 1 ? t(lang, 'community.post') : t(lang, 'community.posts')}
                   </small>
                 </span>
               </a>
@@ -171,8 +175,8 @@ const pad = (n: number) => String(n).padStart(3, '0');
   {terms.length > 0 && (
     <section class="section section--lined" id="alumni">
       <div class="container">
-        <span class="eyebrow">Past boards</span>
-        <h2 class="h2">Alumni</h2>
+        <span class="eyebrow">{t(lang, 'community.pastBoards')}</span>
+        <h2 class="h2">{t(lang, 'community.alumni')}</h2>
         {terms.map((t) => (
           <div class="alumni__term">
             <h3 class="h3">{t}</h3>
@@ -202,7 +206,7 @@ const pad = (n: number) => String(n).padStart(3, '0');
       <p class="lead lead--muted">{settings.home.buildWithUs.text}</p>
       <div class="hero__actions">
         <a class="btn" data-magnet href="/join">
-          Become a member <span aria-hidden="true">→</span>
+          {t(lang, 'home.becomeMember')} <span aria-hidden="true">→</span>
         </a>
       </div>
     </div>

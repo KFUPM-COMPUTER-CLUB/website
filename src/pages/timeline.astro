@@ -11,8 +11,10 @@ import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import type { EventItem } from '../lib/types';
+import { t, type Lang } from '../lib/i18n';
 
 const [upcoming, past] = await Promise.all([getUpcomingEvents(), getPastEvents()]);
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const site = Astro.site?.origin || '';
 const counts = new Map<string, number>();
@@ -54,22 +56,19 @@ const morph = (key: string | null) => {
 };
 const spots = (e: EventItem) =>
   e.capacity
-    ? `${Math.min(counts.get(e.id) || 0, e.capacity)} of ${e.capacity} spots taken`
-    : `${counts.get(e.id) || 0} going`;
+    ? `${Math.min(counts.get(e.id) || 0, e.capacity)} / ${e.capacity} ${t(lang, 'timeline.spotsTaken')}`
+    : `${counts.get(e.id) || 0} ${t(lang, 'timeline.going')}`;
 const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capacity;
 ---
 
-<BaseLayout
-  title="Timeline"
-  description="Every KFUPM Computer Club event, upcoming and past, with one-click calendar links."
->
+<BaseLayout title={t(lang, 'timeline.title')} description={t(lang, 'timeline.description')}>
   <section class="page-head page-head--compact">
     <div class="container">
       <h1 class="ccmark ccmark--text" aria-label="CC Events">
         <b>CC</b>
-        <span>Events</span>
+        <span>{t(lang, 'timeline.events')}</span>
       </h1>
-      <p class="lead">What's coming and what happened. One click puts an event in your calendar.</p>
+      <p class="lead">{t(lang, 'timeline.lead')}</p>
     </div>
   </section>
 
@@ -77,14 +76,12 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
     <div class="container events__grid">
       <div class="events__list">
         {[
-          { title: 'Upcoming', list: upcoming, up: true },
-          { title: 'Past', list: past, up: false },
+          { title: t(lang, 'timeline.upcoming'), list: upcoming, up: true },
+          { title: t(lang, 'timeline.past'), list: past, up: false },
         ].map((sec) => (
           <div class="events__section" data-section>
             <h2 class="h2">{sec.title}</h2>
-            {sec.list.length === 0 && (
-              <p class="lead lead--muted">Nothing scheduled yet. Follow the club on X for the next announcement.</p>
-            )}
+            {sec.list.length === 0 && <p class="lead lead--muted">{t(lang, 'timeline.empty')}</p>}
             {groups(sec.list).map((g) => (
               <div class="term" data-term>
                 <div class="term__label mono">
@@ -142,10 +139,10 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                         <p class="ev__cal">
                           {e.registerUrl && (
                             <a class="ev__register" href={e.registerUrl} target="_blank" rel="noopener">
-                              Register ↗
+                              {t(lang, 'timeline.register')} ↗
                             </a>
                           )}
-                          <span class="mono">Add to</span>
+                          <span class="mono">{t(lang, 'timeline.addTo')}</span>
                           <a href={googleUrl(e, site)} target="_blank" rel="noopener">
                             Google
                           </a>
@@ -153,7 +150,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                             href={outlookUrl(e, 'work', site)}
                             target="_blank"
                             rel="noopener"
-                            title="Outlook for KFUPM and work accounts"
+                            title={t(lang, 'timeline.outlookWork')}
                           >
                             Outlook
                           </a>
@@ -161,7 +158,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                             href={outlookUrl(e, 'personal', site)}
                             target="_blank"
                             rel="noopener"
-                            title="Outlook.com personal accounts"
+                            title={t(lang, 'timeline.outlookPersonal')}
                           >
                             Outlook.com
                           </a>
@@ -181,10 +178,11 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                           >
                             <input type="hidden" name="next" value={`/timeline#ev-${e.slug}`} />
                             <label class="ev__copy">
-                              <input type="checkbox" name="email_copy" value="1" /> email me a copy
+                              <input type="checkbox" name="email_copy" value="1" /> {t(lang, 'timeline.emailCopy')}
                             </label>
                             <button class="btn btn--small" type="submit" disabled={full(e)}>
-                              {full(e) ? 'Full' : 'Reserve a spot'} <span aria-hidden="true">→</span>
+                              {full(e) ? t(lang, 'timeline.full') : t(lang, 'timeline.reserve')}{' '}
+                              <span aria-hidden="true">→</span>
                             </button>
                           </form>
                           <a
@@ -192,7 +190,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                             data-signed-out
                             href={`/join?next=${encodeURIComponent(`/timeline#ev-${e.slug}`)}`}
                           >
-                            Sign in to reserve a spot
+                            {t(lang, 'timeline.signInReserve')}
                           </a>
                           <span class="mono ev__spots">{spots(e)}</span>
                         </div>
@@ -210,27 +208,24 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
       <aside class="events__side">
         <div class="cal" data-events={calData}>
           <div class="cal__head">
-            <span class="mono">Calendar</span>
+            <span class="mono">{t(lang, 'timeline.calendar')}</span>
             <a class="cal__ics" href="/calendar.ics" download="kfupm-computer-club.ics">
-              Add iCal
+              {t(lang, 'timeline.addIcal')}
             </a>
           </div>
           <div class="cal__nav">
             <strong class="cal__month"></strong>
             <span>
-              <button type="button" class="cal__prev" aria-label="Previous month">
+              <button type="button" class="cal__prev" aria-label={t(lang, 'timeline.previousMonth')}>
                 ‹
               </button>
-              <button type="button" class="cal__next" aria-label="Next month">
+              <button type="button" class="cal__next" aria-label={t(lang, 'timeline.nextMonth')}>
                 ›
               </button>
             </span>
           </div>
           <div class="cal__grid" role="grid"></div>
-          <p class="cal__hint mono">
-            Highlighted days have events. Click one to jump to it. Subscribe to the feed to get every upcoming event in
-            your calendar.
-          </p>
+          <p class="cal__hint mono">{t(lang, 'timeline.calendarHint')}</p>
         </div>
       </aside>
     </div>

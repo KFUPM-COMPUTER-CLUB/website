@@ -2,9 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { render } from 'astro:content';
 import { getPost } from '../../lib/content';
+import { t, localePath, type Lang } from '../../lib/i18n';
 const post = await getPost(Astro.params.id || '');
 if (!post) return new Response(null, { status: 404 });
 const Content = post.entry ? (await render(post.entry)).Content : null;
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const short = (d: Date) =>
   d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -16,7 +18,12 @@ const short = (d: Date) =>
       <h1 class="h1">{post.title}</h1>
       <p class="meta" style="margin-top:18px">
         <span>
-          By {post.authorHandle ? <a href={`/u/${post.authorHandle}`}>{post.authorName}</a> : post.authorName}
+          {t(lang, 'blog.by')}{' '}
+          {post.authorHandle ? (
+            <a href={localePath(lang, `/u/${post.authorHandle}`)}>{post.authorName}</a>
+          ) : (
+            post.authorName
+          )}
         </span>
         <time datetime={post.date.toISOString().slice(0, 10)}>{short(post.date)}</time>
         {post.category && <span>{post.category}</span>}
@@ -31,7 +38,7 @@ const short = (d: Date) =>
       {post.tags.length > 0 && (
         <p class="tags">
           {post.tags.map((t) => (
-            <a class="tag" href={`/blog?tag=${encodeURIComponent(t)}`}>
+            <a class="tag" href={`${localePath(lang, '/blog')}?tag=${encodeURIComponent(t)}`}>
               #{t}
             </a>
           ))}
@@ -46,18 +53,24 @@ const short = (d: Date) =>
           </span>
         )}
         <div>
-          <span class="mono">Written by</span>
-          <b>{post.authorHandle ? <a href={`/u/${post.authorHandle}`}>{post.authorName}</a> : post.authorName}</b>
+          <span class="mono">{t(lang, 'blog.writtenBy')}</span>
+          <b>
+            {post.authorHandle ? (
+              <a href={localePath(lang, `/u/${post.authorHandle}`)}>{post.authorName}</a>
+            ) : (
+              post.authorName
+            )}
+          </b>
           {post.authorHandle && (
-            <a class="link-arrow" href={`/u/${post.authorHandle}`}>
-              Profile →
+            <a class="link-arrow" href={localePath(lang, `/u/${post.authorHandle}`)}>
+              {t(lang, 'blog.profile')} →
             </a>
           )}
         </div>
       </aside>
       <p style="margin-top:32px">
-        <a class="link-arrow" href="/blog">
-          ← All posts
+        <a class="link-arrow" href={localePath(lang, '/blog')}>
+          ← {t(lang, 'blog.back')}
         </a>
       </p>
     </div>

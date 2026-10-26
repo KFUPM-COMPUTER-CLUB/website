@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts } from '../../lib/content';
+import { t, localePath, type Lang } from '../../lib/i18n';
 const posts = await getPosts();
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const mon = (d: Date) => d.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
@@ -12,22 +14,20 @@ const category = Astro.url.searchParams.get('category');
 const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category || p.category === category));
 ---
 
-<BaseLayout
-  title="Blog"
-  description="Written by members of the KFUPM Computer Club: what we did, what we taught, and what we learned."
->
+<BaseLayout title={t(lang, 'blog.title')} description={t(lang, 'blog.description')}>
   <section class="page-head">
     <div class="container">
       <h1 class="ccmark ccmark--text" aria-label="CC Blogs">
         <b>CC</b>
-        <span>Blogs</span>
+        <span>{t(lang, 'blog.heading')}</span>
       </h1>
       <p class="lead">
-        Event recaps, tutorials and what we learned. <a href="/rss.xml">RSS</a>
+        {t(lang, 'blog.lead')} <a href="/rss.xml">RSS</a>
       </p>
       {(tag || category) && (
         <p class="mono">
-          Showing {tag ? `#${tag}` : category} · <a href="/blog">all posts</a>
+          {t(lang, 'blog.showing')} {tag ? `#${tag}` : category} ·{' '}
+          <a href={localePath(lang, '/blog')}>{t(lang, 'blog.allPosts')}</a>
         </p>
       )}
     </div>
@@ -36,7 +36,7 @@ const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category |
     <div class="container">
       <div class="posts">
         {shown.map((p) => (
-          <a class="post reveal" href={`/blog/${p.slug}`} dir={p.dir}>
+          <a class="post reveal" href={localePath(lang, `/blog/${p.slug}`)} dir={p.dir}>
             <time class="post__date" datetime={iso(p.date)}>
               <b>{mon(p.date)}</b>
               <span>{dayYear(p.date)}</span>
@@ -51,11 +51,11 @@ const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category |
             </div>
           </a>
         ))}
-        {shown.length === 0 && <p class="lead lead--muted">Nothing here yet.</p>}
+        {shown.length === 0 && <p class="lead lead--muted">{t(lang, 'blog.empty')}</p>}
       </div>
       <p style="margin-top:40px">
         <a class="btn btn--ghost" href="/me/posts/new">
-          Write a post <span aria-hidden="true">→</span>
+          {t(lang, 'blog.write')} <span aria-hidden="true">→</span>
         </a>
       </p>
     </div>

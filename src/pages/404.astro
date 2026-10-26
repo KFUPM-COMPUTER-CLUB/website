@@ -1,25 +1,27 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/snake.css';
+import { t, localePath, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 
 // Astro serves this page for any unknown path. It keeps the site chrome and hands the visitor a
 // game of Snake while they are here. The game script runs only on pages with [data-snake].
 ---
 
-<BaseLayout title="404" description="That page does not exist. Play a round of Snake, then head home." noindex={true}>
+<BaseLayout title={t(lang, 'notFound.title')} description={t(lang, 'notFound.description')} noindex={true}>
   <section class="section snake" data-snake>
     <div class="container">
-      <span class="mono">Error 404</span>
-      <h1 class="h1 snake__title">404: segfault in the matrix</h1>
-      <p class="lead snake__lead">That page was never allocated. While you are here, the snake is.</p>
+      <span class="mono">{t(lang, 'notFound.error')}</span>
+      <h1 class="h1 snake__title">{t(lang, 'notFound.heading')}</h1>
+      <p class="lead snake__lead">{t(lang, 'notFound.lead')}</p>
 
       <div class="snake__game">
         <div class="snake__meta">
           <span class="mono">
-            Score <b data-snake-score>0</b>
+            {t(lang, 'notFound.score')} <b data-snake-score>0</b>
           </span>
           <span class="mono">
-            Best <b data-snake-best>0</b>
+            {t(lang, 'notFound.best')} <b data-snake-best>0</b>
           </span>
         </div>
 
@@ -27,7 +29,7 @@ import '../styles/snake.css';
           class="snake__board"
           tabindex="0"
           role="application"
-          aria-label="Snake. Arrow keys or W A S D to steer, Space to start or pause, swipe on touch screens."
+          aria-label={t(lang, 'notFound.snakeLabel')}
           data-snake-board
         >
           <canvas class="snake__canvas" width="400" height="400" data-snake-canvas>
@@ -35,17 +37,17 @@ import '../styles/snake.css';
           </canvas>
         </div>
 
-        <div class="snake__pad" aria-label="Steer">
-          <button class="btn btn--ghost" type="button" data-dir="up" aria-label="Up">
+        <div class="snake__pad" aria-label={t(lang, 'notFound.steer')}>
+          <button class="btn btn--ghost" type="button" data-dir="up" aria-label={t(lang, 'notFound.up')}>
             ↑
           </button>
-          <button class="btn btn--ghost" type="button" data-dir="left" aria-label="Left">
+          <button class="btn btn--ghost" type="button" data-dir="left" aria-label={t(lang, 'notFound.left')}>
             ←
           </button>
-          <button class="btn btn--ghost" type="button" data-dir="down" aria-label="Down">
+          <button class="btn btn--ghost" type="button" data-dir="down" aria-label={t(lang, 'notFound.down')}>
             ↓
           </button>
-          <button class="btn btn--ghost" type="button" data-dir="right" aria-label="Right">
+          <button class="btn btn--ghost" type="button" data-dir="right" aria-label={t(lang, 'notFound.right')}>
             →
           </button>
         </div>
@@ -54,11 +56,11 @@ import '../styles/snake.css';
       </div>
 
       <div class="snake__actions">
-        <a class="btn" href="/">
-          Take me home
+        <a class="btn" href={localePath(lang, '/')}>
+          {t(lang, 'notFound.home')}
         </a>
-        <a class="btn btn--ghost" href="/timeline">
-          See the timeline
+        <a class="btn btn--ghost" href={localePath(lang, '/timeline')}>
+          {t(lang, 'notFound.timeline')}
         </a>
       </div>
     </div>
