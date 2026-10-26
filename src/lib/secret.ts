@@ -11,9 +11,10 @@ export const sameSecret = (given: string, want: string) => {
   return diff === 0;
 };
 
-/* Seed-mode development needs no secret; a missing production secret must never authorize a call. */
+/* Only local development runs without a secret. Previews use the production database and email key, so a
+ * missing secret there must not authorize a call either. */
 export const cronSecretRequired = (vercelEnv: string | undefined, productionBuild: boolean) =>
-  vercelEnv === 'production' || (!vercelEnv && productionBuild);
+  vercelEnv ? vercelEnv !== 'development' : productionBuild;
 
 export const cronBearerAuthorized = (authorization: string | null, secret: string, secretRequired: boolean) =>
   secret ? sameSecret(authorization || '', `Bearer ${secret}`) : !secretRequired;

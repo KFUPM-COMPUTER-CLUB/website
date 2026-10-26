@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cronBearerAuthorized, cronSecretRequired } from '../src/lib/secret.ts';
 
-test('cron secret is required in production and when the deployment marker is unavailable', () => {
+test('cron secret is required on production, previews and builds without the deployment marker', () => {
   assert.equal(cronSecretRequired('production', false), true);
+  assert.equal(cronSecretRequired('preview', true), true);
   assert.equal(cronSecretRequired(undefined, true), true);
   assert.equal(cronSecretRequired('', true), true);
-  assert.equal(cronSecretRequired('preview', true), false);
+  assert.equal(cronSecretRequired('development', false), false);
   assert.equal(cronSecretRequired(undefined, false), false);
 });
 

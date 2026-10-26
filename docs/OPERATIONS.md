@@ -25,7 +25,7 @@ All runtime secrets are Vercel environment variables (Vercel → project → Set
 - **Resend API key**: Resend → API Keys → create a new key → Vercel `RESEND_API_KEY` → redeploy → delete the old key.
 - **Vercel deploy token** (`VERCEL_TOKEN` in GitHub Actions secrets): Vercel → Account → Tokens → create → GitHub repo → Settings → Secrets → update → delete the old token.
 - **Database connection string** (`SUPABASE_DB_URL` in GitHub Actions secrets, used by the migrate workflow): Supabase → Project Settings → Database → reset the database password → Connect → copy the **Session pooler** string with the new password → GitHub repo → Settings → Secrets → update.
-- **`CRON_SECRET`**: any new random string in Vercel; redeploy after setting or rotating it. If it is missing in Production, both cron routes return 401 and log the missing configuration instead of running. Local `npm run dev` without a secret stays open for seed-mode checks.
+- **`CRON_SECRET`**: any new random string in Vercel; redeploy after setting or rotating it. If it is missing in Production or Preview, both cron routes return 401 and log the missing configuration instead of running. Local `npm run dev` without a secret stays open for seed-mode checks.
 
 Rotating the Supabase secret key also changes the unsubscribe links in the weekly digest (they are signed with it): links in emails already sent stop working, and members who click one are told to untick the digest on `/me/profile` instead. The next digest carries working links.
 

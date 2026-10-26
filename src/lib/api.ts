@@ -38,7 +38,7 @@ export function requireRole(ctx: APIContext, min: Role) {
 /* The cron routes (/api/cron/*): Vercel sends "Authorization: Bearer <CRON_SECRET>". */
 export const cronAuthorized = (request: Request) => {
   const secretRequired = isCronSecretRequired();
-  if (secretRequired && !cronSecret) console.error('Cron request refused: CRON_SECRET is missing in production.');
+  if (secretRequired && !cronSecret) console.error('Cron request refused: CRON_SECRET is missing on this deployment.');
   return cronBearerAuthorized(request.headers.get('authorization'), cronSecret, secretRequired);
 };
 
