@@ -943,3 +943,6 @@ body.scrolled .scroll-hint { opacity: 0; }
 @keyframes marquee-rtl { to { transform: translateX(50%); } }
 [dir="rtl"] .strip--moving .strip__track { animation-name: strip-rtl; }
 @keyframes strip-rtl { to { transform: translateX(50%); } }
+[dir="rtl"] .story__arrow,
+[dir="rtl"] .cal__prev,
+[dir="rtl"] .cal__next { transform: rotate(180deg); }
