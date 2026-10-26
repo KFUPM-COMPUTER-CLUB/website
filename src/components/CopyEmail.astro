@@ -5,7 +5,14 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 const { email, label } = Astro.props;
 ---
 
-<button type="button" class="copy" data-copy={email} aria-label={label ? `${label}: copy ${email}` : `Copy ${email}`}>
+<button
+  type="button"
+  class="copy"
+  data-copy={email}
+  data-copy-done={`${t(lang, 'copy.copied')} ${email}`}
+  data-copy-failed={t(lang, 'copy.failed')}
+  aria-label={label ? `${label}: ${t(lang, 'copy.action')} ${email}` : `${t(lang, 'copy.action')} ${email}`}
+>
   <span class="copy__text">{email}</span>
   <span class="copy__tip" aria-hidden="true">
     {t(lang, 'copy.copied')} ✓

@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 import { getOfficers, getMemberCount, getContributors, getSettings, getCommittees } from '../lib/content';
-import { t, type Lang } from '../lib/i18n';
+import { t, localePath, type Lang } from '../lib/i18n';
 const [officers, memberCount, contributors, settings, groups] = await Promise.all([
   getOfficers(),
   getMemberCount(),
@@ -23,7 +23,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 <BaseLayout title={t(lang, 'community.title')} description={t(lang, 'community.description')}>
   <section class="page-head">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Community">
+      <h1 class="ccmark ccmark--text" aria-label={`CC ${t(lang, 'community.heading')}`}>
         <b>CC</b>
         <span>{t(lang, 'community.heading')}</span>
       </h1>
@@ -34,7 +34,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
         {t(lang, 'community.intro')}
       </p>
       <p style="margin-top:20px">
-        <a class="link-arrow" href="/leaderboard">
+        <a class="link-arrow" href={localePath(lang, '/leaderboard')}>
           {t(lang, 'community.leaderboard')} →
         </a>
       </p>
@@ -71,7 +71,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
                       </span>
                     )}
                     <div class="idcard__info">
-                      <h3>{m.handle ? <a href={`/u/${m.handle}`}>{m.name}</a> : m.name}</h3>
+                      <h3>{m.handle ? <a href={localePath(lang, `/u/${m.handle}`)}>{m.name}</a> : m.name}</h3>
                       <p class="idcard__role">{m.title}</p>
                       <dl>
                         {m.committee && (
@@ -131,7 +131,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
               {c.members.length > 0 && (
                 <ul class="committee__members">
                   {c.members.map((m) => (
-                    <li>{m.handle ? <a href={`/u/${m.handle}`}>{m.name}</a> : m.name}</li>
+                    <li>{m.handle ? <a href={localePath(lang, `/u/${m.handle}`)}>{m.name}</a> : m.name}</li>
                   ))}
                 </ul>
               )}
@@ -150,7 +150,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
         <ul class="people">
           {contributors.map((c) => (
             <li>
-              <a class="person" href={`/u/${c.handle}`}>
+              <a class="person" href={localePath(lang, `/u/${c.handle}`)}>
                 {c.avatar_url ? (
                   <img src={c.avatar_url} alt="" width="48" height="48" loading="lazy" />
                 ) : (

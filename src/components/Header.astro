@@ -76,6 +76,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
           target={external ? '_blank' : undefined}
           rel={external ? 'noopener' : undefined}
           data-join
+          data-account-label={t(lang, 'nav.account')}
         >
           {t(lang, 'nav.join')} <span aria-hidden="true">→</span>
         </a>

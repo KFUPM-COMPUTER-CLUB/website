@@ -33,7 +33,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
           data-snake-board
         >
           <canvas class="snake__canvas" width="400" height="400" data-snake-canvas>
-            Snake needs a browser with canvas support.
+            {t(lang, 'notFound.canvas')}
           </canvas>
         </div>
 

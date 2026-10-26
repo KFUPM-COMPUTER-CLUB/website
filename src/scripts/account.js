@@ -10,7 +10,12 @@ onPage(() => {
     if (!signedIn) return;
     a.setAttribute('href', '/me');
     a.removeAttribute('target');
-    a.innerHTML = 'My account <span aria-hidden="true">→</span>';
+    // The label comes from the page (data-account-label) so Arabic pages show Arabic; English is the fallback.
+    a.textContent = `${a.dataset.accountLabel || 'My account'} `;
+    const arrow = document.createElement('span');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+    a.append(arrow);
   });
   document.querySelectorAll('[data-signed-in]').forEach((el) => {
     el.hidden = !signedIn;

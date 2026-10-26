@@ -9,7 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getLeaderboard, termOf } from '../../lib/content';
 import { dbReady } from '../../lib/env';
 import { POINT_CATEGORIES, POINT_VALUES, type LeaderPeriod, type PointCategory } from '../../lib/types';
-import { t, localePath, type Lang } from '../../lib/i18n';
+import { t, localePath, localizeTerm, type Lang } from '../../lib/i18n';
 
 type Filter = PointCategory | 'all';
 const parts = (Astro.params.filter || '').split('/').filter(Boolean);
@@ -22,17 +22,11 @@ if (parts.length > 1 || (category !== 'all' && !POINT_CATEGORIES.includes(catego
 
 const rows = await getLeaderboard(period, category);
 const term = termOf(new Date());
-const localizedTerm =
-  lang === 'ar'
-    ? term
-        .replace('Fall', t(lang, 'leaderboard.termFall'))
-        .replace('Spring', t(lang, 'leaderboard.termSpring'))
-        .replace('Summer', t(lang, 'leaderboard.termSummer'))
-    : term;
+const localizedTerm = localizeTerm(lang, term);
 const href = (p: LeaderPeriod, c: Filter) =>
-  `/leaderboard${p === 'all' ? '/all-time' : ''}${c === 'all' ? '' : `/${c}`}`;
+  localePath(lang, `/leaderboard${p === 'all' ? '/all-time' : ''}${c === 'all' ? '' : `/${c}`}`);
 const periods = [
-  { p: 'term' as LeaderPeriod, label: term },
+  { p: 'term' as LeaderPeriod, label: localizedTerm },
   { p: 'all' as LeaderPeriod, label: t(lang, 'leaderboard.allTime') },
 ].map((x) => ({ ...x, href: href(x.p, category), on: x.p === period }));
 const filters = (['all', 'events', 'posts', 'flag', 'competitions'] as Filter[]).map((c) => ({
@@ -52,7 +46,7 @@ const filters = (['all', 'events', 'posts', 'flag', 'competitions'] as Filter[])
 }));
 const leaders = rows.map((r) => ({
   ...r,
-  label: r.handle ? r.name || `@${r.handle}` : lang === 'ar' ? 'عضو' : 'A member',
+  label: r.handle ? r.name || `@${r.handle}` : t(lang, 'leaderboard.member'),
   initial: (r.name || '?').slice(0, 1),
 }));
 const scope = `${period === 'term' ? localizedTerm : t(lang, 'leaderboard.allTime')}${
@@ -131,13 +125,15 @@ const empty = !dbReady() ? t(lang, 'leaderboard.noDatabase') : `${t(lang, 'leade
             <b>{POINT_VALUES.posts}</b> {t(lang, 'leaderboard.eachPost')}
           </li>
           <li>
-            <b>{POINT_VALUES.flag}</b> {t(lang, 'leaderboard.findFlag')} <a href={localePath(lang, '/flag')}>flag</a>
+            <b>{POINT_VALUES.flag}</b> {t(lang, 'leaderboard.findFlag')}{' '}
+            <a href={localePath(lang, '/flag')}>{t(lang, 'leaderboard.flagWord')}</a>
           </li>
           <li>{t(lang, 'leaderboard.competition')}</li>
         </ul>
         <p class="hint">
-          {t(lang, 'leaderboard.visibility')} <i>Show me on the leaderboard</i> on your{' '}
-          <a href="/me/profile">profile</a>. {t(lang, 'leaderboard.visibilityEnd')} "A member".
+          {t(lang, 'leaderboard.visibility')} <i>{t(lang, 'leaderboard.visibilityOption')}</i>{' '}
+          {t(lang, 'leaderboard.visibilityIn')} <a href="/me/profile">{t(lang, 'leaderboard.visibilityProfile')}</a>.{' '}
+          {t(lang, 'leaderboard.visibilityEnd')} "{t(lang, 'leaderboard.member')}".
         </p>
       </aside>
     </div>

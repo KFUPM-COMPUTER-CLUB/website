@@ -34,7 +34,11 @@ onPage(() => {
     e.preventDefault();
     const ok = await write(el.dataset.copy || '');
     const status = el.querySelector('[data-copy-status]');
-    if (status) status.textContent = ok ? `Copied ${el.dataset.copy} to clipboard` : 'Could not copy';
+    // The messages come from the page (data-copy-done / data-copy-failed) so Arabic pages read Arabic; English is the fallback.
+    if (status)
+      status.textContent = ok
+        ? el.dataset.copyDone || `Copied ${el.dataset.copy} to clipboard`
+        : el.dataset.copyFailed || 'Could not copy';
     if (!ok) return;
     el.classList.add('is-copied');
     clearTimeout(timers.get(el));

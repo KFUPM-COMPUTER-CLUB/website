@@ -60,7 +60,7 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="container">
     <div class="site-footer__row">
-      <a class="site-logo" href={localePath(lang, '/')} aria-label={`${site.name} home`}>
+      <a class="site-logo" href={localePath(lang, '/')} aria-label={`${site.name} ${t(lang, 'nav.home')}`}>
         <span class="site-logo__stack">
           <Image class="site-logo__icon" src={logoSm} alt="" width={64} densities={[1, 2, 3]} />
           <Image

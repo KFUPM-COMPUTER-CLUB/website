@@ -11,7 +11,7 @@ import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import type { EventItem } from '../lib/types';
-import { t, type Lang } from '../lib/i18n';
+import { t, localizeTerm, eventTypeLabel, type Lang } from '../lib/i18n';
 
 const [upcoming, past] = await Promise.all([getUpcomingEvents(), getPastEvents()]);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
@@ -64,7 +64,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
 <BaseLayout title={t(lang, 'timeline.title')} description={t(lang, 'timeline.description')}>
   <section class="page-head page-head--compact">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Events">
+      <h1 class="ccmark ccmark--text" aria-label={`CC ${t(lang, 'timeline.events')}`}>
         <b>CC</b>
         <span>{t(lang, 'timeline.events')}</span>
       </h1>
@@ -86,7 +86,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
               <div class="term" data-term>
                 <div class="term__label mono">
                   <i aria-hidden="true"></i>
-                  {g.term}
+                  {localizeTerm(lang, g.term)}
                 </div>
                 {g.items.map((e) => (
                   <article class="ev" id={`ev-${e.slug}`} data-type={e.type}>
@@ -196,7 +196,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                         </div>
                       )}
                     </div>
-                    <span class="tag ev__tag">{e.type}</span>
+                    <span class="tag ev__tag">{eventTypeLabel(lang, e.type)}</span>
                   </article>
                 ))}
               </div>

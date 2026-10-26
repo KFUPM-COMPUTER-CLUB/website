@@ -13,9 +13,6 @@ const items = [
 ];
 const flash = Astro.url.searchParams.get('ok');
 const error = Astro.url.searchParams.get('error');
-
-import { t, localePath, type Lang } from '../lib/i18n';
-const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <BaseLayout title={title} noindex={true}>

@@ -927,12 +927,10 @@ body.scrolled .scroll-hint { opacity: 0; }
 .prose [dir="rtl"] { text-align: right; } .prose [dir="rtl"] ul { padding-right: 1.4em; padding-left: 0; }
 
 /* RTL overrides (Arabic) */
-[dir="rtl"] .site-nav a:not(.btn),
-[dir="rtl"] .nav-toggle,
-[dir="rtl"] .btn,
-[dir="rtl"] .mono,
-[dir="rtl"] .eyebrow,
-[dir="rtl"] .tag { letter-spacing: 0; }
+/* Arabic pages: Latin letters keep their own fonts, Arabic letters fall back to Readex Pro (the browser picks per character). */
+[dir="rtl"] { --font-head: 'Mona Sans', 'Readex Pro', system-ui, sans-serif; --font-body: 'Hubot Sans', 'Readex Pro', system-ui, sans-serif; --font-mono: 'JetBrains Mono', 'Readex Pro', ui-monospace, monospace; }
+/* Arabic letters join each other, so letter-spacing (positive or negative) must never apply on Arabic pages. !important because many rules above are more specific. */
+[dir="rtl"], [dir="rtl"] *, [dir="rtl"] *::before, [dir="rtl"] *::after { letter-spacing: 0 !important; }
 [dir="rtl"] .site-nav a:not(.btn)::after { transform-origin: left; }
 [dir="rtl"] .site-nav a:not(.btn):hover::after, [dir="rtl"] .site-nav a[aria-current="page"]::after { transform-origin: right; }
 [dir="rtl"] .bars__fill { transform-origin: right; }

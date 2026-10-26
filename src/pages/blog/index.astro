@@ -17,7 +17,7 @@ const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category |
 <BaseLayout title={t(lang, 'blog.title')} description={t(lang, 'blog.description')}>
   <section class="page-head">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Blogs">
+      <h1 class="ccmark ccmark--text" aria-label={`CC ${t(lang, 'blog.heading')}`}>
         <b>CC</b>
         <span>{t(lang, 'blog.heading')}</span>
       </h1>

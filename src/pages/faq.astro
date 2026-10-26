@@ -25,9 +25,15 @@ const items = faq.map((f) => {
       <div class="faq reveal">
         {items.map((f, i) => (
           <details open={i === 0}>
-            <summary><span lang={f.lang} dir="auto">{f.q}</span></summary>
+            <summary>
+              <span lang={f.lang} dir="auto">
+                {f.q}
+              </span>
+            </summary>
             <div class="faq__a">
-              <p lang={f.lang} dir="auto">{f.a}</p>
+              <p lang={f.lang} dir="auto">
+                {f.a}
+              </p>
             </div>
           </details>
         ))}

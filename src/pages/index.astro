@@ -10,7 +10,7 @@ import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
 import { getSettings, getMemberCount } from '../lib/content';
-import { t, type Lang } from '../lib/i18n';
+import { t, localePath, type Lang } from '../lib/i18n';
 
 const settings = await getSettings();
 const lang = (Astro.currentLocale ?? 'en') as Lang;
@@ -109,7 +109,7 @@ const stageTabs = [
         <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
           {t(lang, 'home.becomeMember')} <span aria-hidden="true">→</span>
         </a>
-        <a class="btn btn--ghost" href="/timeline">
+        <a class="btn btn--ghost" href={localePath(lang, '/timeline')}>
           {t(lang, 'home.seeComing')} <span aria-hidden="true">→</span>
         </a>
       </div>
