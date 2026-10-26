@@ -10,21 +10,27 @@ import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
 import { getSettings, getMemberCount } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
 
 const settings = await getSettings();
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const memberCount = await getMemberCount();
 const site = settings.site;
 const home = settings.home;
 const joinHref = settings.links.join || '/join';
 const ext = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
 // The last two words of the hero line are highlighted.
-const words = home.heroLine.trim().split(/\s+/);
+const heroLine = lang === 'ar' ? t(lang, 'home.hero') : home.heroLine;
+const words = heroLine.trim().split(/\s+/);
 const heroHead = words.slice(0, -2).join(' ');
 const heroTail = words.slice(-2).join(' ');
-const stageTabs = ['Moments', 'In pictures'];
+const stageTabs = [
+  { label: t(lang, 'home.moments'), key: 'home.moments' as const },
+  { label: t(lang, 'home.inPictures'), key: 'home.inPictures' as const },
+];
 ---
 
-<BaseLayout title="Home">
+<BaseLayout title={lang === 'ar' ? 'الرئيسية' : 'Home'}>
   <!-- Screen 1: logo and headline only -->
   <section class="screen screen--one bg-white" data-bg="#FFFFFF" data-hero>
     <div class="hero-grid" aria-hidden="true"></div>
@@ -35,7 +41,7 @@ const stageTabs = ['Moments', 'In pictures'];
       </h1>
     </div>
     <div class="scroll-hint" aria-hidden="true">
-      <span class="mono">Scroll</span>
+      <span class="mono">{t(lang, 'home.scroll')}</span>
       <i></i>
     </div>
   </section>
@@ -50,12 +56,12 @@ const stageTabs = ['Moments', 'In pictures'];
           <b>CC</b>
           <Image src={kfupmLogo} alt="KFUPM" height={76} densities={[1, 2]} />
         </span>
-        <p class="stage__line">{site.intro}</p>
-        <div class="stage__bar" role="tablist" aria-label="Sections">
-          {stageTabs.map((t, i) => (
+        <p class="stage__line">{lang === 'ar' ? t(lang, 'home.intro') : site.intro}</p>
+        <div class="stage__bar" role="tablist" aria-label={t(lang, 'home.sections')}>
+          {stageTabs.map((tab, i) => (
             <button class="stage__tab" role="tab" type="button" data-tab={i} aria-selected={i === 0 ? 'true' : 'false'}>
               <i aria-hidden="true"></i>
-              <span>{t}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -67,11 +73,11 @@ const stageTabs = ['Moments', 'In pictures'];
         <div class="stage__panel stage__panel--strip" role="tabpanel" data-panel="1">
           <div class="container stage__head">
             <div>
-              <span class="eyebrow">In pictures</span>
-              <h2 class="h3">Six years of building</h2>
+              <span class="eyebrow">{t(lang, 'home.inPictures')}</span>
+              <h2 class="h3">{t(lang, 'home.yearsBuilding')}</h2>
             </div>
             <a class="link-arrow" href="https://x.com/KFUPM_CC" target="_blank" rel="noopener">
-              More on X ↗
+              {t(lang, 'home.moreOnX')} ↗
             </a>
           </div>
           <PhotoStrip />
@@ -83,22 +89,28 @@ const stageTabs = ['Moments', 'In pictures'];
 
   <ShowReel />
 
-  <PhotoMoment photoKey={home.photoMoment.photoKey} eyebrow={home.photoMoment.eyebrow} line={home.photoMoment.line} />
+  <PhotoMoment
+    photoKey={home.photoMoment.photoKey}
+    eyebrow={lang === 'ar' ? t(lang, 'home.momentEyebrow') : home.photoMoment.eyebrow}
+    line={lang === 'ar' ? t(lang, 'home.momentLine') : home.photoMoment.line}
+  />
 
   <!-- Join -->
   <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
-      <h2 class="h1">{home.buildWithUs.title}</h2>
+      <h2 class="h1">{lang === 'ar' ? t(lang, 'home.buildTitle') : home.buildWithUs.title}</h2>
       {memberCount !== null && (
-        <p class="lead lead--muted">{memberCount.toLocaleString('en-US')} members and growing.</p>
+        <p class="lead lead--muted">
+          {memberCount.toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} {t(lang, 'home.membersGrowing')}
+        </p>
       )}
-      <p class="lead lead--muted">{home.buildWithUs.text}</p>
+      <p class="lead lead--muted">{lang === 'ar' ? t(lang, 'home.buildText') : home.buildWithUs.text}</p>
       <div class="hero__actions">
         <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
-          Become a member <span aria-hidden="true">→</span>
+          {t(lang, 'home.becomeMember')} <span aria-hidden="true">→</span>
         </a>
         <a class="btn btn--ghost" href="/timeline">
-          See what's coming <span aria-hidden="true">→</span>
+          {t(lang, 'home.seeComing')} <span aria-hidden="true">→</span>
         </a>
       </div>
     </div>

@@ -13,7 +13,7 @@ const scenes = (await getImpact())
 const sar = (n: number) => n.toLocaleString('en-US');
 const totalNum = settings.home.totalPrizesSar;
 const stats = settings.home.stats;
-import { t, localePath, type Lang } from '../lib/i18n';
+import { t, type Lang } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
@@ -44,7 +44,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
       <p class="reel__big">
         <strong data-count={totalNum}>{sar(totalNum)}</strong>+ SAR
       </p>
-      <p class="reel__line">in prizes offered since 2023</p>
+      <p class="reel__line">{t(lang, 'home.impactLine')}</p>
 
       <ul class="reel__list">
         {scenes.map((s, i) => (
@@ -88,7 +88,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
           </div>
         ))}
       </div>
-      <p class="reel__print mono">Prize pools as announced in club posts.</p>
+      <p class="reel__print mono">{t(lang, 'home.prizeNote')}</p>
     </div>
   </div>
 </section>

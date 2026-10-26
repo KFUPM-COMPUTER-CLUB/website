@@ -38,7 +38,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       <a
         class="site-logo"
         href={localePath(lang, '/')}
-        aria-label={`${site.name} home`}
+        aria-label={`${site.name} ${t(lang, 'nav.home')}`}
         aria-current={path === '/' ? 'page' : undefined}
       >
         <span class="site-logo__stack">
@@ -62,7 +62,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     </div>
 
     <div class="site-header__end">
-      <nav id="site-nav" class="site-nav" aria-label="Main">
+      <nav id="site-nav" class="site-nav" aria-label={t(lang, 'nav.main')}>
         <NextEvent variant="menu" />
         {links.map((l) => (
           <a href={localePath(lang, l.href)} aria-current={isCurrent(l.href) ? 'page' : undefined}>

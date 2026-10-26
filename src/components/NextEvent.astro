@@ -10,12 +10,31 @@ const list = (await getUpcomingEvents())
 
 import { t, localePath, type Lang } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
+const nextLabels = {
+  label: t(lang, 'next.label'),
+  now: t(lang, 'next.now'),
+  in: t(lang, 'next.in'),
+  day: t(lang, 'next.day'),
+  hour: t(lang, 'next.hour'),
+  minute: t(lang, 'next.minute'),
+};
 ---
 
 {list.length > 0 && (
-  <a class={`next-pill next-pill--${variant}`} data-next={JSON.stringify(list)} hidden href="/timeline">
+  <a
+    class={`next-pill next-pill--${variant}`}
+    data-next={JSON.stringify(list)}
+    data-next-label={nextLabels.label}
+    data-next-now={nextLabels.now}
+    data-next-in={nextLabels.in}
+    data-next-day={nextLabels.day}
+    data-next-hour={nextLabels.hour}
+    data-next-minute={nextLabels.minute}
+    hidden
+    href={localePath(lang, '/timeline')}
+  >
     <i class="next-pill__dot" aria-hidden="true"></i>
-    <span class="next-pill__label">Next:</span>
+    <span class="next-pill__label">{nextLabels.label}</span>
     <span class="next-pill__title"></span>
     <span class="next-pill__when"></span>
   </a>
