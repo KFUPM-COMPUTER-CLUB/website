@@ -910,10 +910,6 @@ body.scrolled .scroll-hint { opacity: 0; }
 .author-card div { display: grid; gap: 4px; } .author-card b { font: 800 18px/1.2 var(--font-head); }
 .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
 .tag { padding: 6px 10px; border: 1px solid var(--line-strong); font: 600 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; }
-.faq__lang { margin-top: 18px; }
-.faq__lang .btn[aria-pressed="true"] { background: var(--blue-deep); border-color: var(--blue-deep); color: #fff; }
-.faq summary:has(> [dir="rtl"]:not([hidden])) { direction: rtl; } /* Arabic question on the right, + on the left */
-.faq details p[dir="rtl"] { margin-left: auto; }
 .prose pre { overflow-x: auto; padding: 16px 18px; background: #0B1A33; border: 1px solid rgba(96, 165, 250, 0.3); font: 13px/1.6 var(--font-mono); }
 .prose code { font-family: var(--font-mono); font-size: 0.92em; } .prose :not(pre) > code { padding: 2px 6px; background: var(--card-2); }
 .prose table { width: 100%; border-collapse: collapse; margin: 1.2em 0; } .prose th, .prose td { padding: 8px 10px; border: 1px solid var(--line-strong); text-align: start; } .prose th { background: var(--card); }
@@ -931,6 +927,12 @@ body.scrolled .scroll-hint { opacity: 0; }
 .prose [dir="rtl"] { text-align: right; } .prose [dir="rtl"] ul { padding-right: 1.4em; padding-left: 0; }
 
 /* RTL overrides (Arabic) */
+[dir="rtl"] .site-nav a:not(.btn),
+[dir="rtl"] .nav-toggle,
+[dir="rtl"] .btn,
+[dir="rtl"] .mono,
+[dir="rtl"] .eyebrow,
+[dir="rtl"] .tag { letter-spacing: 0; }
 [dir="rtl"] .site-nav a:not(.btn)::after { transform-origin: left; }
 [dir="rtl"] .site-nav a:not(.btn):hover::after, [dir="rtl"] .site-nav a[aria-current="page"]::after { transform-origin: right; }
 [dir="rtl"] .bars__fill { transform-origin: right; }
