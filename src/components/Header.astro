@@ -11,9 +11,11 @@ const settings = await getSettings();
 const site = { name: settings.site.name, links: settings.links };
 import NextEvent from './NextEvent.astro';
 
-import { t, localePath, type Lang, type Key } from '../lib/i18n';
+import { t, localePath, ENGLISH_ONLY, type Lang, type Key } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 const other = lang === 'ar' ? 'en' : 'ar';
+const switchHref = localePath(other, Astro.url.pathname);
+const showSwitch = !ENGLISH_ONLY.test(Astro.url.pathname);
 
 // The logo is the home link. Everything else lives in these six entries.
 const links: { href: string; key: Key }[] = [
@@ -79,6 +81,11 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         </a>
       </nav>
       <div class="site-header__tools">
+        {showSwitch && (
+          <a class="lang-switch" href={switchHref} hreflang={other} lang={other} data-astro-reload>
+            {lang === 'ar' ? 'English' : 'العربية'}
+          </a>
+        )}
         <button
           type="button"
           class="term-open"

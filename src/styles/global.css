@@ -177,6 +177,9 @@ body.past-hero .site-header { background: color-mix(in srgb, var(--bg-live) 82%,
 @media (min-width: 1024px) and (max-width: 1279px) { .site-nav { gap: 18px; } .site-header .next-pill__title { max-width: 16ch; } }
 .nav-toggle { display: none; align-items: center; height: 40px; padding: 0 14px; border: 1px solid var(--line-strong); background: var(--card); color: inherit; font: 700 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
 .site-header__tools { display: flex; align-items: center; gap: 10px; }
+.lang-switch { display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border: 1px solid var(--line-strong); background: var(--card); color: inherit; font: 700 12px/1 var(--font-mono); letter-spacing: 0.08em; text-decoration: none; transition: border-color 0.2s; }
+.lang-switch:hover { border-color: var(--text); }
+.lang-switch[lang="ar"] { font-family: var(--font-ar); font-size: 14px; letter-spacing: 0; }
 @media (max-width: 1023px) {
   .site-nav { display: none; }
   .nav-toggle { display: inline-flex; position: relative; z-index: 2; }
