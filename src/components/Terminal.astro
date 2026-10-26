@@ -42,7 +42,7 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
 ---
 
-<div class="terminal" role="dialog" aria-label="Terminal" hidden data-terminal>
+<div class="terminal" dir="ltr" role="dialog" aria-label="Terminal" hidden data-terminal>
   <div class="terminal__bar">
     <span class="terminal__title">guest@cckfupm — terminal</span>
     <button type="button" class="terminal__close" data-term-close aria-label="Close terminal">
