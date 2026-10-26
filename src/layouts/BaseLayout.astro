@@ -57,7 +57,7 @@ const { title, description = site.description, noindex = false } = Astro.props;
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,200..900&family=Hubot+Sans:wght@300..700&family=JetBrains+Mono:wght@400..700&family=Readex+Pro:wght@300..600&display=swap"
+    href={`https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,200..900&family=Hubot+Sans:wght@300..700&family=JetBrains+Mono:wght@400..700${Astro.currentLocale === 'ar' ? '&family=Readex+Pro:wght@300..600' : ''}&display=swap`}
   />
 </head>
 <body>

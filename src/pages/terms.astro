@@ -2,26 +2,29 @@
 /* Terms: who can join, how posts and events work, what we expect. English then Arabic. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSettings } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
 const s = await getSettings();
 const contact = s.site.email ? `the club email, ${s.site.email}` : 'the club on X, @KFUPM_CC';
 const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حساب النادي على X: @KFUPM_CC';
+const isArabic = Astro.currentLocale === 'ar';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <BaseLayout
-  title="Terms"
-  description="The terms of using the KFUPM Computer Club site: membership, posts, events and conduct."
+  title={t(lang, 'terms.title')}
+  description={t(lang, 'terms.description')}
 >
   <section class="page-head page-head--compact">
     <div class="container">
-      <span class="eyebrow">Terms</span>
-      <h1 class="h1">How this works.</h1>
-      <p class="lead">
-        The few rules behind the site. <a href="#ar">النسخة العربية</a>
-      </p>
+      <span class="eyebrow">{t(lang, 'terms.eyebrow')}</span>
+      <h1 class="h1">{t(lang, 'terms.heading')}</h1>
+      <p class="lead">{t(lang, 'terms.lead')}</p>
     </div>
   </section>
   <section class="section">
     <div class="container prose" style="max-width:760px">
+      {!isArabic && (
+        <>
       <h2>Membership</h2>
       <p>
         The club is a student club at King Fahd University of Petroleum and Minerals. Membership is free and open to
@@ -56,9 +59,11 @@ const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حس
       <h2>Contact</h2>
       <p>Questions: {contact}.</p>
       <p class="mono">Last updated: October 2026</p>
+        </>
+      )}
 
-      <hr />
-      <div id="ar" lang="ar" dir="rtl" style="font-family: var(--font-ar)">
+      {isArabic && (
+        <div lang="ar" dir="rtl" style="font-family: var(--font-ar)">
         <h2>العضوية</h2>
         <p>
           النادي ناد طلابي في جامعة الملك فهد للبترول والمعادن. العضوية مجانية ومتاحة لطلبة الجامعة من أي تخصص وأي سنة؛
@@ -90,7 +95,8 @@ const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حس
         <h2>التواصل</h2>
         <p>للأسئلة: {contactAr}.</p>
         <p class="mono">آخر تحديث: أكتوبر 2026</p>
-      </div>
+        </div>
+      )}
     </div>
   </section>
 </BaseLayout>

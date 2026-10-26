@@ -2,26 +2,29 @@
 /* Privacy: what the site stores about members, why, who sees it, and how to leave. English then Arabic. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSettings } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
 const s = await getSettings();
 const contact = s.site.email ? `the club email, ${s.site.email}` : 'the club on X, @KFUPM_CC';
 const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حساب النادي على X: @KFUPM_CC';
+const isArabic = Astro.currentLocale === 'ar';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <BaseLayout
-  title="Privacy"
-  description="What the KFUPM Computer Club site stores about members, why, who can see it, and how to delete it."
+  title={t(lang, 'privacy.title')}
+  description={t(lang, 'privacy.description')}
 >
   <section class="page-head page-head--compact">
     <div class="container">
-      <span class="eyebrow">Privacy</span>
-      <h1 class="h1">What we keep, and why.</h1>
-      <p class="lead">
-        Short and plain. <a href="#ar">النسخة العربية</a>
-      </p>
+      <span class="eyebrow">{t(lang, 'privacy.eyebrow')}</span>
+      <h1 class="h1">{t(lang, 'privacy.heading')}</h1>
+      <p class="lead">{t(lang, 'privacy.lead')}</p>
     </div>
   </section>
   <section class="section">
     <div class="container prose" style="max-width:760px">
+      {!isArabic && (
+        <>
       <h2>What we collect</h2>
       <p>
         When you join, you give us your name, email, phone number, major and year, and you pick a public handle.
@@ -71,9 +74,11 @@ const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حس
       <h2>Contact</h2>
       <p>Questions about your data: {contact}.</p>
       <p class="mono">Last updated: October 2026</p>
+        </>
+      )}
 
-      <hr />
-      <div id="ar" lang="ar" dir="rtl" style="font-family: var(--font-ar)">
+      {isArabic && (
+        <div lang="ar" dir="rtl" style="font-family: var(--font-ar)">
         <h2>ما الذي نجمعه</h2>
         <p>
           عند الانضمام تعطينا اسمك وبريدك الإلكتروني ورقم هاتفك وتخصصك وسنتك الدراسية، وتختار اسم مستخدم عامًا.
@@ -123,7 +128,8 @@ const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حس
         <h2>التواصل</h2>
         <p>للأسئلة حول بياناتك: {contactAr}.</p>
         <p class="mono">آخر تحديث: أكتوبر 2026</p>
-      </div>
+        </div>
+      )}
     </div>
   </section>
 </BaseLayout>
