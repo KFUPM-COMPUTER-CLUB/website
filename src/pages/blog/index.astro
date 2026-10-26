@@ -2,9 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts } from '../../lib/content';
 const posts = await getPosts();
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const iso = (d: Date) => d.toISOString().slice(0, 10);
-const mon = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
-const dayYear = (d: Date) => `${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+const mon = (d: Date) => d.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
+const dayYear = (d: Date) =>
+  new Intl.DateTimeFormat(locale, { day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d);
 const tag = Astro.url.searchParams.get('tag');
 const category = Astro.url.searchParams.get('category');
 const shown = posts.filter((p) => (!tag || p.tags.includes(tag)) && (!category || p.category === category));

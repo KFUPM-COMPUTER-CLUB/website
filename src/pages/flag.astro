@@ -25,10 +25,11 @@ const cfg = JSON.stringify({
   endpoint: serviceReady() ? '/api/flag/solvers' : '',
   issue: `${repo}/issues/new`,
 }).replace(/</g, '\\u003c');
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const fmt = (iso: string) => {
   const [y, m, d] = String(iso).split('-').map(Number);
   return y && m && d
-    ? new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? new Date(y, m - 1, d).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
     : '';
 };
 ---

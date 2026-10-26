@@ -11,6 +11,7 @@ import { publicClient } from '../../lib/supabase';
 import { getSettings, fmtRiyadh } from '../../lib/content';
 const handle = (Astro.params.handle || '').toLowerCase();
 if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, { status: 404 });
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const db = publicClient();
 const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
 if (!p) return new Response(null, { status: 404 });
@@ -162,8 +163,8 @@ const stats = [
             {posts.map((x: any) => (
               <a class="post" href={`/blog/${x.slug}`}>
                 <time class="post__date" datetime={String(x.published_at).slice(0, 10)}>
-                  <b>{fmtRiyadh(new Date(x.published_at), { month: 'short' })}</b>
-                  <span>{fmtRiyadh(new Date(x.published_at), { day: 'numeric', year: 'numeric' })}</span>
+                  <b>{fmtRiyadh(new Date(x.published_at), { month: 'short' }, locale)}</b>
+                  <span>{fmtRiyadh(new Date(x.published_at), { day: 'numeric', year: 'numeric' }, locale)}</span>
                 </time>
                 <div class="post__body">
                   <h3 class="post__title">{x.title}</h3>
@@ -184,7 +185,7 @@ const stats = [
               <li>
                 <a href={`/timeline#ev-${r.slug}`}>{r.title}</a> ·{' '}
                 <span class="mono">
-                  {fmtRiyadh(new Date(r.starts_at), { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {fmtRiyadh(new Date(r.starts_at), { day: 'numeric', month: 'short', year: 'numeric' }, locale)}
                 </span>{' '}
                 {r.attended ? <span class="chip chip--published">attended</span> : <span class="chip">registered</span>}
               </li>

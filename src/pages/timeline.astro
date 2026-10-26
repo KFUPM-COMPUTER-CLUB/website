@@ -13,6 +13,7 @@ import { publicClient } from '../lib/supabase';
 import type { EventItem } from '../lib/types';
 
 const [upcoming, past] = await Promise.all([getUpcomingEvents(), getPastEvents()]);
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const site = Astro.site?.origin || '';
 const counts = new Map<string, number>();
 const open = upcoming.filter((e) => e.registrationOpen);
@@ -30,10 +31,10 @@ const groups = (list: EventItem[]) => {
   }
   return out;
 };
-const day = (d: Date) => fmtRiyadh(d, { month: 'short', day: 'numeric' });
+const day = (d: Date) => fmtRiyadh(d, { month: 'short', day: 'numeric' }, locale);
 const when = (e: EventItem) =>
   (e.end && riyadhDate(e.end) !== riyadhDate(e.start) ? `${day(e.start)} – ${day(e.end)}` : day(e.start)) +
-  (e.allDay ? '' : ` · ${fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' })}`);
+  (e.allDay ? '' : ` · ${fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' }, locale)}`);
 const calData = JSON.stringify(
   [...upcoming, ...past].map((e) => ({
     d: riyadhDate(e.start),
