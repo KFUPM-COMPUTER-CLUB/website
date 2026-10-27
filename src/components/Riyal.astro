@@ -1,0 +1,14 @@
+---
+/* The official Saudi riyal symbol, from the Saudi Central Bank (SAMA) design, drawn as an inline SVG.
+   It is an SVG on purpose: the new character (U+20C1) is not in most fonts yet, so typing it would show an empty box.
+   It takes the colour and height of the text around it. */
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+---
+
+<svg class="riyal" viewBox="0 0 896 998" role="img" aria-label={t(lang, 'currency.sar')} focusable="false">
+  <path
+    fill="currentColor"
+    d="M558 885C542 920 531 958 527 998L865 926C881 891 892 853 896 813L558 885ZM865 712C881 677 892 639 896 599L633 655V547L865 498C881 462 892 424 896 384L633 440V53C592 75 556 105 527 141V462L422 484V0C382 23 346 53 317 89V508L81 558C65 593 54 631 50 671L316 614V750L31 810C15 846 4 884 0 924L298 860C323 855 344 841 358 821L413 740C419 731 422 721 422 710V591L527 569V784L865 712Z"
+  ></path>
+</svg>

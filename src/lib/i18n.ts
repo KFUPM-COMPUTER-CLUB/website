@@ -1,5 +1,6 @@
 import en from '../data/i18n/en.json';
 import ar from '../data/i18n/ar.json';
+import contentAr from '../data/i18n/content.ar.json';
 
 export type Lang = 'en' | 'ar';
 /** Routes with no Arabic version yet: signed-in areas and the join flow. */
@@ -25,3 +26,8 @@ export const eventTypeLabel = (lang: Lang, type: string): string => {
   const key = `eventType.${type}` as Key;
   return key in en ? t(lang, key) : type;
 };
+
+/** Club content (event names, stat labels) is stored in English. Arabic pages look it up in content.ar.json and
+ * show the English text as it is when there is no translation there yet. */
+export const trContent = (lang: Lang, text: string): string =>
+  lang === 'ar' ? ((contentAr as Record<string, string>)[text] ?? text) : text;

@@ -677,6 +677,9 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 .reel__shade { position: absolute; inset: 0; background: linear-gradient(to bottom, #0B0B0F 0%, rgba(11, 11, 15, 0) 22%, rgba(11, 11, 15, 0) 78%, #0B0B0F 100%), radial-gradient(ellipse at center, rgba(11, 11, 15, 0.55), rgba(11, 11, 15, 0.25) 60%, rgba(11, 11, 15, 0.15)); }
 .reel__content { width: 100%; max-width: 760px; text-align: center; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8); }
 .reel__icon { display: block; width: 56px; height: auto; margin: 0 auto 10px; }
+/* Saudi riyal amounts (see Money.astro): the official symbol sits left of the number, as tall as the digits. */
+.sar { display: inline-flex; align-items: baseline; gap: 0.25em; white-space: nowrap; }
+.riyal { display: inline-block; flex: none; width: auto; height: 0.7em; }
 .reel__big { margin: 0; font: 900 clamp(40px, 6.6vw, 96px)/1 var(--font-head); white-space: nowrap; font-variation-settings: var(--wide); letter-spacing: -0.03em; }
 .reel__big strong { color: #60A5FA; font-weight: inherit; font-variant-numeric: tabular-nums; }
 .reel__line { margin: 6px 0 0; font-size: clamp(16px, 2vw, 24px); color: #E5E7EB; }
