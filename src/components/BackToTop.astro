@@ -1,12 +1,26 @@
 ---
-/* "Back to top" for the end of long pages (timeline, blog posts, FAQ). "#top" is the top of the document
- * by the HTML spec, so no element or script is needed, and following it moves the keyboard's starting
- * point back to the start of the page too. The scroll is smooth only without reduced motion
- * (html scroll-behavior in global.css). */
+/* Floating "Back to top" for the home page, which is long and has no end-of-page link. Same trick as
+ * BackToTop.astro: "#top" is the top of the document by the HTML spec, so the click itself needs no
+ * script. scripts/to-top.js only decides when the button shows (after 40% of the scroll). It is
+ * rendered through the "floating" slot of BaseLayout, outside <main>, so it stays above the footer. */
 ---
 
-<div class="container back-to-top">
-  <a class="link-arrow" href="#top">
-    Back to top <span aria-hidden="true">↑</span>
-  </a>
-</div>
+<a class="to-top" href="#top" aria-label="Back to top">
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linecap="square"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M12 20V4M5 11l7-7 7 7"></path>
+  </svg>
+</a>
+
+<script>
+  import '../scripts/to-top.js';
+</script>

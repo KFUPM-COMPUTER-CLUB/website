@@ -147,6 +147,11 @@ h3, .h3 { font-size: clamp(20px, 2vw, 24px); line-height: 1.25; }
 .badge-list time { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
 .badge-list__ref { color: var(--text-2); font-size: 14px; }
 .back-to-top { display: flex; justify-content: flex-end; padding-top: 8px; padding-bottom: 48px; }
+/* Floating back-to-top on the home page (BackToTopFloating.astro). Hidden with visibility, not only opacity, so it is out of the tab order until to-top.js adds .is-visible. White border so it reads on white, blue and dark sections. */
+.to-top { position: fixed; inset-inline-end: var(--gutter); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 80; display: grid; place-items: center; width: 48px; height: 48px; background: #0B0B0F; border: 2px solid #fff; color: #fff; box-shadow: 4px 4px 0 var(--accent); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, box-shadow 0.15s, visibility 0s 0.2s; }
+.to-top.is-visible { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.to-top:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--accent); }
+.to-top:active { transform: none; box-shadow: none; }
 .meta { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; font: 500 13px/1.6 var(--font-mono); color: var(--muted); }
 .meta span::before { content: "// "; color: var(--c, var(--blue)); }
 .actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: auto; padding-top: 16px; }
