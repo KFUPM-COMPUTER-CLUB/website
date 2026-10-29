@@ -13,7 +13,8 @@ import {
 } from '../../../../lib/api';
 import { serviceClient } from '../../../../lib/supabase';
 import { getEvent, eventEnd, fmtRiyadh } from '../../../../lib/content';
-import { googleUrl, outlookUrl } from '../../../../lib/calendar';
+import { calendarLinksHtml } from '../../../../lib/calendar';
+import { siteUrl } from '../../../../lib/env';
 import { notifyRegistration } from '../../../../lib/notify';
 
 export const prerender = false;
@@ -79,8 +80,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   if (email_copy) {
     const item = await getEvent(ev.slug);
     if (item) {
-      const site = ctx.url.origin;
-      const links = `<a href="${googleUrl(item, site)}">Google Calendar</a> · <a href="${outlookUrl(item, 'work', site)}">Outlook</a> · <a href="${outlookUrl(item, 'personal', site)}">Outlook.com</a> · <a href="${site}/api/events/${item.slug}.ics">.ics</a>`;
+      // The published address, not ctx.url.origin: a reservation made on a preview still sends a real email.
+      const links = calendarLinksHtml(item, siteUrl);
       await notifyRegistration(
         ctx.locals.profile,
         {
