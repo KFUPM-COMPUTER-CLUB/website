@@ -34,14 +34,18 @@ const data = {
     join: settings.links.join || '/join',
   },
 };
+
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+
 // "<" is escaped so the JSON can never close its own script tag.
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
 ---
 
-<div class="terminal" role="dialog" aria-label="Terminal" hidden data-terminal>
+<div class="terminal" dir="ltr" role="dialog" aria-label={t(lang, 'nav.terminal')} hidden data-terminal>
   <div class="terminal__bar">
     <span class="terminal__title">guest@cckfupm — terminal</span>
-    <button type="button" class="terminal__close" data-term-close aria-label="Close terminal">
+    <button type="button" class="terminal__close" data-term-close aria-label={t(lang, 'nav.closeTerminal')}>
       esc
     </button>
   </div>

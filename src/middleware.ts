@@ -5,6 +5,7 @@
  * table. Watch out: a public route must never look at the session. ISR caches its HTML for a
  * minute and would serve one person's page to everyone. */
 import { defineMiddleware } from 'astro:middleware';
+import { ENGLISH_ONLY } from './lib/i18n';
 import { dbReady, serviceReady, adminEmails } from './lib/env';
 import { sessionClient, serviceClient } from './lib/supabase';
 import { atLeast, ROLE_RANK, type Profile, type Role } from './lib/types';
@@ -24,6 +25,10 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   ctx.locals.role = 'guest';
   const path = ctx.url.pathname;
   const method = ctx.request.method;
+
+  // Arabic exists for public pages only. Astro's i18n fallback would also serve /ar/me, /ar/admin and
+  // friends by rewriting to the English route, and astro.config.mjs would not know to keep those out of ISR.
+  if (path.startsWith('/ar/') && ENGLISH_ONLY.test(path.slice(3))) return new Response('Not found', { status: 404 });
 
   // Cross-site request forgery: mutations must come from this site. Browsers always send Origin or
   // Sec-Fetch-Site on a cross-site POST, so this replaces CSRF tokens. Cron calls (server to server)

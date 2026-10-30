@@ -1,0 +1,12 @@
+---
+/* An amount of Saudi riyals: <Money>52,000</Money>. SAMA's rule is that the symbol always sits to the left of
+   the number, with a space, in every language. dir="ltr" keeps that true on Arabic pages as well. */
+import Riyal from './Riyal.astro';
+---
+
+<span class="sar" dir="ltr">
+  <Riyal />
+  <span>
+    <slot />
+  </span>
+</span>

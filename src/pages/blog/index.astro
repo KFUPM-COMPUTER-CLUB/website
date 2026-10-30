@@ -5,41 +5,43 @@
  * the hero and shows only the matching posts. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts, getFeaturedPost, getWriters, termOf, fmtRiyadh, monthOf } from '../../lib/content';
+import { t, localePath, localizeTerm, type Lang } from '../../lib/i18n';
 import BackToTop from '../../components/BackToTop.astro';
 const [posts, featuredPost, writers] = await Promise.all([getPosts(), getFeaturedPost(), getWriters()]);
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const iso = (d: Date) => d.toISOString().slice(0, 10);
-const mon = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
-const dayYear = (d: Date) => `${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+const mon = (d: Date) => d.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
+const dayYear = (d: Date) =>
+  new Intl.DateTimeFormat(locale, { day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d);
 const tag = Astro.url.searchParams.get('tag');
 const category = Astro.url.searchParams.get('category');
 const featured = tag || category ? null : featuredPost;
 const shown = posts.filter(
   (p) => p.id !== featured?.id && (!tag || p.tags.includes(tag)) && (!category || p.category === category),
 );
-const count = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+const count = (n: number) => `${n} ${t(lang, n === 1 ? 'profile.post' : 'profile.posts')}`;
 // Last month's pick stays up until a reviewer picks one for this month, so it is labelled with its month.
 const flag =
   featured && featured.month !== monthOf(new Date())
-    ? `Featured post · ${fmtRiyadh(new Date(`${featured.month}T12:00:00Z`), { month: 'long' })}`
-    : 'Featured post of the month';
+    ? `${t(lang, 'blog.featured')} · ${fmtRiyadh(new Date(`${featured.month}T12:00:00Z`), { month: 'long' }, locale)}`
+    : t(lang, 'blog.featuredOfMonth');
 ---
 
-<BaseLayout
-  title="Blog"
-  description="Written by members of the KFUPM Computer Club: what we did, what we taught, and what we learned."
->
+<BaseLayout title={t(lang, 'blog.title')} description={t(lang, 'blog.description')}>
   <section class="page-head">
     <div class="container">
-      <h1 class="ccmark ccmark--text" aria-label="CC Blogs">
+      <h1 class="ccmark ccmark--text" aria-label={`CC ${t(lang, 'blog.heading')}`}>
         <b>CC</b>
-        <span>Blogs</span>
+        <span>{t(lang, 'blog.heading')}</span>
       </h1>
       <p class="lead">
-        Event recaps, tutorials and what we learned. <a href="/rss.xml">RSS</a>
+        {t(lang, 'blog.lead')} <a href="/rss.xml">RSS</a>
       </p>
       {(tag || category) && (
         <p class="mono">
-          Showing {tag ? `#${tag}` : category} · <a href="/blog">all posts</a>
+          {t(lang, 'blog.showing')} {tag ? `#${tag}` : category} ·{' '}
+          <a href={localePath(lang, '/blog')}>{t(lang, 'blog.allPosts')}</a>
         </p>
       )}
     </div>
@@ -48,21 +50,21 @@ const flag =
     <div class="container blog__grid">
       <div class="posts">
         {featured && (
-          <a class="post post--featured" href={`/blog/${featured.slug}`} dir={featured.dir}>
+          <a class="post post--featured" href={localePath(lang, `/blog/${featured.slug}`)} dir={featured.dir}>
             <div class="post__body">
               <p class="post__flag mono">{flag}</p>
               <h2 class="post__title">{featured.title}</h2>
               <p class="post__author">
                 {featured.authorName}
                 {featured.category && ` · ${featured.category}`} ·{' '}
-                {fmtRiyadh(featured.date, { day: 'numeric', month: 'short', year: 'numeric' })}
+                {fmtRiyadh(featured.date, { day: 'numeric', month: 'short', year: 'numeric' }, locale)}
               </p>
               <p class="post__excerpt">{featured.excerpt}</p>
             </div>
           </a>
         )}
         {shown.map((p) => (
-          <a class="post reveal" href={`/blog/${p.slug}`} dir={p.dir}>
+          <a class="post reveal" href={localePath(lang, `/blog/${p.slug}`)} dir={p.dir}>
             <time class="post__date" datetime={iso(p.date)}>
               <b>{mon(p.date)}</b>
               <span>{dayYear(p.date)}</span>
@@ -77,29 +79,35 @@ const flag =
             </div>
           </a>
         ))}
-        {shown.length === 0 && !featured && <p class="lead lead--muted">Nothing here yet.</p>}
+        {shown.length === 0 && !featured && <p class="lead lead--muted">{t(lang, 'blog.empty')}</p>}
       </div>
       <aside class="blog__side">
         <div class="card writers">
-          <h2 class="h3">Top writers</h2>
-          <p class="mono writers__term">{termOf(new Date())} · posts published</p>
+          <h2 class="h3">{t(lang, 'blog.topWriters')}</h2>
+          <p class="mono writers__term">
+            {localizeTerm(lang, termOf(new Date()))} · {t(lang, 'blog.postsPublished')}
+          </p>
           {writers.length ? (
             <ol>
               {writers.map((w) => (
                 <li class={w.name ? undefined : 'writers__anon'}>
-                  {w.handle ? <a href={`/u/${w.handle}`}>{w.name}</a> : <span>{w.name || 'A member'}</span>}
-                  <span class="mono">{count(w.posts, 'post')}</span>
+                  {w.handle ? (
+                    <a href={localePath(lang, `/u/${w.handle}`)}>{w.name}</a>
+                  ) : (
+                    <span>{w.name || t(lang, 'blog.aMember')}</span>
+                  )}
+                  <span class="mono">{count(w.posts)}</span>
                 </li>
               ))}
             </ol>
           ) : (
-            <p class="hint">No posts published this term yet. Yours could be first.</p>
+            <p class="hint">{t(lang, 'blog.noWriters')}</p>
           )}
-          <p class="hint">Names show only for members who chose to appear on the leaderboard.</p>
+          <p class="hint">{t(lang, 'blog.writersNote')}</p>
         </div>
         <p style="margin-top:16px">
           <a class="btn btn--ghost" href="/me/posts/new">
-            Write a post <span aria-hidden="true">→</span>
+            {t(lang, 'blog.write')} <span aria-hidden="true">→</span>
           </a>
         </p>
       </aside>

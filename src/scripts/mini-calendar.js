@@ -22,15 +22,18 @@ onPage(() => {
   let y = now.getFullYear(),
     m = now.getMonth();
   const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  // Month name and weekday letters follow the page language.
+  const ar = document.documentElement.lang === 'ar';
+  const weekdays = ar ? ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
   const render = () => {
-    label.textContent = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-GB', {
+    label.textContent = new Date(Date.UTC(y, m, 1)).toLocaleDateString(ar ? 'ar-SA-u-ca-gregory' : 'en-GB', {
       month: 'long',
       year: 'numeric',
       timeZone: 'UTC',
     });
     const first = new Date(Date.UTC(y, m, 1)).getUTCDay(),
       days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-    let html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => `<span class="cal__dow">${d}</span>`).join('');
+    let html = weekdays.map((d) => `<span class="cal__dow">${d}</span>`).join('');
     for (let i = 0; i < first; i++) html += '<span></span>';
     for (let d = 1; d <= days; d++) {
       const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;

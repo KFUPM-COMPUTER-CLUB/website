@@ -3,6 +3,7 @@
    The timeline sits in its own rule so the minifier cannot fold it into the animation shorthand. */
 .scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 110; pointer-events: none; }
 .scroll-progress i { display: block; width: 100%; height: 100%; background: #3B82F6; box-shadow: 0 0 8px rgba(96, 165, 250, 0.6); transform: scaleX(var(--p, 0)); transform-origin: left center; }
+[dir="rtl"] .scroll-progress i { transform-origin: right center; }
 @supports (animation-timeline: scroll()) {
   .scroll-progress i { transform: scaleX(0); animation-name: scroll-progress; animation-duration: auto; animation-timing-function: linear; animation-fill-mode: both; }
   .scroll-progress > i { animation-timeline: scroll(root); }

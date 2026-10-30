@@ -8,10 +8,12 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getLeaderboard, termOf } from '../../lib/content';
 import { dbReady } from '../../lib/env';
-import { POINT_CATEGORIES, POINT_LABELS, POINT_VALUES, type LeaderPeriod, type PointCategory } from '../../lib/types';
+import { POINT_CATEGORIES, POINT_VALUES, type LeaderPeriod, type PointCategory } from '../../lib/types';
+import { t, localePath, localizeTerm, type Lang } from '../../lib/i18n';
 
 type Filter = PointCategory | 'all';
 const parts = (Astro.params.filter || '').split('/').filter(Boolean);
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const period: LeaderPeriod = parts[0] === 'all-time' ? 'all' : 'term';
 if (period === 'all') parts.shift();
 const category = (parts[0] || 'all') as Filter;
@@ -20,43 +22,53 @@ if (parts.length > 1 || (category !== 'all' && !POINT_CATEGORIES.includes(catego
 
 const rows = await getLeaderboard(period, category);
 const term = termOf(new Date());
+const localizedTerm = localizeTerm(lang, term);
 const href = (p: LeaderPeriod, c: Filter) =>
-  `/leaderboard${p === 'all' ? '/all-time' : ''}${c === 'all' ? '' : `/${c}`}`;
+  localePath(lang, `/leaderboard${p === 'all' ? '/all-time' : ''}${c === 'all' ? '' : `/${c}`}`);
 const periods = [
-  { p: 'term' as LeaderPeriod, label: term },
-  { p: 'all' as LeaderPeriod, label: 'All time' },
+  { p: 'term' as LeaderPeriod, label: localizedTerm },
+  { p: 'all' as LeaderPeriod, label: t(lang, 'leaderboard.allTime') },
 ].map((x) => ({ ...x, href: href(x.p, category), on: x.p === period }));
 const filters = (['all', 'events', 'posts', 'flag', 'competitions'] as Filter[]).map((c) => ({
-  label: c === 'all' ? 'Everything' : POINT_LABELS[c],
+  label:
+    c === 'all'
+      ? t(lang, 'leaderboard.everything')
+      : t(
+          lang,
+          `leaderboard.category.${c}` as
+            | 'leaderboard.category.events'
+            | 'leaderboard.category.posts'
+            | 'leaderboard.category.flag'
+            | 'leaderboard.category.competitions',
+        ),
   href: href(period, c),
   on: c === category,
 }));
 const leaders = rows.map((r) => ({
   ...r,
-  label: r.handle ? r.name || `@${r.handle}` : 'A member',
+  label: r.handle ? r.name || `@${r.handle}` : t(lang, 'leaderboard.member'),
   initial: (r.name || '?').slice(0, 1),
 }));
-const scope = `${period === 'term' ? term : 'all time'}${category === 'all' ? '' : `, ${POINT_LABELS[category].toLowerCase()}`}`;
-const empty = !dbReady()
-  ? 'The leaderboard appears once the site is connected to its database.'
-  : `No points yet for ${scope}.`;
+const scope = `${period === 'term' ? localizedTerm : t(lang, 'leaderboard.allTime')}${
+  category === 'all'
+    ? ''
+    : `${lang === 'ar' ? '،' : ','} ${filters.find((x) => x.on)?.label.toLocaleLowerCase(lang === 'ar' ? 'ar' : 'en-US')}`
+}`;
+const empty = !dbReady() ? t(lang, 'leaderboard.noDatabase') : `${t(lang, 'leaderboard.noPoints')} ${scope}.`;
 ---
 
-<BaseLayout
-  title="Leaderboard"
-  description="The most active members of the KFUPM Computer Club: events attended, posts published, the flag and competitions."
->
+<BaseLayout title={t(lang, 'leaderboard.title')} description={t(lang, 'leaderboard.description')}>
   <section class="page-head page-head--compact">
     <div class="container">
-      <span class="eyebrow">Leaderboard</span>
-      <h1 class="h1">Who shows up.</h1>
+      <span class="eyebrow">{t(lang, 'leaderboard.title')}</span>
+      <h1 class="h1">{t(lang, 'leaderboard.heading')}</h1>
       <p class="lead">
-        Points for attending events, publishing posts, finding the flag and placing in competitions. Top 20, {scope}.
+        {t(lang, 'leaderboard.lead')} {scope}.
       </p>
     </div>
   </section>
 
-  <nav class="filters" aria-label="Leaderboard filters">
+  <nav class="filters" aria-label={t(lang, 'leaderboard.filters')}>
     <div class="container filters__inner leaders__filters">
       <div class="chips">
         {periods.map((x) => (
@@ -90,9 +102,11 @@ const empty = !dbReady()
                     {r.handle ? r.initial : '·'}
                   </span>
                 )}
-                <span class="leader__name">{r.handle ? <a href={`/u/${r.handle}`}>{r.label}</a> : r.label}</span>
+                <span class="leader__name">
+                  {r.handle ? <a href={localePath(lang, `/u/${r.handle}`)}>{r.label}</a> : r.label}
+                </span>
                 <span class="leader__total">
-                  <b>{r.total}</b> pts
+                  <b>{r.total}</b> {t(lang, 'leaderboard.points')}
                 </span>
               </li>
             ))}
@@ -102,22 +116,24 @@ const empty = !dbReady()
         )}
       </div>
       <aside class="card leaders__how">
-        <h2 class="h3">How points work</h2>
+        <h2 class="h3">{t(lang, 'leaderboard.how')}</h2>
         <ul>
           <li>
-            <b>{POINT_VALUES.events}</b> for each event you attend
+            <b>{POINT_VALUES.events}</b> {t(lang, 'leaderboard.eachEvent')}
           </li>
           <li>
-            <b>{POINT_VALUES.posts}</b> for each post published on the blog
+            <b>{POINT_VALUES.posts}</b> {t(lang, 'leaderboard.eachPost')}
           </li>
           <li>
-            <b>{POINT_VALUES.flag}</b> for finding the <a href="/flag">flag</a>
+            <b>{POINT_VALUES.flag}</b> {t(lang, 'leaderboard.findFlag')}{' '}
+            <a href={localePath(lang, '/flag')}>{t(lang, 'leaderboard.flagWord')}</a>
           </li>
-          <li>Competition placings, awarded by the board</li>
+          <li>{t(lang, 'leaderboard.competition')}</li>
         </ul>
         <p class="hint">
-          Your name shows here only if you tick <i>Show me on the leaderboard</i> on your{' '}
-          <a href="/me/profile">profile</a>. Until then you keep your place as "A member".
+          {t(lang, 'leaderboard.visibility')} <i>{t(lang, 'leaderboard.visibilityOption')}</i>{' '}
+          {t(lang, 'leaderboard.visibilityIn')} <a href="/me/profile">{t(lang, 'leaderboard.visibilityProfile')}</a>.{' '}
+          {t(lang, 'leaderboard.visibilityEnd')} "{t(lang, 'leaderboard.member')}".
         </p>
       </aside>
     </div>

@@ -9,15 +9,14 @@ const partnerHref = (await getSettings()).links.partner || '/community';
 const partnerExt = partnerHref.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {};
 const friends = all.filter((c) => c.kind !== 'visited');
 const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUrl || e.url || undefined;
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <section class="section partners bg-black" data-bg="#0B0B0F">
   <div class="container partners__inner">
-    <span class="eyebrow reveal">Friends of the club</span>
-    <p class="partners__lead reveal">
-      We're building a place at KFUPM where <b>curious students become builders</b>, and we're lucky to have friends
-      whose work we really admire.
-    </p>
+    <span class="eyebrow reveal">{t(lang, 'home.friendsEyebrow')}</span>
+    <p class="partners__lead reveal">{t(lang, 'home.friendsLead')}</p>
 
     <ul class="logo-tree reveal">
       {friends.map((c) => (
@@ -46,7 +45,7 @@ const href = (e: { sourceUrl: string | null; url: string | null }) => e.sourceUr
 
     <div class="partners__ask reveal" id="partner">
       <a class="btn btn--light" data-magnet href={partnerHref} {...partnerExt}>
-        Partner with us <span aria-hidden="true">→</span>
+        {t(lang, 'home.partner')} <span aria-hidden="true">→</span>
       </a>
     </div>
   </div>

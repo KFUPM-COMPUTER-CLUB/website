@@ -5,14 +5,18 @@ import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
 // photo crossfades. Content comes from the impact tables (or src/data/impact.json as seed). Under prefers-reduced-motion
 // the section is not pinned and one static photo is shown.
 import { Image } from 'astro:assets';
+import Money from './Money.astro';
 import { getImpact, getSettings } from '../lib/content';
+import { t, trContent, localizeTerm, type Lang } from '../lib/i18n';
 const settings = await getSettings();
 const scenes = (await getImpact())
   .filter((s) => s.totalSar && s.img)
   .sort((a, b) => Number(b.term.slice(-4)) - Number(a.term.slice(-4)) || (a.term.startsWith('Fall') ? -1 : 1));
 const sar = (n: number) => n.toLocaleString('en-US');
+const isSar = (unit: string) => unit.trim().toUpperCase() === 'SAR';
 const totalNum = settings.home.totalPrizesSar;
 const stats = settings.home.stats;
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
 <section class="reel bg-black" data-bg="#0B0B0F" data-reel style={`--n:${scenes.length}`} id="impact">
@@ -40,15 +44,17 @@ const stats = settings.home.stats;
     <div class="reel__content">
       <Image class="reel__icon" src={logoSmDark} alt="" width={64} densities={[1, 2]} />
       <p class="reel__big">
-        <strong data-count={totalNum}>{sar(totalNum)}</strong>+ SAR
+        <Money>
+          <strong data-count={totalNum}>{sar(totalNum)}</strong>+
+        </Money>
       </p>
-      <p class="reel__line">in prizes offered since 2023</p>
+      <p class="reel__line">{t(lang, 'home.impactLine')}</p>
 
       <ul class="reel__list">
         {scenes.map((s, i) => (
           <li>
             <button type="button" class="reel__link" data-index={i} data-active={i === 0 ? '' : undefined}>
-              <span>{s.term}</span>
+              <span>{localizeTerm(lang, s.term)}</span>
               <i aria-hidden="true">·</i>
               <span>
                 {sar(s.totalSar!)}
@@ -68,7 +74,7 @@ const stats = settings.home.stats;
                 <>
                   {k > 0 && <span aria-hidden="true"> · </span>}
                   <a href={e.sourceUrl || '#'} target="_blank" rel="noopener">
-                    {e.name.replace(/\s*\(.*\)$/, '')} {sar(e.prizeSar!)} SAR
+                    {trContent(lang, e.name.replace(/\s*\(.*\)$/, ''))} <Money>{sar(e.prizeSar!)}</Money>
                   </a>
                 </>
               ))}
@@ -77,16 +83,22 @@ const stats = settings.home.stats;
       </div>
 
       <div class="reel__stats">
-        {stats.map((t) => (
+        {stats.map((stat) => (
           <div>
             <strong>
-              {t.v} <small>{t.u}</small>
+              {isSar(stat.u) ? (
+                <Money>{stat.v}</Money>
+              ) : (
+                <>
+                  {stat.v} <small>{trContent(lang, stat.u)}</small>
+                </>
+              )}
             </strong>
-            <span>{t.l}</span>
+            <span>{trContent(lang, stat.l)}</span>
           </div>
         ))}
       </div>
-      <p class="reel__print mono">Prize pools as announced in club posts.</p>
+      <p class="reel__print mono">{t(lang, 'home.prizeNote')}</p>
     </div>
   </div>
 </section>

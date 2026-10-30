@@ -3,13 +3,17 @@
  * Stays hidden when nothing is ahead. */
 import { onPage, siteHref } from './page.js';
 
-const until = (ms) => {
+const until = (ms, pill) => {
   const min = Math.floor(ms / 60000),
     h = Math.floor(min / 60),
     d = Math.floor(h / 24);
-  if (d >= 1) return `in ${d}d ${h % 24}h`;
-  if (h >= 1) return `in ${h}h ${min % 60}m`;
-  return `in ${Math.max(1, min)}m`;
+  const inLabel = pill.dataset.nextIn || 'in';
+  const day = pill.dataset.nextDay || 'd';
+  const hour = pill.dataset.nextHour || 'h';
+  const minute = pill.dataset.nextMinute || 'm';
+  if (d >= 1) return `${inLabel} ${d}${day} ${h % 24}${hour}`;
+  if (h >= 1) return `${inLabel} ${h}${hour} ${min % 60}${minute}`;
+  return `${inLabel} ${Math.max(1, min)}${minute}`;
 };
 
 onPage(() => {
@@ -31,7 +35,8 @@ onPage(() => {
       }
       const start = ev.s;
       pill.querySelector('.next-pill__title').textContent = ev.t;
-      pill.querySelector('.next-pill__when').textContent = now >= start ? 'is on now' : until(start - now);
+      pill.querySelector('.next-pill__when').textContent =
+        now >= start ? pill.dataset.nextNow || 'is on now' : until(start - now, pill);
       pill.href = siteHref(`/timeline#ev-${ev.id}`);
       pill.hidden = false;
     }

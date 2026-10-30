@@ -4,9 +4,11 @@
  * the keyboard's starting point back to the start of the page too. scripts/to-top.js only decides
  * when the button shows (after 35% of the scroll). Pages render it through the "floating" slot of
  * BaseLayout, outside <main>, so it stays above the footer. */
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 ---
 
-<a class="to-top" href="#top" aria-label="Back to top">
+<a class="to-top" href="#top" aria-label={t(lang, 'nav.backToTop')}>
   <svg
     viewBox="0 0 24 24"
     width="20"

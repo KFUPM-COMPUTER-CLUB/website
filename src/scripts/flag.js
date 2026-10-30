@@ -29,7 +29,19 @@ onPage(() => {
   const root = document.querySelector('[data-flag]');
   if (!root) return;
 
-  let cfg = { endpoint: '', issue: 'https://github.com/KFUPM-COMPUTER-CLUB/website/issues/new' };
+  let cfg = {
+    endpoint: '',
+    issue: 'https://github.com/KFUPM-COMPUTER-CLUB/website/issues/new',
+    messages: {
+      secure: 'This page needs a secure connection to check the flag.',
+      notIt: 'Not it. Keep looking.',
+      checkFailed: 'Could not check that. Try again.',
+      sending: 'Sending…',
+      sent: 'Sent. An officer adds you to the list.',
+      sendFailed: 'Could not send. Try again in a moment.',
+      issueOpened: 'Opened a GitHub issue. An officer adds you to the list.',
+    },
+  };
   try {
     const el = document.querySelector('[data-flag-cfg]');
     if (el) cfg = { ...cfg, ...JSON.parse(el.textContent) };
@@ -67,7 +79,7 @@ onPage(() => {
   const check = async (raw) => {
     const value = raw.trim();
     if (!value || busy) return;
-    if (!window.crypto?.subtle) return say(result, 'This page needs a secure connection to check the flag.');
+    if (!window.crypto?.subtle) return say(result, cfg.messages.secure);
     busy = true;
     try {
       if ((await digest(value)) === DIGEST) {
@@ -78,9 +90,9 @@ onPage(() => {
         }
         say(result, '');
         unlock(true);
-      } else say(result, 'Not it. Keep looking.');
+      } else say(result, cfg.messages.notIt);
     } catch {
-      say(result, 'Could not check that. Try again.');
+      say(result, cfg.messages.checkFailed);
     }
     busy = false;
   };
@@ -102,7 +114,7 @@ onPage(() => {
         if (!name) return nameEl.focus();
         if (cfg.endpoint) {
           if (submitBtn) submitBtn.disabled = true;
-          say(solverResult, 'Sending…');
+          say(solverResult, cfg.messages.sending);
           try {
             const r = await fetch(cfg.endpoint, {
               method: 'POST',
@@ -114,10 +126,10 @@ onPage(() => {
               }),
             });
             if (!r.ok) throw new Error(String(r.status));
-            say(solverResult, 'Sent. An officer adds you to the list.');
+            say(solverResult, cfg.messages.sent);
             solverForm.reset();
           } catch {
-            say(solverResult, 'Could not send. Try again in a moment.');
+            say(solverResult, cfg.messages.sendFailed);
           }
           if (submitBtn) submitBtn.disabled = false;
         } else {
@@ -128,7 +140,7 @@ onPage(() => {
             `Name: ${name}\nHandle: ${handle || 'none'}\n\nSolved the site challenge. Please add me to the solvers list.`,
           );
           window.open(url.href, '_blank', 'noopener');
-          say(solverResult, 'Opened a GitHub issue. An officer adds you to the list.');
+          say(solverResult, cfg.messages.issueOpened);
         }
       }),
     );

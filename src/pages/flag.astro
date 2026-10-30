@@ -8,6 +8,7 @@ import seedSolvers from '../data/solvers.json';
 import { dbReady, serviceReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import { getSettings } from '../lib/content';
+import { t, type Lang } from '../lib/i18n';
 const settings = await getSettings();
 const solvers = dbReady()
   ? (
@@ -20,34 +21,41 @@ const solvers = dbReady()
       ).data || []
     ).map((r: any) => ({ name: r.name, handle: r.handle, date: String(r.created_at).slice(0, 10) }))
   : (seedSolvers as any[]);
+const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
 const repo = (settings.links.github || 'https://github.com/KFUPM-COMPUTER-CLUB/website').replace(/\/+$/, '');
 const cfg = JSON.stringify({
   endpoint: serviceReady() ? '/api/flag/solvers' : '',
   issue: `${repo}/issues/new`,
+  messages: {
+    secure: t(lang, 'flag.secureConnection'),
+    notIt: t(lang, 'flag.notIt'),
+    checkFailed: t(lang, 'flag.checkFailed'),
+    sending: t(lang, 'flag.sending'),
+    sent: t(lang, 'flag.sent'),
+    sendFailed: t(lang, 'flag.sendFailed'),
+    issueOpened: t(lang, 'flag.issueOpened'),
+  },
 }).replace(/</g, '\\u003c');
 const fmt = (iso: string) => {
   const [y, m, d] = String(iso).split('-').map(Number);
   return y && m && d
-    ? new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? new Date(y, m - 1, d).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
     : '';
 };
 ---
 
-<BaseLayout
-  title="Flag"
-  description="A door for people who read the console, the source and the terminal."
-  noindex={true}
->
+<BaseLayout title={t(lang, 'flag.title')} description={t(lang, 'flag.description')} noindex={true}>
   <section class="flag" data-bg="#0B1A33" data-flag>
     <div class="container flag__inner">
-      <span class="eyebrow">Capture the flag</span>
+      <span class="eyebrow">{t(lang, 'flag.eyebrow')}</span>
 
       <div data-flag-gate>
-        <h1 class="h1">You found the door.</h1>
-        <p class="lead">Paste the flag to open it.</p>
+        <h1 class="h1">{t(lang, 'flag.found')}</h1>
+        <p class="lead">{t(lang, 'flag.paste')}</p>
         <form class="flag__form" data-flag-form>
           <label class="flag__label" for="flag-key">
-            Flag
+            {t(lang, 'flag.label')}
           </label>
           <input
             id="flag-key"
@@ -62,7 +70,7 @@ const fmt = (iso: string) => {
             data-flag-input
           />
           <button class="btn" type="submit">
-            Check
+            {t(lang, 'flag.check')}
           </button>
         </form>
         <p class="flag__result" aria-live="polite" data-flag-result></p>
@@ -70,11 +78,11 @@ const fmt = (iso: string) => {
 
       <div data-flag-won hidden>
         <h1 class="h1" tabindex="-1" data-flag-title>
-          Congratulations, solver.
+          {t(lang, 'flag.congratulations')}
         </h1>
-        <p class="lead">You read the console, the source and the terminal. That is exactly how we like it.</p>
+        <p class="lead">{t(lang, 'flag.wonLead')}</p>
 
-        <h2 class="flag__h">Solvers</h2>
+        <h2 class="flag__h">{t(lang, 'flag.solvers')}</h2>
         {solvers.length ? (
           <ol class="flag__solvers">
             {solvers.map((s) => (
@@ -85,14 +93,14 @@ const fmt = (iso: string) => {
             ))}
           </ol>
         ) : (
-          <p class="flag__empty">No solvers yet. Be the first.</p>
+          <p class="flag__empty">{t(lang, 'flag.noSolvers')}</p>
         )}
 
-        <h2 class="flag__h">Add your name</h2>
+        <h2 class="flag__h">{t(lang, 'flag.addName')}</h2>
         <form class="flag__form flag__form--solver" data-solver-form>
           <div class="flag__field">
             <label class="flag__label" for="solver-name">
-              Name
+              {t(lang, 'flag.name')}
             </label>
             <input
               id="solver-name"
@@ -106,14 +114,14 @@ const fmt = (iso: string) => {
           </div>
           <div class="flag__field">
             <label class="flag__label" for="solver-handle">
-              Handle, optional
+              {t(lang, 'flag.handle')}
             </label>
             <input
               id="solver-handle"
               class="flag__input"
               type="text"
               maxlength="40"
-              placeholder="X or GitHub"
+              placeholder={t(lang, 'flag.handlePlaceholder')}
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
@@ -121,7 +129,7 @@ const fmt = (iso: string) => {
             />
           </div>
           <button class="btn" type="submit" data-solver-submit>
-            Add your name
+            {t(lang, 'flag.addName')}
           </button>
         </form>
         <p class="flag__result" aria-live="polite" data-solver-result></p>

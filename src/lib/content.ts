@@ -66,8 +66,8 @@ const real = (v: unknown) => typeof v === 'string' && v.length > 0 && !v.include
 /* Times are stored as UTC instants but entered and shown in Riyadh time. Saudi Arabia has no
  * daylight saving, so a fixed three hour offset is exact and no timezone library is needed. The
  * same rule is repeated in admin/io.ts, calendar.ts, email.ts and scripts/import-seed.mjs. */
-export const fmtRiyadh = (d: Date, opts: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat('en-GB', { timeZone: RIYADH, ...opts }).format(d);
+export const fmtRiyadh = (d: Date, opts: Intl.DateTimeFormatOptions, locale = 'en-GB') =>
+  new Intl.DateTimeFormat(locale, { timeZone: RIYADH, ...opts }).format(d);
 /* Academic terms by Riyadh month: August to December is Fall, January to May is Spring, the rest Summer. */
 export const termOf = (d: Date) => {
   const [y, m] = riyadhDate(d).split('-').map(Number);
