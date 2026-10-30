@@ -32,6 +32,13 @@ export function googleUrl(e: EventItem, site = '') {
   });
   return `https://calendar.google.com/calendar/render?${q}`;
 }
+/* The link line in a reservation email. The site comes from the caller, never from the request
+ * host: previews use the production database and mail key, so a copy sent from a preview must
+ * still point at the address the site is published on. */
+export function calendarLinksHtml(e: EventItem, site: string) {
+  return `<a href="${googleUrl(e, site)}">Google Calendar</a> · <a href="${outlookUrl(e, 'work', site)}">Outlook</a> · <a href="${outlookUrl(e, 'personal', site)}">Outlook.com</a> · <a href="${site}/api/events/${e.slug}.ics">.ics</a>`;
+}
+
 /* kind: "work" for KFUPM and other Microsoft 365 accounts, "personal" for outlook.com accounts. */
 export function outlookUrl(e: EventItem, kind: 'work' | 'personal', site = '') {
   const q = new URLSearchParams({

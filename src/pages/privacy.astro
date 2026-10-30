@@ -2,6 +2,7 @@
 /* Privacy: what the site stores about members, why, who sees it, and how to leave. English then Arabic. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSettings } from '../lib/content';
+import BackToTop from '../components/BackToTop.astro';
 const s = await getSettings();
 const contact = s.site.email ? `the club email, ${s.site.email}` : 'the club on X, @KFUPM_CC';
 const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حساب النادي على X: @KFUPM_CC';
@@ -132,4 +133,5 @@ const contactAr = s.site.email ? `بريد النادي ${s.site.email}` : 'حس
       </div>
     </div>
   </section>
+  <BackToTop slot="floating" />
 </BaseLayout>

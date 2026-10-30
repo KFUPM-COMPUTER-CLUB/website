@@ -9,6 +9,7 @@ import Partners from '../components/Partners.astro';
 import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { getSettings, getMemberCount } from '../lib/content';
 
 const [settings, memberCount] = await Promise.all([getSettings(), getMemberCount()]);
@@ -103,6 +104,7 @@ const stageTabs = ['Moments', 'In pictures'];
     </div>
   </section>
   <Partners />
+  <BackToTop slot="floating" />
 </BaseLayout>
 
 <script>

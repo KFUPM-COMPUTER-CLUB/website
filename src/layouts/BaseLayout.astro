@@ -6,7 +6,8 @@
  * posts, so a form that posts to /api or /auth must carry data-astro-reload (the guard below adds
  * it at submit time for any form that forgets). Settings come from the content
  * layer (memoised), so this layout is cheap on cached pages. The HTML comment near the end of body
- * is clue 2 of the site challenge; keep it. */
+ * is clue 2 of the site challenge; keep it. The "floating" slot sits outside <main> for things fixed
+ * to the viewport (the back-to-top button), so the footer cannot paint over them. */
 import '../styles/global.css';
 import '../styles/terminal.css';
 import '../styles/magnetic.css';
@@ -96,6 +97,7 @@ const ogImage = new URL(logoColor.src, Astro.url);
       <slot />
     </main>
     <Footer />
+    <slot name="floating" />
 
     <script>
       import '../scripts/theme.js';

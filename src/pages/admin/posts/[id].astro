@@ -3,7 +3,8 @@
  * to /api/admin/posts/<id>/review. set:html is safe here only because content_html was sanitised when
  * it was saved. Draft images resolve through /api/media, which signs them for reviewers. The status
  * select defaults to "published" for a submitted post, the usual answer. The Featured post card
- * features a published post for this month (0011_featured_posts.sql), naming the post it would replace. */
+ * features a published post for this month (0011_featured_posts.sql), naming the post it would replace,
+ * and stops featuring the post /blog shows: this month's pick, or last month's until one is picked. */
 import AdminLayout from '../../../components/AdminLayout.astro';
 import { serviceClient } from '../../../lib/supabase';
 import { atLeast } from '../../../lib/types';
@@ -12,6 +13,7 @@ import { fmtRiyadh, monthOf } from '../../../lib/content';
 if (!atLeast(Astro.locals.role, 'reviewer')) return new Response('Reviewers only', { status: 403 });
 if (!isUuid(Astro.params.id)) return new Response(null, { status: 404 });
 const month = monthOf(new Date());
+const lastMonth = monthOf(new Date(), 1);
 const [{ data: post }, { data: current }] = await Promise.all([
   serviceClient()
     .from('posts')
@@ -26,6 +28,8 @@ const [{ data: post }, { data: current }] = await Promise.all([
 if (!post) return new Response(null, { status: 404 });
 const notes = (post.post_reviews || []).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
 const monthName = (ymd: string) => fmtRiyadh(new Date(`${ymd}T12:00:00Z`), { month: 'long', year: 'numeric' });
+// getFeaturedPost() keeps last month's pick on /blog until a post is featured for this month.
+const stillOnBlog = post.featured_month === lastMonth && !current && post.status === 'published';
 ---
 
 <AdminLayout
@@ -80,18 +84,38 @@ const monthName = (ymd: string) => fmtRiyadh(new Date(`${ymd}T12:00:00Z`), { mon
         ) : post.status !== 'published' ? (
           <p class="hint">Only a published post can be featured.</p>
         ) : (
-          <form data-astro-reload method="post" action={`/api/admin/posts/${post.id}/review`}>
-            {post.featured_month && <p class="hint">Was featured for {monthName(post.featured_month)}.</p>}
-            <input type="hidden" name="_action" value="feature" />
-            <button class="btn btn--small" type="submit">
-              Feature for {monthName(month)}
-            </button>
-            {current && (
-              <small style="display:block;margin-top:8px">
-                Replaces "{current.title}", the featured post this month.
-              </small>
+          <>
+            {stillOnBlog && (
+              <form data-astro-reload method="post" action={`/api/admin/posts/${post.id}/review`}>
+                <p>
+                  Featured on /blog for {monthName(lastMonth)}, until a post is featured for {monthName(month)}.
+                </p>
+                <input type="hidden" name="_action" value="unfeature" />
+                <button class="btn btn--small btn--ghost" type="submit">
+                  Stop featuring
+                </button>
+              </form>
             )}
-          </form>
+            <form
+              data-astro-reload
+              method="post"
+              action={`/api/admin/posts/${post.id}/review`}
+              style={stillOnBlog ? 'margin-top:16px' : undefined}
+            >
+              {post.featured_month && !stillOnBlog && (
+                <p class="hint">Was featured for {monthName(post.featured_month)}.</p>
+              )}
+              <input type="hidden" name="_action" value="feature" />
+              <button class="btn btn--small" type="submit">
+                Feature for {monthName(month)}
+              </button>
+              {current && (
+                <small style="display:block;margin-top:8px">
+                  Replaces "{current.title}", the featured post this month.
+                </small>
+              )}
+            </form>
+          </>
         )}
       </div>
       {notes.length > 0 && (
