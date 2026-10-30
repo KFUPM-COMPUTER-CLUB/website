@@ -200,8 +200,7 @@ const stats = [
           <ul>
             {wins.map((w) => (
               <li>
-                <b>{place(w.place)}</b>{' '}
-                {t(lang, 'profile.winAt')}{' '}
+                <b>{place(w.place)}</b> {t(lang, 'profile.winAt')}{' '}
                 <a href={`${localePath(lang, '/timeline')}#ev-${w.event.slug}`}>{w.event.title}</a>
                 {w.team && (
                   <>

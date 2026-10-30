@@ -17,8 +17,7 @@ export const localePath = (lang: Lang, path: string): string =>
   lang === 'ar' ? `/ar${path === '/' ? '' : path}` : path;
 /* The locale for formatting dates. Arabic month names on the Gregorian calendar: plain "ar-SA" would
  * switch to the Hijri calendar. */
-export const dateLocale = (lang: Lang | string | undefined): string =>
-  lang === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+export const dateLocale = (lang: Lang | string | undefined): string => (lang === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB');
 
 /* "Fall 2026" becomes the Arabic season name plus the year on Arabic pages; English is returned as it is. */
 export const localizeTerm = (lang: Lang, term: string): string =>

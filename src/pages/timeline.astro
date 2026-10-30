@@ -7,15 +7,7 @@
    advisory: the API makes the real capacity check when the form is posted. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BackToTop from '../components/BackToTop.astro';
-import {
-  getUpcomingEvents,
-  getPastEvents,
-  getResults,
-  termOf,
-  riyadhDate,
-  fmtRiyadh,
-  ordinal,
-} from '../lib/content';
+import { getUpcomingEvents, getPastEvents, getResults, termOf, riyadhDate, fmtRiyadh, ordinal } from '../lib/content';
 import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
