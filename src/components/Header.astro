@@ -2,7 +2,8 @@
 /* Site header: logo, the main links, the next-event pill and the Join button. It renders inside cached
  * public pages, so it cannot know who is viewing; the Join button carries data-join and account.js
  * turns it into "My account" on the client when the cc_in cookie is present. The Join link may be an
- * external form when settings.links.join is set. */
+ * external form when settings.links.join is set. The language switch links to the same page in the other
+ * language; it is hidden on the English-only areas (ENGLISH_ONLY in lib/i18n.ts). */
 import { Image } from 'astro:assets';
 import logoSm from '../data/brand/logo-color-sm.png';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
@@ -14,6 +15,7 @@ import NextEvent from './NextEvent.astro';
 import { t, localePath, ENGLISH_ONLY, type Lang, type Key } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 const other = lang === 'ar' ? 'en' : 'ar';
+// The switch is a full load (data-astro-reload), not a view transition, which would keep the old <html lang> and dir.
 const switchHref = localePath(other, Astro.url.pathname);
 const showSwitch = !ENGLISH_ONLY.test(Astro.url.pathname);
 

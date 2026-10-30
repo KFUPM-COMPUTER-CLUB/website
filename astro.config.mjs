@@ -53,8 +53,8 @@ export default defineConfig({
   },
   redirects: { '/officers': '/community' },
 
-  // English stays at /xxx, Arabic lives at /ar/xxx
-  // any /ar/...page that doesn't exist yet quietly shows the English page.
+  // English stays at /xxx and Arabic lives at /ar/xxx (src/lib/i18n.ts). An /ar/ page with no Arabic
+  // version shows the English page in its place; middleware.ts returns 404 for the signed-in areas.
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'ar'],

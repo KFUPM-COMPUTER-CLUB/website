@@ -7,25 +7,19 @@
    advisory: the API makes the real capacity check when the form is posted. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BackToTop from '../components/BackToTop.astro';
-import {
-  getUpcomingEvents,
-  getPastEvents,
-  getResults,
-  termOf,
-  riyadhDate,
-  fmtRiyadh,
-  ordinal,
-} from '../lib/content';
+import { getUpcomingEvents, getPastEvents, getResults, termOf, riyadhDate, fmtRiyadh, ordinal } from '../lib/content';
 import { googleUrl, outlookUrl } from '../lib/calendar';
 import { dbReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import { hasResults, type EventItem, type EventResult } from '../lib/types';
-import { t, localePath, localizeTerm, eventTypeLabel, type Lang } from '../lib/i18n';
+import { t, dateLocale, localePath, localizeTerm, eventTypeLabel, type Lang } from '../lib/i18n';
 import Money from '../components/Money.astro';
 
 const [upcoming, past, results] = await Promise.all([getUpcomingEvents(), getPastEvents(), getResults()]);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
-const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const locale = dateLocale(Astro.currentLocale);
+// "1st" in English, "المركز 1" in Arabic.
+const place = (n: number) => (lang === 'ar' ? `${t(lang, 'results.place')} ${n}` : ordinal(n));
 // Who placed: the member's name (linked while their profile is public), with the team name when there is one.
 const winner = (r: EventResult) =>
   r.team && r.name ? `${r.team} (${r.name})` : r.team || r.name || t(lang, 'blog.aMember');
@@ -154,8 +148,12 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                           <ol>
                             {results.get(e.id)!.map((r) => (
                               <li>
-                                <b>{lang === 'ar' ? `${t(lang, 'results.place')} ${r.place}` : ordinal(r.place)}</b>{' '}
-                                {r.handle ? <a href={localePath(lang, `/u/${r.handle}`)}>{winner(r)}</a> : <span>{winner(r)}</span>}
+                                <b>{place(r.place)}</b>{' '}
+                                {r.handle ? (
+                                  <a href={localePath(lang, `/u/${r.handle}`)}>{winner(r)}</a>
+                                ) : (
+                                  <span>{winner(r)}</span>
+                                )}
                                 {r.prizeSar ? (
                                   <span class="mono">
                                     {' '}
