@@ -34,7 +34,7 @@ Dark navy and white, one blue accent, large light headings, one-pixel rules inst
 | `.tag`                                                             | Category pill                                           |
 | `.prose`                                                           | Article body                                            |
 | `.visually-hidden`, `.skip-link`                                   | Accessibility helpers                                   |
-| `.to-top`                                                          | back-to-top button (home page)                 |
+| `.to-top`                                                          | Floating back-to-top button                             |
 
 Focus: `:focus-visible` outline in `--accent-2`. Motion is disabled under `prefers-reduced-motion`.
 
