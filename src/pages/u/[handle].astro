@@ -1,15 +1,19 @@
 ---
 /* Public member profile at /u/<handle>. Cached like every public page, so it reads with the anon
  * client and row level security does the filtering: profiles_public has no phone or email,
- * profile_events() returns only the events the member chose to show, and only approved flag solvers
- * are visible. The handle is lowercased before the lookup, which is why handles are stored lowercase. */
+ * profile_events() returns only the events the member chose to show, and profile_badges() only the
+ * badges of a member who shows them. The handle is lowercased before the lookup, which is why handles
+ * are stored lowercase. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Badges from '../../components/Badges.astro';
 import { Image } from 'astro:assets';
 import logoSmDark from '../../data/brand/logo-color-ondark-sm.png';
 import { dbReady } from '../../lib/env';
 import { publicClient } from '../../lib/supabase';
-import { getSettings, fmtRiyadh } from '../../lib/content';
+import { getSettings, getWins, fmtRiyadh, ordinal } from '../../lib/content';
+import { getProfileBadges } from '../../lib/badges';
 import { t, localePath, type Lang } from '../../lib/i18n';
+import Money from '../../components/Money.astro';
 const handle = (Astro.params.handle || '').toLowerCase();
 if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, { status: 404 });
 const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
@@ -21,10 +25,11 @@ const [
   { data: posts },
   { data: regs },
   { data: officer },
-  { data: solved },
   settings,
   { data: committee },
   { data: points },
+  wins,
+  earned,
 ] = await Promise.all([
   db
     .from('posts')
@@ -39,7 +44,6 @@ const [
     .eq('user_id', p.id)
     .order('is_current', { ascending: false })
     .limit(3),
-  db.from('flag_solvers').select('id').eq('user_id', p.id).eq('approved', true).limit(1),
   getSettings(),
   // committee_id is on profiles_public from 0003_committee_members.sql; before that it is undefined.
   p.committee_id
@@ -47,15 +51,21 @@ const [
     : Promise.resolve({ data: null as { name: string } | null }),
   // Points show only for members who opted in on their profile (show_on_leaderboard, 0006_leaderboard.sql).
   p.show_on_leaderboard ? db.rpc('member_points', { p_user: p.id }) : Promise.resolve({ data: null as number | null }),
+  // Competition placings (0010_event_results.sql), public like the results on /timeline.
+  getWins(p.id),
+  // Badges (0014_badges.sql), empty when the member hides them.
+  getProfileBadges(p.id),
 ]);
 const current = (officer || []).find((o: any) => o.is_current);
 const badges = [
   current && `${t(lang, 'profile.officer')} · ${current.title}`,
   committee?.name && `${committee.name} ${t(lang, 'profile.committee')}`,
   (officer || []).some((o: any) => !o.is_current) && t(lang, 'profile.pastOfficer'),
+  // A podium finish, not any placing: the Wins list below still shows every place.
+  wins.some((w) => w.place <= 3) && t(lang, 'profile.competitionWinner'),
   (posts?.length || 0) > 0 && t(lang, 'profile.writer'),
   (regs || []).some((r: any) => r.attended) && t(lang, 'profile.attendedEvents'),
-  solved?.length && t(lang, 'profile.flagSolver'),
+  // Flag solver is a badge now (0014_badges.sql), shown or hidden with the member's other badges.
   `${t(lang, 'profile.memberSince')} ${String(p.created_at).slice(0, 4)}`,
 ].filter(Boolean) as string[];
 // The counts beside the photo; each links down to its list when there is one (an <a> without href is inert).
@@ -172,6 +182,45 @@ const stats = [
           </div>
         </article>
       )}
+      {earned.length ? (
+        <>
+          <h2 class="h2" id="badges" style="margin-top:40px">
+            {t(lang, 'profile.badges')}
+          </h2>
+          <Badges badges={earned} />
+        </>
+      ) : null}
+      {wins.length ? (
+        <>
+          <h2 class="h2" id="wins" style="margin-top:40px">
+            {t(lang, 'profile.wins')}
+          </h2>
+          <ul>
+            {wins.map((w) => (
+              <li>
+                <b>{lang === 'ar' ? `${t(lang, 'results.place')} ${w.place}` : ordinal(w.place)}</b>{' '}
+                {t(lang, 'profile.winAt')}{' '}
+                <a href={`${localePath(lang, '/timeline')}#ev-${w.event.slug}`}>{w.event.title}</a>
+                {w.team && (
+                  <>
+                    {' '}
+                    {t(lang, 'profile.winWith')} {w.team}
+                  </>
+                )}{' '}
+                ·{' '}
+                <span class="mono">
+                  {fmtRiyadh(w.event.start, { day: 'numeric', month: 'short', year: 'numeric' }, locale)}
+                </span>
+                {w.prizeSar ? (
+                  <span class="chip">
+                    <Money>{w.prizeSar.toLocaleString('en-US')}</Money>
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       {posts?.length ? (
         <>
           <h2 class="h2" id="posts" style="margin-top:40px">

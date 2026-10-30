@@ -8,9 +8,15 @@ import MeLayout from '../../components/MeLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { getWhatsappGroups } from '../../lib/whatsapp';
 import { fmtRiyadh } from '../../lib/content';
+import { getMyBadges } from '../../lib/badges';
+import Badges from '../../components/Badges.astro';
+import { wrappedNow, dashboardTiles } from '../../lib/stats';
+import { getDashboard } from '../../lib/dashboard';
 const { user, profile, role } = Astro.locals;
+// Semester Wrapped is linked from here in a term's last four weeks and the two weeks after (src/lib/stats.ts).
+const wrapped = wrappedNow(new Date());
 const sb = serviceClient();
-const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promise.all([
+const [{ data: posts }, { data: regs }, groups, { data: points }, dashboard, badges] = await Promise.all([
   sb
     .from('posts')
     .select('id,slug,title,status,updated_at')
@@ -30,7 +36,14 @@ const [{ data: posts }, { data: regs }, groups, { data: points }] = await Promis
     .select('amount,reason,awarded_at')
     .eq('user_id', user!.id)
     .order('awarded_at', { ascending: false }),
+  // The stat tiles: one member_stats() call (0015_member_dashboard.sql); null hides them if it fails.
+  getDashboard(user!.id),
+  // Badges (0014_badges.sql): all of them here, whatever the member shows on their public profile.
+  getMyBadges(user!.id),
 ]);
+const tiles = dashboard ? dashboardTiles(dashboard) : [];
+// The small counters below repeat posts, reservations and points, so they only show when the tiles
+// could not load; otherwise the same numbers would appear twice with different meanings.
 const pointsTotal = (points || []).reduce((s: number, r: any) => s + r.amount, 0);
 const welcome = Astro.url.searchParams.has('welcome');
 ---
@@ -43,15 +56,44 @@ const welcome = Astro.url.searchParams.has('welcome');
   }
   lead={welcome ? 'You are in. The groups below are where everything happens.' : undefined}
 >
+  {tiles.length > 0 && (
+    <ul class="dash-stats">
+      {tiles.map((t) => (
+        <li class="stat">
+          <b class={/^[#\d]/.test(t.value) ? undefined : 'stat__word'}>{t.value}</b>
+          <span>{t.label}</span>
+          <small class="hint">{t.hint}</small>
+        </li>
+      ))}
+    </ul>
+  )}
+  {wrapped.linked && (
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="h3">Your {wrapped.term.label} Wrapped</h2>
+      <p class="hint">Your term in numbers, with an image to share.</p>
+      <a class="btn btn--small" href={`/me/wrapped?term=${wrapped.term.key}`}>
+        Open Wrapped
+      </a>
+    </div>
+  )}
   <div class="card">
     <h2 class="h3">WhatsApp groups</h2>
     {groups.length ? (
       <div class="wa-links">
         {groups.map((g) => (
-          <a href={g.url} target="_blank" rel="noopener">
-            <b>{g.label}</b>
-            <span class="mono">Open ↗</span>
-          </a>
+          <div class="wa-links__row">
+            <a href={g.url} target="_blank" rel="noopener">
+              <b>{g.label}</b>
+              <span class="mono">Open ↗</span>
+            </a>
+            <button type="button" class="copy" data-copy={g.url} aria-label={`Copy ${g.label} invite link`}>
+              Copy
+              <span class="copy__tip" aria-hidden="true">
+                Copied ✓
+              </span>
+              <span class="visually-hidden" aria-live="polite" data-copy-status />
+            </button>
+          </div>
         ))}
       </div>
     ) : (
@@ -62,18 +104,22 @@ const welcome = Astro.url.searchParams.has('welcome');
     </p>
   </div>
   <div class="cards" style="margin-top:16px">
-    <div class="stat">
-      <b>{posts?.length || 0}</b>
-      <span>recent posts</span>
-    </div>
-    <div class="stat">
-      <b>{regs?.length || 0}</b>
-      <span>reservations</span>
-    </div>
-    <div class="stat">
-      <b>{pointsTotal}</b>
-      <span>points</span>
-    </div>
+    {tiles.length === 0 && (
+      <>
+        <div class="stat">
+          <b>{posts?.length || 0}</b>
+          <span>recent posts</span>
+        </div>
+        <div class="stat">
+          <b>{regs?.length || 0}</b>
+          <span>reservations</span>
+        </div>
+        <div class="stat">
+          <b>{pointsTotal}</b>
+          <span>points</span>
+        </div>
+      </>
+    )}
     <div class="stat">
       <b style="font-size:20px">{role}</b>
       <span>role</span>
@@ -163,6 +209,21 @@ const welcome = Astro.url.searchParams.has('welcome');
       </ul>
     ) : (
       <p class="hint">No points yet. Attend an event, publish a post or find the flag, and they add up here.</p>
+    )}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2 class="h3">My badges</h2>
+    {badges.length ? (
+      <Badges badges={badges} />
+    ) : (
+      <p class="hint">
+        No badges yet. Publish a first post, attend five events or find the flag on the site to earn your first.
+      </p>
+    )}
+    {badges.length > 0 && !profile?.show_badges && (
+      <p class="hint" style="margin:12px 0 0">
+        Hidden on your public profile. <a href="/me/profile">Show them</a>
+      </p>
     )}
   </div>
   {profile?.handle && (

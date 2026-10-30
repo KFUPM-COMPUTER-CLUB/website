@@ -27,7 +27,11 @@ import type {
   LeaderRow,
   LeaderPeriod,
   PointCategory,
+  EventResult,
+  Win,
+  Writer,
 } from './types';
+import { hasResults } from './types';
 import siteJson from '../data/site.json';
 import committeesJson from '../data/committees.json';
 import eventsJson from '../data/events.json';
@@ -68,6 +72,17 @@ export const fmtRiyadh = (d: Date, opts: Intl.DateTimeFormatOptions, locale = 'e
 export const termOf = (d: Date) => {
   const [y, m] = riyadhDate(d).split('-').map(Number);
   return m >= 8 ? `Fall ${y}` : m <= 5 ? `Spring ${y}` : `Summer ${y}`;
+};
+/* The instant the term `d` falls in began (Riyadh midnight on 1 August, 1 January or 1 June), the same
+ * rule as term_start() in 0006_leaderboard.sql. */
+export const termStart = (d: Date) => {
+  const [y, m] = riyadhDate(d).split('-').map(Number);
+  return new Date(Date.UTC(y, (m >= 8 ? 8 : m <= 5 ? 1 : 6) - 1, 1) - 3 * 3_600_000);
+};
+/* The first day of the Riyadh month `d` falls in, `back` months earlier, as YYYY-MM-DD (posts.featured_month). */
+export const monthOf = (d: Date, back = 0) => {
+  const [y, m] = riyadhDate(d).split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1 - back, 1)).toISOString().slice(0, 10);
 };
 
 /* ── Settings ──────────────────────────────────────────────────────────── */
@@ -190,6 +205,73 @@ export async function getPastEvents() {
 }
 export async function getEvent(slugOrId: string) {
   return (await getEvents()).find((e) => e.slug === slugOrId || e.id === slugOrId) || null;
+}
+
+/* ── Competition results (0010_event_results.sql) ──────────────────────── */
+/* 1st, 2nd, 3rd, 4th, 11th, 21st: the same rule as ordinal() in the migration. */
+export const ordinal = (n: number) => {
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10];
+  return `${n}${s || 'th'}`;
+};
+export const sar = (n: number) => `${n.toLocaleString('en-US')} SAR`;
+/* Placings by event id, best first, for the event cards on /timeline. A member is named (and linked)
+ * while their profile is public, through profiles_public as withAuthors() does for posts; otherwise the
+ * row shows the team name or "A member". Seed mode has no results. A failed query (the table missing
+ * before the migration runs, say) is logged and shows no results rather than taking the page down. */
+export function getResults(): Promise<Map<string, EventResult[]>> {
+  return cached('results', async () => {
+    const out = new Map<string, EventResult[]>();
+    if (!dbReady()) return out;
+    const { data, error } = await db()
+      .from('event_results')
+      .select('event_id,place,user_id,team,prize_sar')
+      .order('place')
+      .order('created_at');
+    if (error) {
+      console.error('results', error.message);
+      return out;
+    }
+    const ids = [...new Set((data || []).map((r: any) => r.user_id).filter(Boolean))];
+    const people = ids.length
+      ? (await db().from('profiles_public').select('id,name,handle').in('id', ids)).data || []
+      : [];
+    const byId = new Map(people.map((p: any) => [p.id, p]));
+    for (const r of data || []) {
+      const p: any = r.user_id ? byId.get(r.user_id) : null;
+      const list = out.get(r.event_id) || [];
+      list.push({
+        place: r.place,
+        name: p?.name || null,
+        handle: p?.handle || null,
+        team: r.team || null,
+        prizeSar: r.prize_sar ?? null,
+      });
+      out.set(r.event_id, list);
+    }
+    return out;
+  });
+}
+/* A member's placings for the "Wins" section of /u/<handle>, newest event first. Only results of
+ * published events come back (the read policy). The event comes from getPastEvents() and must be a
+ * competition type, the same rule /timeline uses for its Results block, so a profile never shows a win
+ * before the timeline does. */
+export async function getWins(userId: string): Promise<Win[]> {
+  if (!dbReady()) return [];
+  const [{ data, error }, past] = await Promise.all([
+    db().from('event_results').select('event_id,place,team,prize_sar').eq('user_id', userId),
+    getPastEvents(),
+  ]);
+  if (error) {
+    console.error('wins', error.message);
+    return [];
+  }
+  const byId = new Map(past.filter((e) => hasResults(e.type)).map((e) => [e.id, e]));
+  return (data || [])
+    .flatMap((r: any) => {
+      const event = byId.get(r.event_id);
+      return event ? [{ place: r.place, team: r.team || null, prizeSar: r.prize_sar ?? null, event }] : [];
+    })
+    .sort((a, b) => b.event.start.valueOf() - a.event.start.valueOf());
 }
 
 /* ── Home content ──────────────────────────────────────────────────────── */
@@ -538,6 +620,8 @@ const rowToPost = (r: any): PostSummary => ({
   tags: r.tags || [],
   dir: r.dir || 'ltr',
   status: r.status,
+  // The last content edit (0013_post_edited_at.sql). getPost() reads it; the list query does not select it.
+  updatedAt: r.edited_at ? new Date(r.edited_at) : null,
 });
 /* Authors are fetched from profiles_public and joined here instead of a PostgREST embed such as
  * select('*, profiles(...)'). An embed through the profiles table is filtered by its policy, which
@@ -571,6 +655,7 @@ export function getPosts(): Promise<PostSummary[]> {
           tags: e.data.tags,
           dir: 'ltr' as const,
           status: 'published',
+          updatedAt: null,
         }))
         .sort((a, b) => b.date.valueOf() - a.date.valueOf());
     }
@@ -580,6 +665,60 @@ export function getPosts(): Promise<PostSummary[]> {
       .eq('status', 'published')
       .order('published_at', { ascending: false });
     return withAuthors(data || []);
+  });
+}
+/* The featured post (0011_featured_posts.sql): this month's pick, or last month's until a reviewer picks
+ * one, so /blog does not lose its hero on the 1st. month is the featured_month it holds, so the page can
+ * tell last month's pick from this month's. A separate query from getPosts(), so the blog still lists its
+ * posts if the column is missing (the migration not run yet); that and seed mode show no hero. */
+export function getFeaturedPost(): Promise<(PostSummary & { month: string }) | null> {
+  if (!dbReady()) return Promise.resolve(null);
+  return cached('featured', async () => {
+    const now = new Date();
+    const { data, error } = await db()
+      .from('posts')
+      .select('id,featured_month')
+      .eq('status', 'published')
+      .in('featured_month', [monthOf(now), monthOf(now, 1)])
+      .order('featured_month', { ascending: false })
+      .limit(1);
+    if (error) {
+      console.error('featured post', error.message);
+      return null;
+    }
+    const row = data?.[0];
+    const post = row && (await getPosts()).find((p) => p.id === row.id);
+    return post ? { ...post, month: row.featured_month } : null;
+  });
+}
+/* The top five writers this term by posts published this term (writers_leaderboard() in
+ * 0011_featured_posts.sql), named only if they opted in. Seed mode counts the seed posts by byline: those
+ * are team names, not members, so they keep their names. getPosts() is newest first and the sort is
+ * stable, so ties go to the newest post there too. A failed call is logged and shows an empty list. */
+export function getWriters(): Promise<Writer[]> {
+  return cached('writers', async () => {
+    const since = termStart(new Date());
+    if (!dbReady()) {
+      const counts = new Map<string, number>();
+      for (const p of await getPosts())
+        if (p.date >= since) counts.set(p.authorName, (counts.get(p.authorName) || 0) + 1);
+      return [...counts]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name, posts]) => ({ handle: null, name, avatarUrl: null, posts }));
+    }
+    const { data, error } = await db().rpc('writers_leaderboard', { p_since: since.toISOString(), p_limit: 5 });
+    if (error) {
+      console.error('writers', error.message);
+      return [];
+    }
+    // handle, name and avatar_url are all null for a member who did not opt in.
+    return (data || []).map((r: any) => ({
+      handle: r.handle,
+      name: r.name || r.handle,
+      avatarUrl: r.avatar_url,
+      posts: Number(r.posts) || 0,
+    }));
   });
 }
 export async function getPost(slug: string): Promise<PostFull | null> {
@@ -600,6 +739,7 @@ export async function getPost(slug: string): Promise<PostFull | null> {
       tags: e.data.tags,
       dir: 'ltr',
       status: 'published',
+      updatedAt: null, // seed posts have no edit date, so the "Updated" line stays hidden
       html: null,
       entry: e,
       coverKey: null,

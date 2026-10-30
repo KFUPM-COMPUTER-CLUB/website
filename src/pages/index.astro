@@ -9,12 +9,12 @@ import Partners from '../components/Partners.astro';
 import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { getSettings, getMemberCount } from '../lib/content';
 import { t, localePath, type Lang } from '../lib/i18n';
 
-const settings = await getSettings();
+const [settings, memberCount] = await Promise.all([getSettings(), getMemberCount()]);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
-const memberCount = await getMemberCount();
 const site = settings.site;
 const home = settings.home;
 const joinHref = settings.links.join || '/join';
@@ -116,6 +116,7 @@ const stageTabs = [
     </div>
   </section>
   <Partners />
+  <BackToTop slot="floating" />
 </BaseLayout>
 
 <script>

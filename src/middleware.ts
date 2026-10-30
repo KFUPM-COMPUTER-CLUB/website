@@ -11,8 +11,9 @@ import { sessionClient, serviceClient } from './lib/supabase';
 import { atLeast, ROLE_RANK, type Profile, type Role } from './lib/types';
 
 /* Routes that depend on who is asking. Everything else is public and cached, so it never
- * looks at the session (a cached page must not contain anyone's data). */
-const PERSONAL = /^\/(me|admin|onboarding|auth|api|join)(\/|$)/;
+ * looks at the session (a cached page must not contain anyone's data). /unsubscribe depends on the
+ * link's token rather than the session, but must not be cached either. */
+const PERSONAL = /^\/(me|admin|onboarding|auth|api|join|unsubscribe)(\/|$)/;
 /* A readable (not httpOnly) marker so the client script on cached public pages can show the
  * account menu without a request. It carries no secret: the real session lives in the Supabase
  * cookies. Set on sign-in, cleared as soon as a personal request finds no session. */

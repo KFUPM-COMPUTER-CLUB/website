@@ -1,9 +1,10 @@
 ---
 /* Admin-only audit log: the last 200 entries, with an Undo button where the API allows it. The button
  * is shown by this page's undoable(), but the API decides for real (api/admin/audit/<id>/undo.ts);
- * people, roles and reservations are never restored from a JSON snapshot. */
+ * people, roles, reservations and automatic badges are never restored from a JSON snapshot. */
 import AdminLayout from '../../components/AdminLayout.astro';
 import { serviceClient } from '../../lib/supabase';
+import { badgeName } from '../../lib/badges';
 if (Astro.locals.role !== 'admin') return new Response('Admins only', { status: 403 });
 const { data } = await serviceClient()
   .from('audit_log')
@@ -12,12 +13,29 @@ const { data } = await serviceClient()
   .limit(200);
 const summary = (e: any) => {
   const a = e.after || e.before || {};
-  return a.title || a.name || a.term || a.q_en || a.label || a.reason || a.key || a.role || a.status || e.row_id || '';
+  // A badge row has no title of its own: name the badge and what it was for.
+  if (e.table_name === 'member_badges') return [badgeName(a.badge), a.reference].filter(Boolean).join(' · ');
+  return (
+    a.title ||
+    a.name ||
+    a.term ||
+    a.q_en ||
+    a.label ||
+    a.reason ||
+    a.key ||
+    a.role ||
+    a.status ||
+    (a.place && `Place ${a.place}${a.team ? `, ${a.team}` : ''}`) ||
+    e.row_id ||
+    ''
+  );
 };
 const undoable = (e: any) =>
   !e.undone_at &&
   ['insert', 'update', 'delete'].includes(e.action) &&
-  !['profiles', 'user_roles', 'registrations'].includes(e.table_name);
+  !['profiles', 'user_roles', 'registrations'].includes(e.table_name) &&
+  // Automatic badges follow the member's activity (0014_badges.sql); the API refuses to undo them.
+  !(e.table_name === 'member_badges' && (e.after || e.before)?.auto);
 ---
 
 <AdminLayout title="Audit log" lead="Every admin action. Content edits can be undone." live={false}>

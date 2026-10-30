@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { googleUrl, ics, outlookUrl } from '../src/lib/calendar.ts';
+import { calendarLinksHtml, googleUrl, ics, outlookUrl } from '../src/lib/calendar.ts';
 import type { EventItem } from '../src/lib/types.ts';
 
 const event = (overrides: Partial<EventItem> = {}): EventItem => ({
@@ -62,4 +62,16 @@ test('.ics titles escape semicolons, commas, and newlines', () => {
   const calendar = ics([event({ title: 'Meet; greet, then\nshare' })]);
 
   assert.match(calendar, /^SUMMARY:Meet\\; greet\\, then\\nshare\r?$/m);
+});
+
+test('reservation email links use the site address, not the request host', () => {
+  const links = calendarLinksHtml(event(), 'https://cckfupm.vercel.app');
+
+  for (const href of links.matchAll(/href="([^"]+)"/g)) {
+    const url = new URL(href[1]);
+    const wanted = url.searchParams.get('details') || url.searchParams.get('body');
+    assert.ok(!url.origin.includes('preview'), `${href[1]} points at a preview host`);
+    if (wanted) assert.ok(wanted.startsWith('https://cckfupm.vercel.app/'), `${href[1]} describes a different site`);
+  }
+  assert.match(links, /href="https:\/\/cckfupm\.vercel\.app\/api\/events\/club-event\.ics"/);
 });

@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
 import { render } from 'astro:content';
-import { getPost } from '../../lib/content';
+import { getPost, fmtRiyadh, riyadhDate } from '../../lib/content';
 import { t, localePath, type Lang } from '../../lib/i18n';
 const post = await getPost(Astro.params.id || '');
 if (!post) return new Response(null, { status: 404 });
@@ -10,9 +11,11 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
 const short = (d: Date) =>
   d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+// "Updated" only for an edit more than a day after publishing, so fixing a typo right away does not count.
+const updated = post.updatedAt && post.updatedAt.getTime() - post.date.getTime() > 86_400_000 ? post.updatedAt : null;
 ---
 
-<BaseLayout title={post.title} description={post.excerpt}>
+<BaseLayout title={post.title} description={post.excerpt} type="article">
   <section class="page-head">
     <div class="container" dir={post.dir}>
       <h1 class="h1">{post.title}</h1>
@@ -28,6 +31,16 @@ const short = (d: Date) =>
         <time datetime={post.date.toISOString().slice(0, 10)}>{short(post.date)}</time>
         {post.category && <span>{post.category}</span>}
       </p>
+      {updated && (
+        <p class="meta" style="margin-top:8px">
+          <span>
+            {t(lang, 'blog.updated')}{' '}
+            <time datetime={riyadhDate(updated)}>
+              {fmtRiyadh(updated, { day: 'numeric', month: 'long', year: 'numeric' }, locale)}
+            </time>
+          </span>
+        </p>
+      )}
     </div>
   </section>
   <section class="section">
@@ -75,6 +88,7 @@ const short = (d: Date) =>
       </p>
     </div>
   </section>
+  <BackToTop slot="floating" />
 </BaseLayout>
 
 <script>

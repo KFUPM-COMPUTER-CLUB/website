@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CopyEmail from '../components/CopyEmail.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { getFaq, getSettings } from '../lib/content';
 import { t, type Lang } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
@@ -51,4 +52,5 @@ const items = faq.map((f) => {
       </div>
     </div>
   </section>
+  <BackToTop slot="floating" />
 </BaseLayout>
