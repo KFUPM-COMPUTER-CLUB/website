@@ -12,12 +12,14 @@ import { dbReady } from '../../lib/env';
 import { publicClient } from '../../lib/supabase';
 import { getSettings, getWins, fmtRiyadh, ordinal } from '../../lib/content';
 import { getProfileBadges } from '../../lib/badges';
-import { t, localePath, type Lang } from '../../lib/i18n';
+import { t, dateLocale, localePath, type Lang } from '../../lib/i18n';
 import Money from '../../components/Money.astro';
 const handle = (Astro.params.handle || '').toLowerCase();
 if (!dbReady() || !/^[a-z0-9_]{3,24}$/.test(handle)) return new Response(null, { status: 404 });
-const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const locale = dateLocale(Astro.currentLocale);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
+// "1st" in English, "المركز 1" in Arabic, as on /timeline.
+const place = (n: number) => (lang === 'ar' ? `${t(lang, 'results.place')} ${n}` : ordinal(n));
 const db = publicClient();
 const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
 if (!p) return new Response(null, { status: 404 });
@@ -198,7 +200,7 @@ const stats = [
           <ul>
             {wins.map((w) => (
               <li>
-                <b>{lang === 'ar' ? `${t(lang, 'results.place')} ${w.place}` : ordinal(w.place)}</b>{' '}
+                <b>{place(w.place)}</b>{' '}
                 {t(lang, 'profile.winAt')}{' '}
                 <a href={`${localePath(lang, '/timeline')}#ev-${w.event.slug}`}>{w.event.title}</a>
                 {w.team && (

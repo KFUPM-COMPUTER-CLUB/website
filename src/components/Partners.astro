@@ -16,7 +16,8 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 <section class="section partners bg-black" data-bg="#0B0B0F">
   <div class="container partners__inner">
     <span class="eyebrow reveal">{t(lang, 'home.friendsEyebrow')}</span>
-    <p class="partners__lead reveal">{t(lang, 'home.friendsLead')}</p>
+    {/* set:html only for the <b>: the string comes from our own i18n files, never from a user. */}
+    <p class="partners__lead reveal" set:html={t(lang, 'home.friendsLead')} />
 
     <ul class="logo-tree reveal">
       {friends.map((c) => (

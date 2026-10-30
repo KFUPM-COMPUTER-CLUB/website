@@ -8,7 +8,7 @@ import seedSolvers from '../data/solvers.json';
 import { dbReady, serviceReady } from '../lib/env';
 import { publicClient } from '../lib/supabase';
 import { getSettings } from '../lib/content';
-import { t, type Lang } from '../lib/i18n';
+import { t, dateLocale, type Lang } from '../lib/i18n';
 const settings = await getSettings();
 const solvers = dbReady()
   ? (
@@ -21,7 +21,7 @@ const solvers = dbReady()
       ).data || []
     ).map((r: any) => ({ name: r.name, handle: r.handle, date: String(r.created_at).slice(0, 10) }))
   : (seedSolvers as any[]);
-const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const locale = dateLocale(Astro.currentLocale);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 const repo = (settings.links.github || 'https://github.com/KFUPM-COMPUTER-CLUB/website').replace(/\/+$/, '');
 const cfg = JSON.stringify({

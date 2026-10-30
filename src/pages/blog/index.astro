@@ -5,11 +5,11 @@
  * the hero and shows only the matching posts. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts, getFeaturedPost, getWriters, termOf, fmtRiyadh, monthOf } from '../../lib/content';
-import { t, localePath, localizeTerm, type Lang } from '../../lib/i18n';
+import { t, dateLocale, localePath, localizeTerm, type Lang } from '../../lib/i18n';
 import BackToTop from '../../components/BackToTop.astro';
 const [posts, featuredPost, writers] = await Promise.all([getPosts(), getFeaturedPost(), getWriters()]);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
-const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const locale = dateLocale(Astro.currentLocale);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const mon = (d: Date) => d.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
 const dayYear = (d: Date) =>

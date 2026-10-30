@@ -3,12 +3,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import { render } from 'astro:content';
 import { getPost, fmtRiyadh, riyadhDate } from '../../lib/content';
-import { t, localePath, type Lang } from '../../lib/i18n';
+import { t, dateLocale, localePath, type Lang } from '../../lib/i18n';
 const post = await getPost(Astro.params.id || '');
 if (!post) return new Response(null, { status: 404 });
 const Content = post.entry ? (await render(post.entry)).Content : null;
 const lang = (Astro.currentLocale ?? 'en') as Lang;
-const locale = Astro.currentLocale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+const locale = dateLocale(Astro.currentLocale);
 const short = (d: Date) =>
   d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 // "Updated" only for an edit more than a day after publishing, so fixing a typo right away does not count.
