@@ -5,6 +5,7 @@
  * the hero and shows only the matching posts. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts, getFeaturedPost, getWriters, termOf, fmtRiyadh, monthOf } from '../../lib/content';
+import BackToTop from '../../components/BackToTop.astro';
 const [posts, featuredPost, writers] = await Promise.all([getPosts(), getFeaturedPost(), getWriters()]);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const mon = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
@@ -104,4 +105,5 @@ const flag =
       </aside>
     </div>
   </section>
+  <BackToTop slot="floating" />
 </BaseLayout>
