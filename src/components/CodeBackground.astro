@@ -1,4 +1,4 @@
-<!-- ---
+---
 const sourceFiles = import.meta.glob<string>(
   [
     './Header.astro?raw',
@@ -10,21 +10,124 @@ const sourceFiles = import.meta.glob<string>(
   { eager: true, import: 'default' },
 );
 
-const code = Object.values(sourceFiles)
-  .map((source) =>
-    source
-      .split('\n')
-      .filter((line) => line.trim() && !/key|secret|token/i.test(line))
-      .slice(0, 7)
-      .join('\n'),
-  )
-  .join('\n\n');
+const lines = Object.values(sourceFiles).flatMap((source) =>
+  source
+    .split('\n')
+    .filter((line) => line.trim() && !/key|secret|token/i.test(line))
+    .slice(0, 7),
+);
+const code = lines.join('\n\n');
 ---
 
-<pre class="hero-code" aria-hidden="true" dir="ltr">{code}</pre> -->
+<pre class="hero-code" aria-hidden="true" dir="ltr" data-lines={JSON.stringify(lines)}>{code}</pre>
 
-    <div class="hero-grid" aria-hidden="true"></div>
-    <pre class="hero-code" aria-hidden="true" dir="ltr">const club = &#123;
+<script>
+  // Find the code background and read its lines from the JSON data attribute.
+  const codeBackground = document.querySelector('.hero-code[data-lines]');
+  if (!(codeBackground instanceof HTMLElement)) throw new Error('Code background element was not found.');
+  const lines = JSON.parse(codeBackground.dataset.lines ?? '[]');
+
+  // Leave the original static code in place when the visitor prefers less motion.
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion) {
+    // Keep track of the current animation phase and scheduled timer.
+    const maxVisibleLines = 30;
+    let lineIndex = 0;
+    let phase = 'typing';
+    let timer: number | null = null;
+    let deadline = 0;
+    let remaining = 150;
+    let disposed = false;
+
+    // Stop the current timer and remember how much time was left.
+    const pauseTimer = () => {
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+        remaining = Math.max(0, deadline - Date.now());
+        deadline = 0;
+      }
+    };
+
+    // Schedule one animation step, unless the page is currently hidden.
+    const schedule = (delay: number, callback: () => void) => {
+      remaining = delay;
+      if (document.visibilityState === 'hidden' || disposed) return;
+      deadline = Date.now() + delay;
+      timer = window.setTimeout(() => {
+        timer = null;
+        deadline = 0;
+        callback();
+      }, delay);
+    };
+
+    // Add one more source line to the visible code.
+    const addLine = () => {
+      codeBackground.textContent = lines.slice(0, lineIndex + 1).join('\n');
+      lineIndex += 1;
+      if (lineIndex >= Math.min(maxVisibleLines, lines.length)) {
+        phase = 'waiting';
+        schedule(2000, fadeOut);
+      } else {
+        schedule(150, addLine);
+      }
+    };
+
+    // Fade the completed code away before starting a fresh shuffled cycle.
+    const fadeOut = () => {
+      phase = 'fading';
+      codeBackground.classList.add('is-fading');
+      schedule(500, restart);
+    };
+
+    // Shuffle the lines and begin typing from the first line again.
+    const restart = () => {
+      codeBackground.classList.remove('is-fading');
+      for (let i = lines.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [lines[i], lines[j]] = [lines[j], lines[i]];
+      }
+      lineIndex = 0;
+      phase = 'typing';
+      schedule(150, addLine);
+    };
+
+    // Resume the current phase when the page becomes visible again.
+    const resume = () => {
+      if (document.visibilityState === 'visible' && timer === null) {
+        if (phase === 'typing') schedule(remaining, addLine);
+        if (phase === 'waiting') schedule(remaining, fadeOut);
+        if (phase === 'fading') schedule(remaining, restart);
+      }
+    };
+
+    // Pause animation work while the browser tab is hidden.
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') pauseTimer();
+      else resume();
+    };
+
+    // Clean up timers and listeners when the page is left.
+    const cleanup = () => {
+      disposed = true;
+      pauseTimer();
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', cleanup);
+      document.removeEventListener('astro:before-swap', cleanup);
+    };
+
+    // Start the first line and register lifecycle listeners.
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', cleanup);
+    document.addEventListener('astro:before-swap', cleanup);
+    schedule(150, addLine);
+  }
+</script>
+
+<div class="hero-grid" aria-hidden="true"></div>
+<pre class="hero-code" aria-hidden="true" dir="ltr">
+  
+  const club = &#123;
   name: 'KFUPM Computer Club',
   mission: 'build, learn, share',
   members: [],
