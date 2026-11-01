@@ -373,6 +373,28 @@ html.js .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ── Home screens ──────────────────────── */
 .screen { position: relative; isolation: isolate; overflow: hidden; min-height: 100svh; display: grid; align-items: center; padding: calc(var(--header-h) + 24px) 0 48px; }
+.hero-code {
+  /* Keeps the code layer behind the interactive and readable hero content. */
+  position: absolute;
+  /* Makes the code cover the complete hero section. */
+  inset: 0;
+  /* Prevents the decorative layer from intercepting pointer input. */
+  pointer-events: none;
+  /* Keeps the code subtle enough to remain background texture. */
+  opacity: 0.07;
+  /* Clips the fixed-size sample to the hero bounds. */
+  overflow: hidden;
+  /* Uses the site's monospace typeface for the code texture. */
+  font-family: var(--font-mono);
+  /* Places the decoration below the existing z-indexed content. */
+  z-index: 0;
+  /* Removes default pre margins so the layer aligns with the hero edges. */
+  margin: 0;
+  /* Gives the sample comfortable, consistent code spacing. */
+  padding: 32px var(--gutter);
+  /* Prevents long code lines from changing the hero's layout. */
+  white-space: pre;
+}
 .screen__inner { position: relative; z-index: 1; display: grid; gap: 28px; justify-items: start; }
 .screen--one .screen__inner { pointer-events: none; }
 .screen--one .hero__title { max-width: 12ch; }

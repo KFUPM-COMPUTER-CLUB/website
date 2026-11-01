@@ -34,6 +34,37 @@ const stageTabs = [
   <!-- Screen 1: logo and headline only -->
   <section class="screen screen--one bg-white" data-bg="#FFFFFF" data-hero>
     <div class="hero-grid" aria-hidden="true"></div>
+    <pre class="hero-code" aria-hidden="true" dir="ltr">const club = &#123;
+  name: 'KFUPM Computer Club',
+  mission: 'build, learn, share',
+  members: [],
+&#125;;
+
+const events = await fetch('/api/events');
+const upcoming = events
+  .filter((event) =&gt; event.status === 'upcoming')
+  .sort((a, b) =&gt; a.date - b.date);
+
+function welcome(member) &#123;
+  return `Welcome, $&#123;member.name&#125;!`;
+&#125;
+
+for (const event of upcoming) &#123;
+  console.log(`[$&#123;event.date&#125;] $&#123;event.title&#125;`);
+&#125;
+
+const projects = [
+  'open source',
+  'web development',
+  'systems',
+  'design',
+];
+
+export default &#123;
+  club,
+  events: upcoming,
+  projects,
+&#125;;</pre>
     <div class="container screen__inner" data-hero-inner>
       <Image class="hero__logo" src={logoColor} alt={site.name} width={1100} densities={[1, 1.5]} loading="eager" />
       <h1 class="h-display hero__title">
