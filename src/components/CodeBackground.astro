@@ -11,20 +11,27 @@ const lines = Object.values(sourceFiles).flatMap((source) =>
     .filter((line) => line.trim() && !/key|secret|token/i.test(line))
     .slice(0, 7),
 );
-const code = lines.join('\n\n');
+const code = lines.join('\n');
 ---
 
 <pre class="hero-code" aria-hidden="true" dir="ltr" data-lines={JSON.stringify(lines)}>{code}</pre>
 
 <script>
-  // Find the code background and read its lines from the JSON data attribute.
-  const codeBackground = document.querySelector('.hero-code[data-lines]');
-  if (!(codeBackground instanceof HTMLElement)) throw new Error('Code background element was not found.');
-  const lines = JSON.parse(codeBackground.dataset.lines ?? '[]');
+  import { onPage, reduceMotion } from '../scripts/page.js';
 
-  // Leave the original static code in place when the visitor prefers less motion.
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!reducedMotion) {
+  onPage(() => {
+    // Find the code background and read its lines from the JSON data attribute.
+    const codeBackground = document.querySelector('.hero-code[data-lines]');
+    if (!(codeBackground instanceof HTMLElement)) return;
+    const lines = JSON.parse(codeBackground.dataset.lines ?? '[]');
+
+    // Leave the original static code in place when the visitor prefers less motion.
+    if (reduceMotion()) return;
+
+    // Show the layer and clear the static text so the typing starts from empty.
+    codeBackground.classList.add('is-running');
+    codeBackground.textContent = '';
+
     // Keep track of the current animation phase and scheduled timer.
     const maxVisibleLines = 30;
     let lineIndex = 0;
@@ -107,14 +114,11 @@ const code = lines.join('\n\n');
       disposed = true;
       pauseTimer();
       document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('pagehide', cleanup);
-      document.removeEventListener('astro:before-swap', cleanup);
     };
 
-    // Start the first line and register lifecycle listeners.
+    // Start the first line and register the visibility listener.
     document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('pagehide', cleanup);
-    document.addEventListener('astro:before-swap', cleanup);
     schedule(150, addLine);
-  }
+    return cleanup;
+  });
 </script>

@@ -398,8 +398,16 @@ html.js .reveal.is-visible { opacity: 1; transform: none; }
   white-space: pre;
   /* Makes the reset between code cycles fade smoothly. */
   transition: opacity 0.5s ease;
+
+font-size: 15px;
+line-height: 1.5;
+user-select: none;
 }
 .hero-code.is-fading { opacity: 0; }
+/* Hide the code until the script starts, so there's no flash of full code */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .hero-code:not(.is-running) { opacity: 0; }
+}
 .screen__inner { position: relative; z-index: 1; display: grid; gap: 28px; justify-items: start; }
 .screen--one .screen__inner { pointer-events: none; }
 .screen--one .hero__title { max-width: 12ch; }
