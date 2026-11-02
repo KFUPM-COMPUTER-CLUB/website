@@ -381,7 +381,7 @@ html.js .reveal.is-visible { opacity: 1; transform: none; }
   /* Prevents the decorative layer from intercepting pointer input. */
   pointer-events: none;
   /* Keeps the code subtle enough to remain background texture. */
-  opacity: 0.4;
+  opacity: 0.3;
   /* Keeps the code readable against the white hero background. */
   color: var(--blue);
   /* Clips the fixed-size sample to the hero bounds. */

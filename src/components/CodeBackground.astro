@@ -1,4 +1,5 @@
 ---
+// Here you choose which files' code appear on homescreen
 const sourceFiles = import.meta.glob<string>(
   ['./Header.astro', './Terminal.astro', './Collage.astro', './Stories.astro', '../styles/global.css'],
   { eager: true, import: 'default', query: '?raw' },
