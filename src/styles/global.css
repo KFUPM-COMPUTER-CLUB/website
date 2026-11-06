@@ -1094,8 +1094,6 @@ body.scrolled .scroll-hint { opacity: 0; }
 .upnext, .highlights, .join, .partners, .site-footer { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 @media (prefers-reduced-motion: reduce) { .hero__title .w, .iconedit, .herocode__pane, .hero__icon { animation: none; } .herocode__spot { display: none; } }
 
-/* The home page: white first screen, the CC x KFUPM story on navy, the photo reel on black, white sections, then a
- * fade back into black for the partners and the footer. */
-.fade-to-dark { height: 220px; background: linear-gradient(to bottom, #FFFFFF, #0B0B0F); }
+/* The home page: white first screen, the CC x KFUPM story on navy, then black from the photo reel to the footer. */
 /* An award on a result (#118): the club blue, so side prizes stand out beside the placings. */
 .ev__results .ev__award { color: var(--blue); }
