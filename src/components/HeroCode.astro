@@ -1,0 +1,41 @@
+---
+/* The first screen's background (#152): the source of the club icon above the headline
+ * (scripts/hero-icon.js), coloured like GitHub's light theme. It sits faint behind the page and comes up
+ * where the pointer moves; the ICON settings, the part that draws the icon, sit in a square box that comes
+ * up fully under the pointer. Clicking lets you edit them, and the icon and the blue words of the
+ * headline follow (scripts/hero-code.js). Without JavaScript it is only a backdrop. */
+import iconSource from '../scripts/hero-icon.js?raw';
+import { highlight } from '../scripts/code-tokens.js';
+import { iconBlock } from '../scripts/icon-parse.js';
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+const code = `// src/scripts/hero-icon.js\n${iconSource.trimEnd()}`;
+// The ICON block is the part that draws the icon: it gets its own box over the faint code (iconBlock()).
+const box = iconBlock(code);
+---
+
+<div class="herocode" dir="ltr" data-herocode>
+  <pre class="herocode__hl" aria-hidden="true" data-herocode-hl set:html={highlight(code) + '\n'} />
+  <div class="herocode__box" aria-hidden="true" style={`--l0:${box.start};--ln:${box.lines}`} data-herocode-box>
+    <span class="herocode__tag mono">{t(lang, 'home.iconTag')}</span>
+    <pre class="herocode__boxcode" data-herocode-boxcode set:html={box.html} />
+  </div>
+  <textarea
+    class="herocode__input"
+    spellcheck="false"
+    autocapitalize="off"
+    autocomplete="off"
+    autocorrect="off"
+    wrap="off"
+    aria-label={t(lang, 'home.iconCode')}
+    aria-describedby="herocode-status"
+    data-herocode-input
+  >{code}</textarea>
+  <p class="herocode__status mono" id="herocode-status" role="status" data-herocode-status>
+    {t(lang, 'home.iconHint')}
+  </p>
+</div>
+
+<script>
+  import '../scripts/hero-code.js';
+</script>

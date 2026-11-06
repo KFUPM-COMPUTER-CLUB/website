@@ -26,6 +26,7 @@ import {
   digestWeek,
   postsSince,
   stopBefore,
+  unsubscribeHeaders,
   unsubscribeToken,
   upcomingFor,
   type SendStop,
@@ -65,7 +66,17 @@ export type Quota = {
   warnMonthly: boolean;
   configured: boolean;
 };
-type QueueRow = { id: string; to_email: string; subject: string; html: string; attempts: number; kind: string };
+type QueueRow = {
+  id: string;
+  to_email: string;
+  subject: string;
+  html: string;
+  attempts: number;
+  kind: string;
+  /* Extra headers (0019_email_headers.sql): the digest's one-click unsubscribe; null otherwise. */
+  headers?: Record<string, string> | null;
+};
+const QUEUE_COLUMNS = 'id,to_email,subject,html,attempts,kind';
 const NOT_QUEUED = { queued: false, sent: false };
 
 /* ── Pure helpers (no database) ──────────────────────────────────────────── */
@@ -286,17 +297,21 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
       monthLeft = MONTHLY_LIMIT - sentMonth;
     const budget = budgetFor(sentToday, sentMonth, max);
     if (budget > 0) {
-      const { data, error } = await sb
-        .from('email_queue')
-        .select('id,to_email,subject,html,attempts,kind')
-        .eq('status', 'queued')
-        .lte('scheduled_for', b.today)
-        .order('priority')
-        .order('created_at')
-        .limit(budget);
+      const due = (columns: string) =>
+        sb
+          .from('email_queue')
+          .select(columns)
+          .eq('status', 'queued')
+          .lte('scheduled_for', b.today)
+          .order('priority')
+          .order('created_at')
+          .limit(budget);
+      let { data, error } = await due(`${QUEUE_COLUMNS},headers`);
+      // 42703: the headers column is not there yet (0019 not applied); send without the extra headers.
+      if (error?.code === '42703') ({ data, error } = await due(QUEUE_COLUMNS));
       if (error) throw new Error(error.message);
       const resend = new Resend(resendKey);
-      const rows = (data || []) as QueueRow[];
+      const rows = (data || []) as unknown as QueueRow[];
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         // Checked before the claim, so a run that stops leaves nothing claimed and unsent.
@@ -394,7 +409,13 @@ const failureText = (f: Failure) => `${f.name}: ${f.message}`.slice(0, 500);
 async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<Failure | null> {
   try {
     const { error } = await resend.emails.send(
-      { from: emailFrom, to: row.to_email, subject: row.subject, html: row.html },
+      {
+        from: emailFrom,
+        to: row.to_email,
+        subject: row.subject,
+        html: row.html,
+        ...(row.headers && typeof row.headers === 'object' ? { headers: row.headers } : {}),
+      },
       { idempotencyKey: `email_queue/${row.id}` },
     );
     if (!error) return null;
@@ -457,6 +478,25 @@ export async function requeueFailed(): Promise<number> {
     .update({ status: 'queued', attempts: 0, error: null, scheduled_for: riyadhBounds().today }, { count: 'exact' })
     .eq('status', 'failed');
   if (error) throw new Error(error.message);
+  return n || 0;
+}
+
+/* Sent messages are kept for SENT_RETENTION_DAYS, then deleted by the daily cron: each row holds the whole
+ * HTML, and the free database has a 500 MB cap. Queued and failed rows are never touched here. Returns how
+ * many went; null when the delete failed (logged), so the cron's reply can tell "none" from "error". */
+export const SENT_RETENTION_DAYS = 90;
+export async function purgeSent(days = SENT_RETENTION_DAYS, now = new Date()): Promise<number | null> {
+  if (!serviceReady()) return 0;
+  const before = new Date(now.getTime() - days * 86_400_000).toISOString();
+  const { count: n, error } = await serviceClient()
+    .from('email_queue')
+    .delete({ count: 'exact' })
+    .eq('status', 'sent')
+    .lt('sent_at', before);
+  if (error) {
+    console.error('email purge', error.message);
+    return null;
+  }
   return n || 0;
 }
 
@@ -657,9 +697,11 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
     const today = riyadhBounds(now).today;
     const rows = [];
     for (const m of members) {
-      const unsubscribe = `${siteUrl}/unsubscribe?u=${m.id}&t=${await unsubscribeToken(m.id, serviceKey)}`;
+      const token = await unsubscribeToken(m.id, serviceKey);
+      const unsubscribe = `${siteUrl}/unsubscribe?u=${m.id}&t=${token}`;
       const { subject, html } = render(tpl, { name: greet(m), ...lists }, siteUrl, unsubscribe);
       rows.push({
+        headers: unsubscribeHeaders(siteUrl, m.id, token),
         to_email: m.email.trim(),
         subject,
         html,
@@ -671,7 +713,12 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
     }
     for (let i = 0; i < rows.length; i += INSERT_ROWS) {
       const chunk = rows.slice(i, i + INSERT_ROWS);
-      const { error } = await sb.from('email_queue').insert(chunk);
+      let { error } = await sb.from('email_queue').insert(chunk);
+      // PGRST204: no headers column yet (0019 not applied); queue the digest without the one-click headers.
+      if (error?.code === 'PGRST204')
+        ({ error } = await sb
+          .from('email_queue')
+          .insert(chunk.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'headers')))));
       if (error) throw new Error(error.message);
       queued += chunk.length;
     }

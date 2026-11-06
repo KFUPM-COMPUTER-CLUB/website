@@ -4,7 +4,8 @@
  * to those pages can be tried with npm run dev before opening a pull request. Nothing here touches a
  * database or Storage, and every /dev route answers 404 outside npm run dev (import.meta.env.DEV is false
  * in any build), so none of it reaches a preview or production. */
-import type { Profile } from './types';
+import type { EventItem, LeaderRow, PostSummary, Profile } from './types';
+import { photoImg } from './photos';
 
 export const devOnly = () => import.meta.env.DEV;
 
@@ -53,3 +54,28 @@ export const resetDevStore = () => {
   store.profile = sampleProfile();
   store.post = samplePost();
 };
+
+/* The home page with ?sample in npm run dev (src/pages/index.astro): seed mode has no upcoming events, no
+ * featured post and no leaderboard, so the sections built on them would stay hidden locally. This fills
+ * them with the seed data moved into the future and a few sample numbers, so the design can be tried. */
+export async function homeSample(events: EventItem[], posts: PostSummary[]) {
+  const day = 86_400_000;
+  const soon = events.slice(-3).map((e, i) => ({
+    ...e,
+    start: new Date(Date.now() + (3 + i * 6) * day),
+    end: null,
+    registrationOpen: i === 0,
+  }));
+  const post = posts[0] ? { ...posts[0], cover: await photoImg(events.find((e) => e.coverKey)?.coverKey) } : null;
+  const leaders: LeaderRow[] = [
+    { rank: 1, handle: 'test_member', name: 'Test Member', avatar: null, total: 140 },
+    { rank: 2, handle: null, name: null, avatar: null, total: 95 },
+    { rank: 3, handle: 'sample_two', name: 'Sample Two', avatar: null, total: 80 },
+  ];
+  return {
+    upcoming: soon,
+    featured: post ? { ...post, month: new Date().toISOString().slice(0, 7) + '-01' } : null,
+    leaders,
+    counts: { members: 240, events: 22, posts: 9, workshops: 3 },
+  };
+}

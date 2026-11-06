@@ -44,14 +44,16 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
 
 <div class="terminal" dir="ltr" role="dialog" aria-label={t(lang, 'nav.terminal')} hidden data-terminal>
   <div class="terminal__bar">
-    <span class="terminal__title">guest@cckfupm — terminal</span>
+    <span class="terminal__title" data-term-title>
+      guest@cckfupm — terminal
+    </span>
     <button type="button" class="terminal__close" data-term-close aria-label={t(lang, 'nav.closeTerminal')}>
       esc
     </button>
   </div>
   <div class="terminal__out" role="log" aria-live="polite" data-term-out></div>
   <form class="terminal__line" data-term-form>
-    <label class="terminal__prompt" for="term-input">
+    <label class="terminal__prompt" for="term-input" data-term-prompt>
       guest@cckfupm:~$
     </label>
     <span class="terminal__field">

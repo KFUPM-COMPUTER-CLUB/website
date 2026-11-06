@@ -268,6 +268,8 @@ export type PostSummary = {
   status: string;
   /* When the content last changed (posts.edited_at, 0013_post_edited_at.sql); null for seed posts. */
   updatedAt: Date | null;
+  /* The cover image (posts.cover_key, or `cover` in a seed post's front matter); null without one. */
+  cover: Img | null;
 };
 /* One row of the writers' leaderboard on /blog (writers_leaderboard() in 0011_featured_posts.sql): posts
  * published this term. handle, name and avatarUrl are null for members who did not opt in, like LeaderRow:

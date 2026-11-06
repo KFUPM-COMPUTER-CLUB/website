@@ -8,6 +8,7 @@ import {
   digestWeek,
   postsSince,
   stopBefore,
+  unsubscribeHeaders,
   unsubscribeToken,
   upcomingFor,
   verifyUnsubscribe,
@@ -127,4 +128,13 @@ test('sameSecret compares content and length', () => {
   assert.equal(sameSecret('Bearer abd', 'Bearer abc'), false);
   assert.equal(sameSecret('Bearer abc', 'Bearer abcd'), false);
   assert.equal(sameSecret('', 'x'), false);
+});
+
+test('one-click unsubscribe headers carry the member link and the RFC 8058 marker (#122)', async () => {
+  const id = '11111111-1111-4111-8111-111111111111';
+  const token = await unsubscribeToken(id, 'test-secret');
+  const h = unsubscribeHeaders('https://cckfupm.vercel.app/', id, token);
+  assert.equal(h['List-Unsubscribe'], `<https://cckfupm.vercel.app/api/digest/unsubscribe?u=${id}&t=${token}>`);
+  assert.equal(h['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
+  assert.match(h['List-Unsubscribe'], /^<https:\/\/[^>]+>$/);
 });

@@ -622,6 +622,8 @@ const rowToPost = (r: any): PostSummary => ({
   status: r.status,
   // The last content edit (0013_post_edited_at.sql). getPost() reads it; the list query does not select it.
   updatedAt: r.edited_at ? new Date(r.edited_at) : null,
+  // Resolved from cover_key by withAuthors(), like events' covers.
+  cover: null,
 });
 /* Authors are fetched from profiles_public and joined here instead of a PostgREST embed such as
  * select('*, profiles(...)'). An embed through the profiles table is filtered by its policy, which
@@ -634,14 +636,16 @@ async function withAuthors(rows: any[]): Promise<PostSummary[]> {
     ? (await db().from('profiles_public').select('id,name,handle,avatar_url').in('id', ids)).data || []
     : [];
   const byId = new Map(authors.map((a: any) => [a.id, a]));
-  return rows.map((r) => rowToPost({ ...r, author: byId.get(r.author_id) || null }));
+  const out = rows.map((r) => rowToPost({ ...r, author: byId.get(r.author_id) || null }));
+  for (let i = 0; i < out.length; i++) out[i].cover = await photoImg(rows[i].cover_key);
+  return out;
 }
 /* Seed posts are markdown in src/data/posts rendered by Astro; database posts carry the editor's HTML. */
 export function getPosts(): Promise<PostSummary[]> {
   return cached('posts', async () => {
     if (!dbReady()) {
       const entries = await getCollection('posts', ({ data }) => !data.draft);
-      return entries
+      const seeded = entries
         .map((e) => ({
           id: e.id,
           slug: e.id,
@@ -656,12 +660,14 @@ export function getPosts(): Promise<PostSummary[]> {
           dir: 'ltr' as const,
           status: 'published',
           updatedAt: null,
+          coverKey: e.data.cover || null,
         }))
         .sort((a, b) => b.date.valueOf() - a.date.valueOf());
+      return Promise.all(seeded.map(async ({ coverKey, ...p }) => ({ ...p, cover: await photoImg(coverKey) })));
     }
     const { data } = await db()
       .from('posts')
-      .select('id,slug,title,excerpt,published_at,created_at,author_id,author_name,category,tags,dir,status')
+      .select('id,slug,title,excerpt,published_at,created_at,author_id,author_name,category,tags,dir,status,cover_key')
       .eq('status', 'published')
       .order('published_at', { ascending: false });
     return withAuthors(data || []);
@@ -743,6 +749,7 @@ export async function getPost(slug: string): Promise<PostFull | null> {
       html: null,
       entry: e,
       coverKey: null,
+      cover: null,
     };
   }
   const { data } = await db().from('posts').select('*').eq('slug', slug).eq('status', 'published').maybeSingle();

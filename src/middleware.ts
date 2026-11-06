@@ -6,6 +6,7 @@
  * minute and would serve one person's page to everyone. */
 import { defineMiddleware } from 'astro:middleware';
 import { ENGLISH_ONLY } from './lib/i18n';
+import { needsSameOrigin } from './lib/csrf';
 import { dbReady, serviceReady, adminEmails } from './lib/env';
 import { sessionClient, serviceClient } from './lib/supabase';
 import { atLeast, ROLE_RANK, type Profile, type Role } from './lib/types';
@@ -30,15 +31,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   // friends by rewriting to the English route, and astro.config.mjs would not know to keep those out of ISR.
   if (path.startsWith('/ar/') && ENGLISH_ONLY.test(path.slice(3))) return new Response('Not found', { status: 404 });
 
-  // Cross-site request forgery: mutations must come from this site. Browsers always send Origin or
-  // Sec-Fetch-Site on a cross-site POST, so this replaces CSRF tokens. Cron calls (server to server)
-  // carry their own secret instead.
-  if (
-    (path.startsWith('/api/') || path.startsWith('/auth/')) &&
-    method !== 'GET' &&
-    method !== 'HEAD' &&
-    !path.startsWith('/api/cron/')
-  ) {
+  // Cross-site request forgery: mutations must come from this site (needsSameOrigin in lib/csrf.ts says
+  // which). Cron calls and the digest's one-click unsubscribe carry their own secret instead.
+  if (needsSameOrigin(path, method)) {
     const origin = ctx.request.headers.get('origin');
     const site = ctx.request.headers.get('sec-fetch-site');
     if (!(origin === ctx.url.origin || site === 'same-origin')) return new Response('Forbidden', { status: 403 });
