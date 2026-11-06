@@ -20,6 +20,8 @@ const locale = dateLocale(Astro.currentLocale);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 // "1st" in English, "المركز 1" in Arabic, as on /timeline.
 const place = (n: number) => (lang === 'ar' ? `${t(lang, 'results.place')} ${n}` : ordinal(n));
+const label = (w: { place: number | null; award: string | null }) =>
+  [w.award, w.place !== null ? place(w.place) : null].filter(Boolean).join(' · ');
 const db = publicClient();
 const { data: p } = await db.from('profiles_public').select('*').eq('handle', handle).maybeSingle();
 if (!p) return new Response(null, { status: 404 });
@@ -64,7 +66,7 @@ const badges = [
   committee?.name && `${committee.name} ${t(lang, 'profile.committee')}`,
   (officer || []).some((o: any) => !o.is_current) && t(lang, 'profile.pastOfficer'),
   // A podium finish, not any placing: the Wins list below still shows every place.
-  wins.some((w) => w.place <= 3) && t(lang, 'profile.competitionWinner'),
+  wins.some((w) => w.place !== null && w.place <= 3) && t(lang, 'profile.competitionWinner'),
   (posts?.length || 0) > 0 && t(lang, 'profile.writer'),
   (regs || []).some((r: any) => r.attended) && t(lang, 'profile.attendedEvents'),
   // Flag solver is a badge now (0014_badges.sql), shown or hidden with the member's other badges.
@@ -200,7 +202,7 @@ const stats = [
           <ul>
             {wins.map((w) => (
               <li>
-                <b>{place(w.place)}</b> {t(lang, 'profile.winAt')}{' '}
+                <b>{label(w)}</b> {t(lang, 'profile.winAt')}{' '}
                 <a href={`${localePath(lang, '/timeline')}#ev-${w.event.slug}`}>{w.event.title}</a>
                 {w.team && (
                   <>

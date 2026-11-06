@@ -26,6 +26,7 @@ const summary = (e: any) => {
     a.role ||
     a.status ||
     (a.place && `Place ${a.place}${a.team ? `, ${a.team}` : ''}`) ||
+    (a.award && `${a.award}${a.team ? `, ${a.team}` : ''}`) ||
     e.row_id ||
     ''
   );

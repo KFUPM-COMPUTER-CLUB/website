@@ -12,8 +12,12 @@ type Sb = ReturnType<typeof serviceClient>;
  * Numbers are read with wholeNumber(), not int(): parseInt saves "5k" as 5 and "1.5" as 1. An empty
  * prize means no prize; a mistyped one is refused. */
 async function fields(sb: Sb, b: Record<string, any>) {
+  // A place, an award ("Best design"), or both (#118).
   const place = wholeNumber(b.place);
-  if (!place || place > 99) throw new ApiError('Place must be a whole number from 1 to 99.');
+  if (Number.isNaN(place) || place === 0 || (place !== null && place > 99))
+    throw new ApiError('Place must be a whole number from 1 to 99, or empty for an award without a place.');
+  const award = str(b.award, 60) || null;
+  if (place === null && !award) throw new ApiError('Give a place, an award (like "Best design"), or both.');
   const handle = str(b.member, 40).replace(/^@/, '').toLowerCase();
   let user_id: string | null = null;
   if (handle) {
@@ -26,9 +30,10 @@ async function fields(sb: Sb, b: Record<string, any>) {
   const prize_sar = wholeNumber(b.prize_sar);
   if (Number.isNaN(prize_sar)) throw new ApiError('Prize must be a whole number of riyals, like 5000.');
   if (prize_sar !== null && prize_sar > 10_000_000) throw new ApiError('Prize must be at most 10,000,000 SAR.');
-  const points = wholeNumber(b.points) ?? placePoints(place);
+  // An award without a place earns no points unless the officer types some.
+  const points = wholeNumber(b.points) ?? (place === null ? 0 : placePoints(place));
   if (Number.isNaN(points) || points > 1000) throw new ApiError('Points must be a whole number from 0 to 1000.');
-  return { place, user_id, team, prize_sar, points };
+  return { place, award, user_id, team, prize_sar, points };
 }
 
 /* Officer tools for one event's placings, used by /admin/events/<id>/results. One POST per change:
@@ -70,7 +75,7 @@ export const POST: APIRoute = handle(async (ctx) => {
     .from('event_results')
     .select('*')
     .eq('event_id', eventId)
-    .order('place')
+    .order('place', { nullsFirst: false })
     .order('created_at');
   if (listError) throw new ApiError(listError.message, 500);
   const i = (list || []).findIndex((r: any) => r.id === b.id);
@@ -99,6 +104,8 @@ export const POST: APIRoute = handle(async (ctx) => {
     // default for the old place take the default for the new one; an amount the officer typed stays.
     const other = list![action === 'up' ? i - 1 : i + 1];
     if (!other) return done('Already there.');
+    if (other.place === null || row.place === null)
+      throw new ApiError('Awards without a place keep their order: give them a place number to move them.');
     if (other.place === row.place) throw new ApiError('These two share a place: change the place number instead.');
     for (const [r, place] of [
       [row, other.place],

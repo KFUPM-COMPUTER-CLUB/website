@@ -102,17 +102,30 @@ onPage(() => {
   off.add(
     listen(document, 'visibilitychange', () => {
       hidden = document.hidden;
-      if (!hidden) requestAnimationFrame(tick);
+      if (!hidden && inView) requestAnimationFrame(tick);
     }),
   );
 
+  // The loop only runs while the first screen is on screen; the canvas hides while it is stopped.
+  let inView = true,
+    heroH = hero.offsetHeight;
+  const light = isLight();
+  off.add(listen(window, 'resize', () => (heroH = hero.offsetHeight)));
+  const seen = new IntersectionObserver(([e]) => {
+    const was = inView;
+    inView = e.isIntersecting;
+    c.style.visibility = inView ? '' : 'hidden';
+    if (inView && !was && !hidden) requestAnimationFrame(tick);
+  });
+  seen.observe(hero);
+  off.add(() => seen.disconnect());
+
   const tick = () => {
-    if (hidden || dead) return;
+    if (hidden || dead || !inView) return;
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, c.width, c.height);
-    const vis = Math.min(1, Math.max(0, 1 - window.scrollY / (hero.offsetHeight * 0.7)));
+    const vis = Math.min(1, Math.max(0, 1 - window.scrollY / (heroH * 0.7)));
     if (started && vis > 0) {
-      const light = isLight();
       const h = Math.round(hue.update());
       ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
       ctx.strokeStyle = light ? `hsla(${h}, 85%, 48%, ${0.22 * vis})` : `hsla(${h}, 90%, 62%, ${0.2 * vis})`;

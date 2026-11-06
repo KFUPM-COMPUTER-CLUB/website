@@ -31,15 +31,33 @@ onPage(() => {
   );
 
   const hero = document.querySelector('[data-hero]');
-  const headerH = () => document.querySelector('.site-header')?.offsetHeight || 72;
-  const onScroll = () => {
+  // Heights are measured on load and resize, not on every scroll event.
+  let headerH = 72,
+    heroH = 0,
+    raf = 0;
+  const measure = () => {
+    headerH = document.querySelector('.site-header')?.offsetHeight || 72;
+    heroH = hero?.offsetHeight || 0;
+  };
+  const paint = () => {
+    raf = 0;
     const y = window.scrollY;
     body.classList.toggle('scrolled', y > 8);
-    body.classList.toggle('past-hero', hero ? y >= hero.offsetHeight - headerH() : y > 8);
+    body.classList.toggle('past-hero', hero ? y >= heroH - headerH : y > 8);
   };
-  onScroll();
+  const onScroll = () => {
+    if (!raf) raf = requestAnimationFrame(paint);
+  };
+  measure();
+  paint();
   off.add(listen(window, 'scroll', onScroll, { passive: true }));
-  off.add(listen(window, 'resize', onScroll));
+  off.add(
+    listen(window, 'resize', () => {
+      measure();
+      onScroll();
+    }),
+  );
+  off.add(() => cancelAnimationFrame(raf));
   return () => {
     off.flush();
     body.classList.remove('nav-open', 'scrolled', 'past-hero');
