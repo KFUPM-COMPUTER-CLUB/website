@@ -1,23 +1,19 @@
 ---
-/* The editable part of the first screen (#152): the ICON settings of scripts/hero-icon.js in a square box
- * over the icon. Changing a value redraws the icon under it, and blue also colours "build the future"
+/* The editable part of the first screen (#152): the icon's settings (ICON in scripts/hero-icon.js) as plain
+ * `name value` lines in a box over the icon. Changing a value redraws the icon under it, and blue also colours "build the future"
  * (scripts/hero-code.js); a broken line is reported by its number and keeps its last good value. Faint
  * until the pointer is over it or it is being edited. Without JavaScript it shows the settings only. */
-import iconSource from '../scripts/hero-icon.js?raw';
-import { iconBlock } from '../scripts/icon-parse.js';
+import { settingsText, settingsHtml } from '../scripts/icon-parse.js';
 import { t, type Lang } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
-const block = iconBlock(iconSource);
-const text = iconSource
-  .split('\n')
-  .slice(block.start, block.start + block.lines)
-  .join('\n');
+const text = settingsText();
+const lines = text.split('\n').length;
 ---
 
 <div class="iconedit" dir="ltr" data-iconedit>
   <span class="iconedit__tag mono">{t(lang, 'home.iconTag')}</span>
-  <div class="iconedit__code" style={`--ln:${block.lines}`}>
-    <pre class="iconedit__hl" aria-hidden="true" data-iconedit-hl set:html={block.html + '\n'} />
+  <div class="iconedit__code" style={`--ln:${lines}`}>
+    <pre class="iconedit__hl" aria-hidden="true" data-iconedit-hl set:html={settingsHtml(text) + '\n'} />
     <textarea
       class="iconedit__input"
       spellcheck="false"

@@ -4,7 +4,7 @@
  * setting's last good value). Lines outside the block are the drawing code and are left alone. Plain
  * JavaScript with no imports from the page, so tests/hero-icon.test.ts runs it under node. */
 import { ICON, RULES } from './hero-icon.js';
-import { highlight } from './code-tokens.js';
+import { highlight, esc } from './code-tokens.js';
 
 const strip = (line) => {
   let q = '';
@@ -74,3 +74,72 @@ export function iconBlock(code) {
   end = Math.min(end, all.length - 1);
   return { start, lines: end - start + 1, html: highlight(all.slice(start, end + 1).join('\n')) };
 }
+
+/* The box over the icon shows the settings as plain words, not code: one `name value` line each, black
+ * being the icon's dark part (ICON.navy). These read, write and colour that text. */
+export const LABELS = {
+  blue: 'blue',
+  navy: 'black',
+  line: 'line',
+  size: 'size',
+  gap: 'gap',
+  round: 'round',
+  rotate: 'rotate',
+};
+const KEY_OF = Object.fromEntries(
+  Object.entries(LABELS).flatMap(([k, l]) => [
+    [l, k],
+    [k, k],
+  ]),
+);
+const SPLIT = /^(\s*)([A-Za-z]+)(\s*[:=]?\s*)(.*?)(\s*)$/;
+
+export const settingsText = (icon = ICON) =>
+  Object.entries(LABELS)
+    .map(([k, l]) => `${l.padEnd(7)}${icon[k]}`)
+    .join('\n');
+
+/* { settings, errors } like parseIcon; a value may also be written 'quoted' or end in a comma. */
+export function parseSettings(text, isColor = hex) {
+  const settings = { ...ICON };
+  const errors = [];
+  String(text ?? '')
+    .split('\n')
+    .forEach((raw, idx) => {
+      const line = idx + 1;
+      const body = strip(raw).trim();
+      if (!body) return;
+      const m = /^([A-Za-z]+)\s*[:=]?\s*(.*?)\s*,?$/.exec(body);
+      if (!m || !m[2]) return errors.push({ line, message: 'write a name, then a value' });
+      const key = KEY_OF[m[1].toLowerCase()];
+      if (!key) return errors.push({ line, message: `${m[1]} is not one of: ${Object.values(LABELS).join(', ')}` });
+      const value = unquote(m[2]) ?? m[2];
+      const fail = (message) => errors.push({ line, key, message });
+      const rule = RULES[key];
+      if (rule === 'color') {
+        if (!isColor(value)) return fail(`${value} is not a colour`);
+        settings[key] = value;
+        return;
+      }
+      const [lo, hi] = rule;
+      if (!/^-?\d+(\.\d+)?$/.test(value)) return fail(`${LABELS[key]} is a number`);
+      const x = Number(value);
+      if (x < lo || x > hi) return fail(`${LABELS[key]} goes from ${lo} to ${hi}`);
+      settings[key] = x;
+    });
+  return { settings, errors };
+}
+
+/* The text as HTML for the coloured layer under the box: names, colours and numbers each in their colour. */
+export const settingsHtml = (text) =>
+  String(text ?? '')
+    .split('\n')
+    .map((raw) => {
+      const m = SPLIT.exec(raw);
+      if (!m) return esc(raw);
+      const [, lead, name, sep, value, tail] = m;
+      const kind = /^-?\d/.test(value) ? 'num' : value ? 'str' : 'plain';
+      const val = value ? `<span class="tok tok--${kind}">${esc(value)}</span>` : '';
+      return `${lead}<span class="tok tok--prop">${esc(name)}</span>${esc(sep)}${val}${tail}`;
+    })
+    .join('\n');

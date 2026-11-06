@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import { tokenize, highlight } from '../src/scripts/code-tokens.js';
+import { tokenize, highlight, highlightLines } from '../src/scripts/code-tokens.js';
 import { ICON, iconSvg } from '../src/scripts/hero-icon.js';
 import { parseIcon } from '../src/scripts/icon-parse.js';
 
@@ -72,4 +72,36 @@ test('icon: the box marks exactly the ICON block, and follows it when lines are 
   const longer = code.replace("  line: '#FFFFFF',", "  line: '#FFFFFF',\n  // a note");
   assert.equal(iconBlock(longer).lines, b.lines + 1);
   assert.deepEqual(iconBlock('nothing here'), { start: 0, lines: 0, html: '' });
+});
+
+test('tokens: one highlighted string per line, block comments split cleanly', () => {
+  const src = '/* a\n * b */\nconst x = 1;\n\nx;';
+  const lines = highlightLines(src);
+  assert.equal(lines.length, 5);
+  assert.equal(lines[0], '<span class="tok tok--com">/* a</span>');
+  assert.equal(lines[1], '<span class="tok tok--com"> * b */</span>');
+  assert.equal(lines[3], '');
+  assert.equal(lines.join('\n').replace(/<[^>]+>/g, ''), src);
+});
+
+test('settings box: plain name/value lines read back as the icon, errors by line', async () => {
+  const { settingsText, parseSettings, settingsHtml } = await import('../src/scripts/icon-parse.js');
+  const text = settingsText();
+  assert.match(text, /^blue {3}#2B6CED$/m);
+  assert.match(text, /^black {2}#141E30$/m);
+  assert.deepEqual(parseSettings(text), { settings: ICON, errors: [] });
+  const edited = text
+    .replace('#2B6CED', '#F97316')
+    .replace('round  34', 'round: 99')
+    .replace('size   240', 'size = 200,');
+  const { settings, errors } = parseSettings(edited + '\npink 1\nnavy #000');
+  assert.equal(settings.blue, '#F97316');
+  assert.equal(settings.size, 200);
+  assert.equal(settings.round, ICON.round);
+  assert.equal(settings.navy, '#000');
+  assert.deepEqual(
+    errors.map((e) => e.line),
+    [6, 8],
+  );
+  assert.equal(settingsHtml('a <b> 1').replace(/<span[^>]*>|<\/span>/g, ''), 'a &lt;b&gt; 1');
 });

@@ -73,9 +73,22 @@ export function tokenize(src) {
 }
 
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-const esc = (s) => s.replace(/[&<>"]/g, (ch) => ESC[ch]);
+export const esc = (s) => s.replace(/[&<>"]/g, (ch) => ESC[ch]);
 /* Escaped HTML, one <span class="tok tok--…"> per coloured token. */
 export const highlight = (src) =>
   tokenize(src)
     .map(([type, text]) => (type === 'plain' ? esc(text) : `<span class="tok tok--${type}">${esc(text)}</span>`))
     .join('');
+/* The same, one string per source line: a token that runs over a line break (a block comment) is closed at
+ * the end of the line and opened again on the next, so each line can be its own element. */
+export const highlightLines = (src) => {
+  const lines = [''];
+  for (const [type, text] of tokenize(src)) {
+    text.split('\n').forEach((part, i) => {
+      if (i) lines.push('');
+      if (part)
+        lines[lines.length - 1] += type === 'plain' ? esc(part) : `<span class="tok tok--${type}">${esc(part)}</span>`;
+    });
+  }
+  return lines;
+};

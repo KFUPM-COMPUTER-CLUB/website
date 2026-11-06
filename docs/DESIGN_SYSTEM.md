@@ -17,7 +17,7 @@ Dark navy and white, one blue accent, large light headings, one-pixel rules inst
 | `--paper-2`   | `#E6EAF2`  | `--radius`     | `14px`                   |
 | `--font-head` | Mona Sans  | `--container`  | `1240px`                 |
 | `--font-body` | Hubot Sans | `--gutter`     | `clamp(16px, 4vw, 32px)` |
-| `--font-ar`   | Readex Pro | `--header-h`   | `72px`                   |
+| `--font-ar`   | Alexandria | `--header-h`   | `72px`                   |
 
 `.section--*` classes set `--section-bg`, `--section-line` and `--section-muted`; components use these so they work on any background.
 
