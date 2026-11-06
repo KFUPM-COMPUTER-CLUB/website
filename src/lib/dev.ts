@@ -18,7 +18,7 @@ const sampleProfile = (): Profile => ({
   email: 'test.member@example.com',
   phone: '+966500000000',
   major: 'Computer Science',
-  year: 'Third year',
+  year: 'Junior',
   kfupm_email: 's000000000@kfupm.edu.sa',
   github: 'test-member',
   linkedin: null,

@@ -36,12 +36,13 @@ export const POST: APIRoute = handle(async (ctx) => {
   await guardRate(ctx.request, 'onboard', 10, 600);
   const b = await readBody(ctx.request);
   // The form sends the name in parts; a JSON client may still send one full name, which is split.
-  let names: ReturnType<typeof nameColumns>;
-  try {
-    names = nameColumns('first_name' in b ? readNameParts(b) : splitName(str(b.name, 80)), 'first_name' in b);
-  } catch (e) {
-    throw new ApiError((e as Error).message);
-  }
+  const names = (() => {
+    try {
+      return nameColumns('first_name' in b ? readNameParts(b) : splitName(str(b.name, 80)), 'first_name' in b);
+    } catch (e) {
+      throw new ApiError((e as Error).message);
+    }
+  })();
   const name = names.name,
     handle = str(b.handle, 24).toLowerCase(),
     email = str(b.email, 120).toLowerCase(),
