@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { handle, requireUser, readBody, ApiError } from '../../../lib/api';
 import { serviceClient, sessionClient } from '../../../lib/supabase';
 import { removeMemberContent } from '../../../lib/account';
+import { dropMail } from '../../../lib/notify';
 
 export const prerender = false;
 /* Self-service account deletion from /me/profile. The member's posts (published ones too), drafts,
@@ -29,6 +30,9 @@ export const POST: APIRoute = handle(async (ctx) => {
   });
   try {
     await removeMemberContent(user.id);
+    // Mail still queued for the member would otherwise go out after the account is gone.
+    const p = ctx.locals.profile;
+    await dropMail([user.email, p?.email, p?.kfupm_email]);
   } catch (e) {
     throw new ApiError(`Could not delete the account: ${(e as Error).message}`, 500);
   }

@@ -3,6 +3,7 @@ import { handle, requireRole, readBody, ApiError, str, isUuid, wantsHtml, ok, au
 import { serviceClient } from '../../../../lib/supabase';
 import { bust } from '../../../../lib/content';
 import { removeMemberContent } from '../../../../lib/account';
+import { dropMail } from '../../../../lib/notify';
 
 export const prerender = false;
 const ROLES = ['member', 'editor', 'reviewer', 'officer', 'admin'];
@@ -66,6 +67,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   const { data: p } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
   if (!p) throw new ApiError('Not found.', 404);
   const back = `/admin/members?q=${encodeURIComponent(str(b.q, 60))}`;
+  // Every address mail may have been queued to: profile, KFUPM and sign-in email.
+  const addresses = async () => [p.email, p.kfupm_email, (await sb.auth.admin.getUserById(id)).data.user?.email];
   const done = (m: string) => {
     bust();
     return wantsHtml(ctx.request) ? ctx.redirect(`${back}&ok=${encodeURIComponent(m)}`, 303) : ok();
@@ -110,6 +113,8 @@ export const POST: APIRoute = handle(async (ctx) => {
         ban_duration: p.suspended ? 'none' : '876000h',
       });
       if (banError) throw new ApiError(`Could not update the sign-in: ${banError.message}`, 500);
+      // A suspended member gets nothing more from the queue (a digest, a welcome, a reservation copy).
+      if (!p.suspended) await dropMail(await addresses());
       await sb.from('profiles').update({ suspended: !p.suspended }).eq('id', id);
       await audit(admin.id, 'update', 'profiles', id, { suspended: p.suspended }, { suspended: !p.suspended });
       return done(p.suspended ? 'Account reinstated.' : 'Account suspended.');
@@ -119,6 +124,7 @@ export const POST: APIRoute = handle(async (ctx) => {
       // The same as the member deleting their own account: their posts, drafts, photos and solver rows go too.
       try {
         await removeMemberContent(id);
+        await dropMail(await addresses());
       } catch (e) {
         throw new ApiError(`Could not delete the account: ${(e as Error).message}`, 500);
       }

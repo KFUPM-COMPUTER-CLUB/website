@@ -636,18 +636,29 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
   }
 }
 
-/* Turning the digest off (the unsubscribe link or the box on /me/profile) also drops the member's
- * digest that is queued but not sent, or it could still arrive after the page said it is off. Queue
- * rows carry the address, not the member, so pass every address the digest may have been queued to.
- * Throws on a database error so the caller does not report success. */
-export async function dropQueuedDigest(emails: (string | null | undefined)[]): Promise<void> {
+/* Drops unsent mail for a member. Queue rows carry the address, not the member, so pass every address
+ * mail may have been queued to (the profile email, the KFUPM email, the sign-in email). Without `kinds`
+ * every kind goes; `failed` rows are dropped too unless onlyQueued, since they still hold the name and
+ * address. Throws on a database error so the caller does not report success.
+ *   - Deleting or suspending an account drops everything still waiting for that member, or a digest,
+ *     welcome or reservation copy could go out after the account is gone (/api/me/delete, /admin/members).
+ *   - Turning the digest off (the unsubscribe link or the box on /me/profile) drops the queued digest. */
+export async function dropQueuedMail(
+  emails: (string | null | undefined)[],
+  { kinds, onlyQueued = false }: { kinds?: EmailKind[]; onlyQueued?: boolean } = {},
+): Promise<number> {
   const to = [...new Set(emails.filter(isEmail).map((e) => e.trim()))];
-  if (!serviceReady() || !to.length) return;
-  const { error } = await serviceClient()
+  if (!serviceReady() || !to.length) return 0;
+  let q = serviceClient()
     .from('email_queue')
-    .delete()
-    .eq('kind', 'digest')
-    .eq('status', 'queued')
+    .delete({ count: 'exact' })
+    .in('status', onlyQueued ? ['queued'] : ['queued', 'failed'])
     .in('to_email', to);
+  if (kinds?.length) q = q.in('kind', kinds);
+  const { count: n, error } = await q;
   if (error) throw new Error(error.message);
+  return n || 0;
 }
+export const dropQueuedDigest = async (emails: (string | null | undefined)[]): Promise<void> => {
+  await dropQueuedMail(emails, { kinds: ['digest'], onlyQueued: true });
+};
