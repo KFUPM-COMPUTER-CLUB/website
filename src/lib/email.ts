@@ -171,7 +171,9 @@ export function whatsappList(groups: Group[], site = siteUrl): string {
     ? `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>`
     : `<p>The group links are on your <a href="${escapeHtml(site)}/me" style="color:#2563EB">member page</a>.</p>`;
 }
-const greet = (p: ProfileLike) => (p?.name || '').trim() || (p?.handle || '').trim() || 'there';
+/* "Hi Adib": the first name when the profile has one (0018_name_parts.sql), else the full name or handle. */
+const greet = (p: ProfileLike) =>
+  (p?.first_name || '').trim() || (p?.name || '').trim() || (p?.handle || '').trim() || 'there';
 const isEmail = (v: unknown): v is string => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 500);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -473,7 +475,10 @@ export async function pingKeepAlive(): Promise<boolean> {
 
 /* ── The three messages the site sends ───────────────────────────────────── */
 
-type ProfileLike = { email?: string | null; name?: string | null; handle?: string | null } | null | undefined;
+type ProfileLike =
+  | { email?: string | null; name?: string | null; first_name?: string | null; handle?: string | null }
+  | null
+  | undefined;
 type PostLike = { title?: string | null; author_name?: string | null; authorName?: string | null } | null | undefined;
 type EventLike =
   | {

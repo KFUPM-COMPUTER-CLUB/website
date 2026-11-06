@@ -86,6 +86,10 @@ export type Profile = {
   id: string;
   handle: string | null;
   name: string | null;
+  /* The name in parts (0018_name_parts.sql); `name` is the full name built from them. */
+  first_name?: string | null;
+  middle_name?: string | null;
+  last_name?: string | null;
   email: string | null;
   phone: string | null;
   major: string | null;

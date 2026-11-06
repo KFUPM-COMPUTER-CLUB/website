@@ -6,7 +6,9 @@ import MeLayout from '../../components/MeLayout.astro';
 import { googleEnabled } from '../../lib/env';
 import { sessionClient } from '../../lib/supabase';
 import { YEARS as years, HANDLE_PATTERN, HANDLE_HINT } from '../../lib/types';
+import { namePartsOf } from '../../lib/names';
 const p = Astro.locals.profile!;
+const names = namePartsOf(p);
 const {
   data: { user },
 } = await sessionClient(Astro.request, Astro.cookies).auth.getUser();
@@ -28,11 +30,21 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
         <input class="input" id="avatar" name="avatar" type="file" accept="image/*" />
       </div>
     </div>
-    <div class="form__row">
+    <div class="form__row form__row--3">
       <div class="field">
-        <label for="name">Full name</label>
-        <input class="input" id="name" name="name" required maxlength="80" value={p.name || ''} />
+        <label for="first_name">First name</label>
+        <input class="input" id="first_name" name="first_name" required maxlength="40" autocomplete="given-name" value={names.first} />
       </div>
+      <div class="field">
+        <label for="middle_name">Middle name (optional)</label>
+        <input class="input" id="middle_name" name="middle_name" maxlength="40" autocomplete="additional-name" value={names.middle} />
+      </div>
+      <div class="field">
+        <label for="last_name">Last name</label>
+        <input class="input" id="last_name" name="last_name" required maxlength="40" autocomplete="family-name" value={names.last} />
+      </div>
+    </div>
+    <div class="form__row">
       <div class="field">
         <label for="handle">Handle</label>
         <input
