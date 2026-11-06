@@ -460,6 +460,25 @@ export async function requeueFailed(): Promise<number> {
   return n || 0;
 }
 
+/* Sent messages are kept for SENT_RETENTION_DAYS, then deleted by the daily cron: each row holds the whole
+ * HTML, and the free database has a 500 MB cap. Queued and failed rows are never touched here. Returns how
+ * many went; null when the delete failed (logged), so the cron's reply can tell "none" from "error". */
+export const SENT_RETENTION_DAYS = 90;
+export async function purgeSent(days = SENT_RETENTION_DAYS, now = new Date()): Promise<number | null> {
+  if (!serviceReady()) return 0;
+  const before = new Date(now.getTime() - days * 86_400_000).toISOString();
+  const { count: n, error } = await serviceClient()
+    .from('email_queue')
+    .delete({ count: 'exact' })
+    .eq('status', 'sent')
+    .lt('sent_at', before);
+  if (error) {
+    console.error('email purge', error.message);
+    return null;
+  }
+  return n || 0;
+}
+
 /* A daily write that keeps a free Supabase project from pausing for inactivity (they pause after about a week without traffic). */
 export async function pingKeepAlive(): Promise<boolean> {
   if (!serviceReady()) return false;
