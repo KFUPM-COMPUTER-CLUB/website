@@ -101,6 +101,13 @@ export const POST: APIRoute = handle(async (ctx) => {
       return done(c ? `${p.name || p.email} is in ${c.name}.` : `${p.name || p.email} is in no committee.`);
     }
     case 'suspend': {
+      // The flag makes the site answer 403 and my_role() return null (0017_suspended_roles.sql). The ban
+      // ends the member's sessions in Supabase Auth: it refuses to sign them in or refresh their token, so
+      // an access token they already hold dies with its hour. Reinstating lifts the ban.
+      const { error: banError } = await sb.auth.admin.updateUserById(id, {
+        ban_duration: p.suspended ? 'none' : '876000h',
+      });
+      if (banError) throw new ApiError(`Could not update the sign-in: ${banError.message}`, 500);
       await sb.from('profiles').update({ suspended: !p.suspended }).eq('id', id);
       await audit(admin.id, 'update', 'profiles', id, { suspended: p.suspended }, { suspended: !p.suspended });
       return done(p.suspended ? 'Account reinstated.' : 'Account suspended.');
