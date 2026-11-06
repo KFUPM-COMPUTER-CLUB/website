@@ -1,0 +1,175 @@
+---
+/* The profile form, sign-in methods and account deletion: the body of /me/profile, and of the test page
+ * /dev/profile, which passes a sample member and its own endpoints (src/pages/dev). Email and phone are
+ * editable but shown to admins only; the handle follows the same rule as onboarding. */
+import { YEARS as years, HANDLE_PATTERN, HANDLE_HINT, type Profile } from '../lib/types';
+import { namePartsOf } from '../lib/names';
+type Urls = { save: string; delete: string; logout: string; link: string };
+const {
+  profile: p,
+  providers,
+  googleOn,
+  urls = { save: '/api/me/profile', delete: '/api/me/delete', logout: '/auth/logout', link: '/auth/link' },
+} = Astro.props as { profile: Profile; providers: string[]; googleOn: boolean; urls?: Urls };
+const names = namePartsOf(p);
+---
+
+<form data-astro-reload class="form" method="post" action={urls.save} enctype="multipart/form-data">
+  <div class="profile__head">
+    {p.avatar_url ? (
+      <img class="avatar avatar--lg" src={p.avatar_url} alt="" />
+    ) : (
+      <span class="avatar avatar--lg person__blank" aria-hidden="true">
+        {(p.name || '?').slice(0, 1)}
+      </span>
+    )}
+    <div class="field">
+      <label for="avatar">Change photo</label>
+      <input class="input" id="avatar" name="avatar" type="file" accept="image/*" />
+    </div>
+  </div>
+  <div class="form__row form__row--3">
+    <div class="field">
+      <label for="first_name">First name</label>
+      <input class="input" id="first_name" name="first_name" required maxlength="40" autocomplete="given-name" value={names.first} />
+    </div>
+    <div class="field">
+      <label for="middle_name">Middle name (optional)</label>
+      <input class="input" id="middle_name" name="middle_name" maxlength="40" autocomplete="additional-name" value={names.middle} />
+    </div>
+    <div class="field">
+      <label for="last_name">Last name</label>
+      <input class="input" id="last_name" name="last_name" required maxlength="40" autocomplete="family-name" value={names.last} />
+    </div>
+  </div>
+  <div class="form__row">
+    <div class="field">
+      <label for="handle">Handle</label>
+      <input
+        class="input"
+        id="handle"
+        name="handle"
+        required
+        pattern={HANDLE_PATTERN}
+        title={HANDLE_HINT}
+        maxlength="24"
+        placeholder="john_doe67"
+        autocapitalize="none"
+        spellcheck="false"
+        value={p.handle || ''}
+      />
+      <small>{HANDLE_HINT}</small>
+    </div>
+  </div>
+  <div class="form__row">
+    <div class="field">
+      <label for="email">Email (admins only)</label>
+      <input class="input" id="email" name="email" type="email" required value={p.email || ''} />
+    </div>
+    <div class="field">
+      <label for="phone">Phone (admins only)</label>
+      <input class="input" id="phone" name="phone" type="tel" required value={p.phone || ''} />
+    </div>
+  </div>
+  <div class="form__row">
+    <div class="field">
+      <label for="major">Major</label>
+      <input class="input" id="major" name="major" required value={p.major || ''} />
+    </div>
+    <div class="field">
+      <label for="year">Year</label>
+      <select class="select" id="year" name="year">
+        {years.map((y) => (
+          <option value={y} selected={p.year === y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+  <div class="form__row">
+    <div class="field">
+      <label for="kfupm_email">KFUPM email</label>
+      <input class="input" id="kfupm_email" name="kfupm_email" type="email" value={p.kfupm_email || ''} />
+    </div>
+    <div class="field">
+      <label for="github">GitHub username</label>
+      <input class="input" id="github" name="github" value={p.github || ''} />
+    </div>
+  </div>
+  <div class="field">
+    <label for="linkedin">LinkedIn URL</label>
+    <input
+      class="input"
+      id="linkedin"
+      name="linkedin"
+      type="url"
+      placeholder="https://www.linkedin.com/in/your-name"
+      value={p.linkedin || ''}
+    />
+  </div>
+  <div class="field">
+    <label for="bio">Bio</label>
+    <textarea class="textarea" id="bio" name="bio" maxlength="400">{p.bio || ''}</textarea>
+  </div>
+  <label class="check">
+    <input type="checkbox" name="show_in_contributors" value="1" checked={p.show_in_contributors} /> Show me among the
+    top contributors on the Community page
+  </label>
+  <label class="check">
+    <input type="checkbox" name="show_on_leaderboard" value="1" checked={p.show_on_leaderboard} /> Show me on the
+    leaderboard, with my points on my public profile
+  </label>
+  <label class="check">
+    <input type="checkbox" name="show_badges" value="1" checked={p.show_badges} /> Show my badges on my public profile
+  </label>
+  <label class="check">
+    <input type="checkbox" name="digest_opt_in" value="1" checked={p.digest_opt_in} /> Email me a weekly digest:
+    events in the next two weeks and new posts
+  </label>
+  <div class="form__actions">
+    <button class="btn" type="submit">
+      Save
+    </button>
+  </div>
+</form>
+
+<div class="card" style="margin-top:32px">
+  <h2 class="h3">Sign-in methods</h2>
+  <p>
+    Linked: <b>{providers.join(', ') || 'none'}</b>. One account can use both GitHub and Google.
+  </p>
+  <div class="links-row">
+    {!providers.includes('github') && (
+      <a data-astro-reload class="btn btn--small btn--ghost" href={`${urls.link}?provider=github`}>
+        Link GitHub
+      </a>
+    )}
+    {!providers.includes('google') &&
+      (googleOn ? (
+        <a data-astro-reload class="btn btn--small btn--ghost" href={`${urls.link}?provider=google`}>
+          Link Google
+        </a>
+      ) : (
+        <span class="hint">Google linking opens once Google sign-in is switched on.</span>
+      ))}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2 class="h3">Delete my account</h2>
+  <p class="hint">
+    Removes your profile, posts (published ones too), drafts, photos and reservations. This cannot be undone.
+  </p>
+  <form data-astro-reload class="inline-form" method="post" action={urls.delete}>
+    <input class="input" name="confirm" placeholder='type "delete"' style="max-width:200px" required />
+    <button class="btn btn--small btn--danger" type="submit">
+      Delete account
+    </button>
+  </form>
+</div>
+<form data-astro-reload method="post" action={urls.logout} style="margin-top:24px">
+  <button class="btn btn--small btn--ghost" type="submit">
+    Sign out
+  </button>
+</form>

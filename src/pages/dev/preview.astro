@@ -1,0 +1,33 @@
+---
+/* /dev/preview: the sample post as the public page shows it, like /me/posts/<id>/preview. 404 outside npm run dev. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { devOnly, devStore } from '../../lib/dev';
+if (!devOnly()) return new Response(null, { status: 404 });
+const post = devStore().post;
+---
+
+<BaseLayout title={`Preview: ${post.title}`} noindex={true}>
+  <section class="page-head">
+    <div class="container" dir={post.dir}>
+      <span class="eyebrow">Preview · test page</span>
+      <h1 class="h1">{post.title}</h1>
+      <p class="meta" style="margin-top:18px">
+        <span>By {post.author_name}</span>
+        <span>{post.category}</span>
+      </p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <article class="prose" dir={post.dir} data-prose>
+        <Fragment set:html={post.content_html || '<p>Nothing written yet.</p>'} />
+      </article>
+      <p style="margin-top:32px">
+        <a class="link-arrow" href="/dev/editor">← Back to the editor</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+<script>
+  import '../../scripts/highlight.js';
+</script>

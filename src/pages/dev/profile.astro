@@ -1,0 +1,16 @@
+---
+/* /dev/profile: /me/profile's form with the sample member (src/lib/dev.ts). 404 outside npm run dev. */
+import MeLayout from '../../components/MeLayout.astro';
+import ProfileForm from '../../components/ProfileForm.astro';
+import { devOnly, devStore } from '../../lib/dev';
+if (!devOnly()) return new Response(null, { status: 404 });
+---
+
+<MeLayout title="Profile (test page)" lead="The /me/profile form with a sample member. Saves stay in the dev server.">
+  <ProfileForm
+    profile={devStore().profile}
+    providers={['github']}
+    googleOn={true}
+    urls={{ save: '/dev/api/profile', delete: '/dev/api/delete', logout: '/dev/api/logout', link: '/dev/api/link' }}
+  />
+</MeLayout>

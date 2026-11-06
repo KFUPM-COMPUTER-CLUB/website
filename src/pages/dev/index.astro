@@ -1,0 +1,29 @@
+---
+/* /dev: the list of test pages (src/lib/dev.ts explains them). 404 outside npm run dev. */
+import MeLayout from '../../components/MeLayout.astro';
+import { devOnly, resetDevStore } from '../../lib/dev';
+if (!devOnly()) return new Response(null, { status: 404 });
+if (Astro.url.searchParams.has('reset')) {
+  resetDevStore();
+  return Astro.redirect('/dev?ok=The+sample+member+and+post+are+back+to+the+start.', 303);
+}
+---
+
+<MeLayout title="Test pages" lead="The signed-in pages with sample data, for npm run dev without a database.">
+  <div class="card">
+    <p>
+      These pages use the same components as the real ones, with a sample member and post kept in the dev server's
+      memory. Saving works here and is lost when the server restarts. Nothing reaches a database, and these routes
+      do not exist in a build, so they never reach a preview or the live site.
+    </p>
+    <ul>
+      <li><a href="/dev/profile">Profile</a>: the form on /me/profile.</li>
+      <li><a href="/dev/editor">Post editor</a>: /me/posts/&lt;id&gt;/edit, with autosave, uploads and preview.</li>
+      <li>
+        <a href="/dev/editor?status=submitted">Post editor, locked</a>: what an author sees while the post is under
+        review.
+      </li>
+    </ul>
+    <p><a href="/dev?reset=1">Start over with the sample data</a></p>
+  </div>
+</MeLayout>
