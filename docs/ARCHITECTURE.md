@@ -63,7 +63,7 @@ Everything is in `supabase/migrations/0001_init.sql`, commented. New tables go i
 
 ## Security in one paragraph
 
-Row level security is on everywhere, and user tokens have read policies only: a member's token can read their own rows and published content, nothing more, and cannot write any table. Every write goes through the API with the service key after a role or ownership check, so validation and sanitising cannot be skipped by calling PostgREST directly. Draft uploads sit in a private bucket and are served through `/api/media/<key>` with short-lived signed URLs until the post is published. Public forms are rate limited by a Postgres function the API alone can call. The service key never leaves the server; `.env` is ignored by git.
+Row level security is on everywhere, and user tokens have read policies only: a member's token can read their own rows and published content, nothing more, and cannot write any table. Every write goes through the API with the service key after a role or ownership check, so validation and sanitising cannot be skipped by calling PostgREST directly. Draft uploads sit in a private bucket and are served through `/api/media/<key>` with short-lived signed URLs until the post is published. Public forms are rate limited by a Postgres function the API alone can call. The Supabase session cookies are HttpOnly, Secure on https and SameSite=Lax (`sessionClient()` in `src/lib/supabase.ts`), so a script on the page cannot read the tokens; the only cookie scripts see is `cc_in`, a signed-in hint with no secret in it. The service key never leaves the server; `.env` is ignored by git.
 
 ## Client side
 
