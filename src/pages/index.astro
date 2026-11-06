@@ -142,7 +142,7 @@ const stageTabs = [
   <HomeHighlights post={view.featured} leaders={view.leaders} />
 
   <!-- Join -->
-  <section class="section join bg-white" data-bg="#FFFFFF" id="join">
+  <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
       <h2 class="h1">{lang === 'ar' ? t(lang, 'home.buildTitle') : home.buildWithUs.title}</h2>
       <p class="lead lead--muted">{lang === 'ar' ? t(lang, 'home.buildText') : home.buildWithUs.text}</p>
@@ -168,7 +168,6 @@ const stageTabs = [
       </div>
     </div>
   </section>
-  <div class="fade-to-dark" aria-hidden="true"></div>
   <Partners />
   <BackToTop slot="floating" />
 </BaseLayout>

@@ -1,6 +1,7 @@
 ---
 /* Site footer: social links, the "made by" credit and legal links. Everything comes from settings
  * through the content layer. isReal() drops the REPLACE placeholders the seed JSON ships with. */
+import contributorsJson from '../data/contributors.json';
 import { Image } from 'astro:assets';
 import logoSm from '../data/brand/logo-color-sm.png';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
@@ -49,7 +50,8 @@ const icons = {
 const follow = Object.entries(icons)
   .filter(([key]) => key !== 'discord' && key !== 'whatsapp' && isReal(site.links[key]))
   .map(([key, i]) => ({ href: site.links[key], ...i }));
-const makers = site.madeBy ?? [];
+// The credit names the whole team, not one person: everyone who has contributed (src/data/contributors.json).
+const makers = contributorsJson.contributors.map((github) => ({ name: `@${github}`, github }));
 // The credit shows on the home and officers pages only; blog, timeline and questions pages keep the rest of the footer.
 const path = basePath(Astro.url.pathname).replace(/\/+$/, '') || '/';
 const showCredit = !/^\/(blog|timeline|faq)(\/|$)/.test(path);
