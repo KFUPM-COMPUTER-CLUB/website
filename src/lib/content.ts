@@ -224,8 +224,8 @@ export function getResults(): Promise<Map<string, EventResult[]>> {
     if (!dbReady()) return out;
     const { data, error } = await db()
       .from('event_results')
-      .select('event_id,place,user_id,team,prize_sar')
-      .order('place')
+      .select('event_id,place,award,user_id,team,prize_sar')
+      .order('place', { nullsFirst: false })
       .order('created_at');
     if (error) {
       console.error('results', error.message);
@@ -240,7 +240,8 @@ export function getResults(): Promise<Map<string, EventResult[]>> {
       const p: any = r.user_id ? byId.get(r.user_id) : null;
       const list = out.get(r.event_id) || [];
       list.push({
-        place: r.place,
+        place: r.place ?? null,
+        award: r.award || null,
         name: p?.name || null,
         handle: p?.handle || null,
         team: r.team || null,
@@ -258,7 +259,7 @@ export function getResults(): Promise<Map<string, EventResult[]>> {
 export async function getWins(userId: string): Promise<Win[]> {
   if (!dbReady()) return [];
   const [{ data, error }, past] = await Promise.all([
-    db().from('event_results').select('event_id,place,team,prize_sar').eq('user_id', userId),
+    db().from('event_results').select('event_id,place,award,team,prize_sar').eq('user_id', userId),
     getPastEvents(),
   ]);
   if (error) {
@@ -269,7 +270,17 @@ export async function getWins(userId: string): Promise<Win[]> {
   return (data || [])
     .flatMap((r: any) => {
       const event = byId.get(r.event_id);
-      return event ? [{ place: r.place, team: r.team || null, prizeSar: r.prize_sar ?? null, event }] : [];
+      return event
+        ? [
+            {
+              place: r.place ?? null,
+              award: r.award || null,
+              team: r.team || null,
+              prizeSar: r.prize_sar ?? null,
+              event,
+            },
+          ]
+        : [];
     })
     .sort((a, b) => b.event.start.valueOf() - a.event.start.valueOf());
 }

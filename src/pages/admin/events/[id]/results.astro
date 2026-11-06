@@ -16,15 +16,16 @@ const [{ data: ev }, { data: results, error }, { data: members }] = await Promis
   sb.from('events').select('id,slug,title,type,starts_at').eq('id', Astro.params.id).maybeSingle(),
   sb
     .from('event_results')
-    .select('id,place,user_id,team,prize_sar,points, member:profiles(handle,name)')
+    .select('id,place,award,user_id,team,prize_sar,points, member:profiles(handle,name)')
     .eq('event_id', Astro.params.id)
-    .order('place')
+    .order('place', { nullsFirst: false })
     .order('created_at'),
   sb.from('profiles').select('handle,name').eq('onboarded', true).not('handle', 'is', null).order('name'),
 ]);
 if (!ev) return new Response(null, { status: 404 });
 const rows: any[] = results || [];
-const next = rows.length ? Math.max(...rows.map((r) => r.place)) + 1 : 1;
+const placed = rows.filter((r) => r.place !== null).map((r) => r.place);
+const next = placed.length ? Math.max(...placed) + 1 : 1;
 const action = `/api/admin/events/${ev.id}/results`;
 // Other event types get no placings (the API refuses them too); rows left from before a type change can
 // still be removed, which takes their points back.
@@ -64,6 +65,7 @@ const open = hasResults(ev.type);
       <thead>
         <tr>
           <th>Place</th>
+          <th>Award</th>
           <th>Member (handle)</th>
           <th>Team</th>
           <th>Prize (SAR)</th>
@@ -82,12 +84,23 @@ const open = hasResults(ev.type);
                 type="number"
                 min="1"
                 max="99"
-                required
-                value={r.place}
+                value={r.place ?? ''}
                 style="width:5em"
                 aria-label="Place"
               />
-              <span class="mono"> {ordinal(r.place)}</span>
+              {r.place !== null && <span class="mono"> {ordinal(r.place)}</span>}
+            </td>
+            <td>
+              <input
+                class="input"
+                form={`r-${r.id}`}
+                name="award"
+                maxlength="60"
+                value={r.award || ''}
+                placeholder="Best design"
+                style="width:10em"
+                aria-label="Award"
+              />
             </td>
             <td>
               <input
@@ -181,7 +194,7 @@ const open = hasResults(ev.type);
         ))}
         {!rows.length && (
           <tr>
-            <td colspan="6" class="hint">
+            <td colspan="7" class="hint">
               No results yet.
             </td>
           </tr>
@@ -195,8 +208,12 @@ const open = hasResults(ev.type);
       <h2 class="h3">Add a result</h2>
       <div class="form__row">
         <div class="field">
-          <label for="new-place">Place</label>
-          <input class="input" id="new-place" name="place" type="number" min="1" max="99" required value={next} />
+          <label for="new-place">Place (empty for an award only)</label>
+          <input class="input" id="new-place" name="place" type="number" min="1" max="99" value={next} />
+        </div>
+        <div class="field">
+          <label for="new-award">Award (no points unless typed)</label>
+          <input class="input" id="new-award" name="award" maxlength="60" placeholder="Best idea" />
         </div>
         <div class="field">
           <label for="new-member">Member handle</label>

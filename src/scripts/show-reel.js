@@ -33,7 +33,9 @@ onPage(() => {
   });
   if (!reduce) {
     reel.setAttribute('data-pinned', '');
-    const onScroll = () => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
       if (hovered >= 0) return;
       const r = reel.getBoundingClientRect();
       const span = r.height - window.innerHeight;
@@ -41,8 +43,12 @@ onPage(() => {
       const p = Math.min(1, Math.max(0, -r.top / span));
       show(Math.min(n - 1, Math.floor(p * n)));
     };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
     off.add(listen(window, 'scroll', onScroll, { passive: true }));
-    onScroll();
+    off.add(() => cancelAnimationFrame(raf));
+    update();
   }
   // The headline counts up once, the first time the stage is seen.
   const el = reel.querySelector('[data-count]');
@@ -66,8 +72,14 @@ onPage(() => {
     );
     io.observe(el);
   }
+  // Effects run only while the reel is on screen (CSS pauses the beam without data-live).
+  const live = new IntersectionObserver((entries) =>
+    entries.forEach((e) => (e.isIntersecting ? reel.setAttribute('data-live', '') : reel.removeAttribute('data-live'))),
+  );
+  live.observe(reel);
   return () => {
     off.flush();
+    live.disconnect();
     io?.disconnect();
   };
 });

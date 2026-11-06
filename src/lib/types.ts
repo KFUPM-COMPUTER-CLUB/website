@@ -151,14 +151,22 @@ export type EventItem = {
 /* One placing from event_results (0010_event_results.sql). name and handle are set while the member's
  * profile is public; team is the free-text name, alone or beside the member. */
 export type EventResult = {
-  place: number;
+  /* null for an award given without a place (0020_result_awards.sql). */
+  place: number | null;
+  award: string | null;
   name: string | null;
   handle: string | null;
   team: string | null;
   prizeSar: number | null;
 };
 /* A placing as a member's profile lists it, with the event it was won at. */
-export type Win = { place: number; team: string | null; prizeSar: number | null; event: EventItem };
+export type Win = {
+  place: number | null;
+  award: string | null;
+  team: string | null;
+  prizeSar: number | null;
+  event: EventItem;
+};
 export type Highlight = {
   id: string;
   photoKey: string | null;

@@ -3,9 +3,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import { render } from 'astro:content';
 import { getPost, fmtRiyadh, riyadhDate } from '../../lib/content';
+import { photoImg } from '../../lib/photos';
 import { t, dateLocale, localePath, type Lang } from '../../lib/i18n';
 const post = await getPost(Astro.params.id || '');
 if (!post) return new Response(null, { status: 404 });
+// A post with a cover shares its cover as the link preview (#120).
+const cover = await photoImg(post.coverKey);
 const Content = post.entry ? (await render(post.entry)).Content : null;
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = dateLocale(Astro.currentLocale);
@@ -15,7 +18,7 @@ const short = (d: Date) =>
 const updated = post.updatedAt && post.updatedAt.getTime() - post.date.getTime() > 86_400_000 ? post.updatedAt : null;
 ---
 
-<BaseLayout title={post.title} description={post.excerpt} type="article">
+<BaseLayout title={post.title} description={post.excerpt} type="article" image={cover}>
   <section class="page-head">
     <div class="container" dir={post.dir}>
       <h1 class="h1">{post.title}</h1>

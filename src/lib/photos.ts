@@ -16,7 +16,7 @@ const localLogos = import.meta.glob('../data/partners/*', { eager: true }) as Re
   string,
   { default: ImageMetadata }
 >;
-const WIDTHS = [480, 960, 1600];
+const WIDTHS = [480, 960, 1600, 2400];
 export const SIZE_NAMES = ['480', '960', '1600'];
 
 type MediaRow = {
@@ -48,7 +48,13 @@ export function mediaImg(m: MediaRow): Img {
   const src = sizes['960'] || sizes['1600'] || sizes['480'] || sizes.file || publicUrl(m.path);
   return {
     src,
-    srcset: names.length ? names.map((n) => `${sizes[n]} ${n}w`).join(', ') : undefined,
+    // The stored original is up to 2400px wide; listing it lets large and high-density screens pick it.
+    srcset: names.length
+      ? [
+          ...names.map((n) => `${sizes[n]} ${n}w`),
+          ...(m.width && m.width > 1600 ? [`${publicUrl(m.path)} ${Math.min(m.width, 2400)}w`] : []),
+        ].join(', ')
+      : undefined,
     width: m.width ?? undefined,
     height: m.height ?? undefined,
   };

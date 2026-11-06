@@ -20,6 +20,9 @@ const lang = (Astro.currentLocale ?? 'en') as Lang;
 const locale = dateLocale(Astro.currentLocale);
 // "1st" in English, "المركز 1" in Arabic.
 const place = (n: number) => (lang === 'ar' ? `${t(lang, 'results.place')} ${n}` : ordinal(n));
+// A placing, an award ("Best design"), or both: "Best design · 2nd" (#118).
+const label = (r: { place: number | null; award: string | null }) =>
+  [r.award, r.place !== null ? place(r.place) : null].filter(Boolean).join(' · ');
 // Who placed: the member's name (linked while their profile is public), with the team name when there is one.
 const winner = (r: EventResult) =>
   r.team && r.name ? `${r.team} (${r.name})` : r.team || r.name || t(lang, 'blog.aMember');
@@ -148,7 +151,7 @@ const full = (e: EventItem) => !!e.capacity && (counts.get(e.id) || 0) >= e.capa
                           <ol>
                             {results.get(e.id)!.map((r) => (
                               <li>
-                                <b>{place(r.place)}</b>{' '}
+                                <b class={r.award ? 'ev__award' : undefined}>{label(r)}</b>{' '}
                                 {r.handle ? (
                                   <a href={localePath(lang, `/u/${r.handle}`)}>{winner(r)}</a>
                                 ) : (

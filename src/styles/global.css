@@ -54,7 +54,7 @@
 /* ── Base ───────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: #FFFFFF; color: var(--text); font: 17px/1.65 var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body { margin: 0; background: #0B0B0F; color: var(--text); font: 17px/1.65 var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 h1, h2, h3, h4, h5, h6, .h-display, .h1, .h2, .h3 { margin: 0 0 16px; font-family: var(--font-head); font-weight: 800; font-variation-settings: var(--wide); letter-spacing: -0.02em; line-height: 1.05; text-wrap: balance; }
 a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 0.2em; }
 img { max-width: 100%; height: auto; }
@@ -171,11 +171,11 @@ body.past-hero .site-header { background: color-mix(in srgb, var(--bg-live) 82%,
 .site-logo__stack { position: relative; display: block; width: 64px; height: 34px; }
 .site-logo__icon { position: absolute; inset: 0; display: block; width: 64px; height: 34px; object-fit: contain; }
 .site-logo__icon--dark { opacity: var(--t); }
-.site-footer .site-logo__icon--dark { opacity: 0; }
+.site-footer .site-logo__icon--dark { opacity: 1; }
 .site-logo__words { display: grid; gap: 3px; line-height: 1; color: var(--text); }
 .site-logo__words span { font: 500 11px/1 var(--font-ar); }
 .site-logo__words b { font: 800 13px/1 var(--font-head); font-variation-settings: var(--wide); letter-spacing: 0.04em; text-transform: uppercase; }
-.site-footer .site-logo__words { color: #0B0B0F; }
+.site-footer .site-logo__words { color: #fff; }
 @media (max-width: 480px) { .site-logo__words { display: none; } }
 .site-nav { display: flex; align-items: center; gap: 26px; }
 .site-nav a:not(.btn) { position: relative; padding-block: 4px; color: var(--text-2); font: 700 13px/1 var(--font-head); font-variation-settings: "wdth" 100; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; transition: color 0.2s, font-variation-settings 0.25s; }
@@ -202,13 +202,13 @@ body.past-hero .site-header { background: color-mix(in srgb, var(--bg-live) 82%,
 }
 
 /* ── Footer ────────────────────────────── */
-.site-footer { position: relative; z-index: 1; --t: 0; --bg-live: #F6F7F9; background: #F6F7F9; color: #52525B; border-top: 1px solid #E4E4E7; padding: 64px 0 32px; font-size: 15px; }
+.site-footer { position: relative; z-index: 1; --t: 1; --bg-live: #0B0B0F; background: #0B0B0F; color: #A1A1AA; border-top: 1px solid rgba(255,255,255,.12); padding: 64px 0 32px; font-size: 15px; }
 
 .site-footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid var(--line); }
 .site-footer__brand p { margin: 16px 0 0; max-width: 36ch; }
-.site-footer h4 { margin: 0 0 16px; font: 600 11px/1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; color: #2563EB; }
+.site-footer h4 { margin: 0 0 16px; font: 600 11px/1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; color: #60A5FA; }
 .site-footer ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-.site-footer a { color: #27272A; text-decoration: none; transition: color 0.2s; }
+.site-footer a { color: #E5E7EB; text-decoration: none; transition: color 0.2s; }
 .site-footer a:hover { color: var(--blue); }
 .site-footer__bottom { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 24px; font: 500 12px/1.6 var(--font-mono); letter-spacing: 0.04em; }
 .site-footer__bottom p { margin: 0; }
@@ -486,7 +486,7 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 .made-by__name > .is-in { transform: translateY(110%); opacity: 0; }
 .made-by__name > .is-out { transform: translateY(-110%); opacity: 0; }
 .site-footer ul.site-footer__social { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.site-footer__social a { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line-strong); color: #27272A; transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s; }
+.site-footer__social a { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line-strong); color: #E5E7EB; transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s; }
 .site-footer__social a:hover { color: #fff; border-color: var(--blue); background: var(--blue); transform: translateY(-2px); }
 .site-footer__bottom { padding-top: 20px; }
 @media (max-width: 760px) { .site-footer__row { justify-content: center; text-align: center; } }
@@ -672,27 +672,28 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 /* ── Photo band and moment ──────────────── */
 @media (max-width: 760px) { .band { grid-template-columns: repeat(2, 1fr); } .band__item:nth-child(n) { margin: 0; } }
 .moment { position: relative; display: grid; place-items: center; min-height: 80svh; overflow: hidden; background: #0B0B0F; }
-.moment__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.42) saturate(0.8); }
-.moment__text { position: relative; z-index: 1; padding: 40px var(--gutter); text-align: center; color: #fff; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6); }
+.moment__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.moment::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 60% at center, rgba(11, 11, 15, 0.6), rgba(11, 11, 15, 0.3) 75%), linear-gradient(to bottom, rgba(11, 11, 15, 0.25), rgba(11, 11, 15, 0.45)); }
+.moment__text { position: relative; z-index: 1; padding: 40px var(--gutter); text-align: center; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 30px rgba(0, 0, 0, 0.4); }
 .moment__text .mono { color: #60A5FA; }
 .moment__text p { margin: 12px auto 0; max-width: 16ch; }
 
 /* ── Show reel ──────────────────────────── */
 .reel { position: relative; background: #0B0B0F; color: #fff; }
-.reel[data-pinned] { height: calc(100svh + var(--n) * 70svh); }
+.reel[data-pinned] { height: calc(100svh + min(var(--n) * 52svh, 380svh)); }
 .reel__stage { position: relative; isolation: isolate; display: grid; place-items: center; min-height: 100svh; padding: calc(var(--header-h) + 24px) var(--gutter) 32px; overflow: clip; }
 .reel[data-pinned] .reel__stage { position: sticky; top: 0; height: 100svh; }
 .reel__backdrops { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.reel__scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; }
-.reel__scene img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5) saturate(0.7); transform: scale(1.08); transition: transform 7s ease-out; }
-.reel__scene[data-active] { opacity: 1; }
+.reel__scene { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 0.7s ease, visibility 0s 0.7s; }
+.reel__scene img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 7s ease-out; }
+.reel__scene[data-active] { opacity: 1; visibility: visible; transition: opacity 0.7s ease, visibility 0s; }
 .reel__scene[data-active] img { transform: scale(1); }
-.reel__beam { position: absolute; inset: -30%; background: conic-gradient(from 200deg at 50% 50%, transparent 0 70deg, rgba(37, 99, 235, 0.28) 90deg, transparent 110deg, transparent 240deg, rgba(96, 165, 250, 0.16) 260deg, transparent 280deg); mix-blend-mode: screen; animation: beam 48s linear infinite; }
+.reel__beam { position: absolute; inset: -15%; background: conic-gradient(from 200deg at 50% 50%, transparent 0 70deg, rgba(37, 99, 235, 0.28) 90deg, transparent 110deg, transparent 240deg, rgba(96, 165, 250, 0.16) 260deg, transparent 280deg); opacity: 0.7; will-change: transform; animation: beam 48s linear infinite; }
+.reel:not([data-live]) .reel__beam { animation-play-state: paused; }
 @keyframes beam { to { transform: rotate(360deg); } }
-.reel__grain { position: absolute; inset: 0; opacity: 0.16; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grain 0.5s steps(4) infinite; }
-@keyframes grain { 0% { background-position: 0 0; } 25% { background-position: -70px 40px; } 50% { background-position: 50px -60px; } 75% { background-position: -30px -20px; } 100% { background-position: 0 0; } }
-.reel__shade { position: absolute; inset: 0; background: linear-gradient(to bottom, #0B0B0F 0%, rgba(11, 11, 15, 0) 22%, rgba(11, 11, 15, 0) 78%, #0B0B0F 100%), radial-gradient(ellipse at center, rgba(11, 11, 15, 0.55), rgba(11, 11, 15, 0.25) 60%, rgba(11, 11, 15, 0.15)); }
-.reel__content { width: 100%; max-width: 760px; text-align: center; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8); }
+/* The darkening lives here, once, instead of a filter on every photo: the photos keep their real colours and the text stays readable. */
+.reel__shade { position: absolute; inset: 0; background: linear-gradient(to bottom, #0B0B0F 0%, rgba(11, 11, 15, 0.35) 18%, rgba(11, 11, 15, 0.35) 80%, #0B0B0F 100%), radial-gradient(ellipse 60% 55% at center, rgba(11, 11, 15, 0.62), rgba(11, 11, 15, 0.28) 70%, rgba(11, 11, 15, 0.12)); }
+.reel__content { width: 100%; max-width: 760px; text-align: center; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 6px 26px rgba(0, 0, 0, 0.45); }
 .reel__icon { display: block; width: 56px; height: auto; margin: 0 auto 10px; }
 /* Saudi riyal amounts (see Money.astro): the official symbol sits left of the number, as tall as the digits. */
 .sar { display: inline-flex; align-items: baseline; gap: 0.25em; white-space: nowrap; }
@@ -713,8 +714,8 @@ html.js .screen--two .hero__actions.reveal { transition-delay: 0.4s; }
 .reel__stats strong { font: 900 clamp(22px, 3vw, 36px)/1 var(--font-head); font-variation-settings: var(--wide); } .reel__stats small { font: 700 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: #60A5FA; }
 .reel__stats span { font-size: 12px; color: #A1A1AA; }
 .reel__print { margin: 18px 0 0; font-size: 10px; color: #71717A; }
-@media (max-width: 760px) { .reel[data-pinned] { height: calc(100svh + var(--n) * 45svh); } .reel__stage { padding-top: calc(var(--header-h) + 12px); } .reel__list { gap: 0; } .reel__link { padding: 3px 10px; } .reel__stats { gap: 8px; } }
-@media (prefers-reduced-motion: reduce) { .reel__beam, .reel__grain { animation: none; } .reel__scene, .reel__scene img { transition: none; } }
+@media (max-width: 760px) { .reel[data-pinned] { height: calc(100svh + min(var(--n) * 34svh, 260svh)); } .reel__stage { padding-top: calc(var(--header-h) + 12px); } .reel__list { gap: 0; } .reel__link { padding: 3px 10px; } .reel__stats { gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .reel__beam { animation: none; } .reel__scene, .reel__scene img { transition: none; } }
 
 /* ── Hall of fame, compact ──────────────── */
 @media (max-width: 720px) { .hof__row { grid-template-columns: 1fr; gap: 8px; } }
@@ -751,7 +752,8 @@ body.scrolled .scroll-hint { opacity: 0; }
 .stories { position: relative; min-height: 78svh; overflow: hidden; background: #0B0B0F; }
 .story { position: absolute; inset: 0; display: grid; align-items: end; opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
 .story[data-active] { opacity: 1; pointer-events: auto; }
-.story__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.55) saturate(0.85); transform: scale(1.05); transition: transform 7s ease-out; }
+.story__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.05); transition: transform 7s ease-out; }
+.story::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(11, 11, 15, 0.7), rgba(11, 11, 15, 0.15) 55%, rgba(11, 11, 15, 0.25)); pointer-events: none; }
 .story[data-active] .story__photo { transform: scale(1); }
 .story__card { position: relative; z-index: 1; width: min(560px, 100%); margin-block: 0 96px; margin-inline: var(--gutter) auto; padding: 28px 30px; background: rgba(11, 26, 51, 0.82); backdrop-filter: blur(10px); border: 1px solid rgba(96, 165, 250, 0.35); color: #fff; }
 .story__card h3 { margin: 8px 0 10px; color: #fff; }
@@ -1077,20 +1079,8 @@ body.scrolled .scroll-hint { opacity: 0; }
 .post--featured[dir='rtl'] .post__title, .post--featured[dir='rtl'] .post__excerpt { font-family: var(--font-ar); }
 @media (max-width: 600px) { .post--featured.feat, .post--featured.feat:not(.feat--cover) { grid-template-columns: minmax(0, 1fr); } .feat__media { min-height: 0; aspect-ratio: 16 / 9; } .feat__panel { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: baseline; gap: 10px; padding: 10px 16px; text-align: start; } .feat__panel b { font-size: 20px; } .feat__panel .feat__cat { margin: 0 0 0 auto; } .feat .post__body { padding: 20px; } }
 
-/* ── A light site: every page and the home page's sections on white; only the footer and the photo sections
-   (show reel, photo moment, stories) stay dark, since their text sits on pictures. These were written for
-   navy and black backgrounds, so their white text and white logos follow the theme here instead. ── */
-.ccmark b, .ccmark--text span, .impact__big, .bars__total, .tile strong, .partners__lead b, .logo-tree a, .logo-tree__text { color: var(--text); }
-.ccmark img, .ccmark--text span { border-inline-start-color: var(--line-strong); }
-.ccmark img { filter: brightness(0); }
-.stage__line { color: var(--text-2); }
-.stage__tab { color: var(--muted); }
-.stage__tab i { background: var(--line); }
-.stage__tab[aria-selected="true"], .stage__tab:hover { color: var(--text); }
-.logo-tree img { filter: brightness(0); opacity: 0.8; }
-.logo-tree__pair img { filter: none; opacity: 1; }
-.logo-tree a:hover { background: var(--card); }
-.logo-tree a:hover img { opacity: 1; }
+/* ── These follow their section's own colours (white words on navy and black, dark words on white). ── */
+.tile strong, .impact__big, .bars__total { color: var(--text); }
 
 /* ── First screen entrance, and smoothness ── */
 @keyframes iconIn { 0% { opacity: 0; transform: scale(0.7) rotate(-6deg); } 55% { opacity: 1; transform: scale(1.03) rotate(0.5deg); } 100% { opacity: 1; transform: none; } }
@@ -1103,3 +1093,9 @@ body.scrolled .scroll-hint { opacity: 0; }
 /* Sections far down the page skip layout and painting until they come near the screen. */
 .upnext, .highlights, .join, .partners, .site-footer { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 @media (prefers-reduced-motion: reduce) { .hero__title .w, .iconedit, .herocode__pane, .hero__icon { animation: none; } .herocode__spot { display: none; } }
+
+/* The home page: white first screen, the CC x KFUPM story on navy, the photo reel on black, white sections, then a
+ * fade back into black for the partners and the footer. */
+.fade-to-dark { height: 220px; background: linear-gradient(to bottom, #FFFFFF, #0B0B0F); }
+/* An award on a result (#118): the club blue, so side prizes stand out beside the placings. */
+.ev__results .ev__award { color: var(--blue); }
