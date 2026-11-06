@@ -2,6 +2,7 @@
  * resource API route. parseFields turns a submitted form into a row for the resource's table,
  * validating by field type; display renders a stored value for the list page. */
 import type { Field, Resource } from './resources';
+import { atLeast, type Role } from '../types';
 import { ApiError, str, int, bool, isUrl, slugify } from '../api';
 
 /* datetime-local inputs carry no zone, so the admin form is defined to be in Riyadh time and the
@@ -28,10 +29,27 @@ export const fromRiyadhInput = (v: string) => {
   return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0) - 3, +(m[5] || 0))).toISOString();
 };
 
-export function parseFields(res: Resource, body: Record<string, any>, existing: Record<string, any> | null) {
+/* Whether `role` may set this field; fields without minRole follow the resource's own minRole. */
+export const canSet = (f: Field, role: Role | 'guest') => !f.minRole || atLeast(role, f.minRole);
+
+export function parseFields(
+  res: Resource,
+  body: Record<string, any>,
+  existing: Record<string, any> | null,
+  role: Role | 'guest' = 'guest',
+) {
   const row: Record<string, any> = {};
   for (const f of res.fields) {
     if (existing && f.name === res.pk) continue; // the key is the row identity; never rewritten
+    if (!canSet(f, role)) {
+      // The stored value stays (a new row gets the first option). Sending a different one is refused, so a
+      // direct POST cannot do what the hidden field does not offer.
+      const kept = existing ? existing[f.name] : (f.options?.[0] ?? null);
+      if (f.name in body && String(body[f.name] ?? '') !== String(kept ?? ''))
+        throw new ApiError(`Only ${f.minRole}s can change "${f.label}".`, 403);
+      if (!existing) row[f.name] = kept;
+      continue;
+    }
     const raw = body[f.name];
     let v: any;
     switch (f.type) {

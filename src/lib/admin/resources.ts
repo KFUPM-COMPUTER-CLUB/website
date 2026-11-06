@@ -17,6 +17,9 @@ export type Field = {
   help?: string;
   max?: number;
   ref?: { resource: string; label: string };
+  /* A field only this role and up may set. Below it the form hides the field and the API keeps the stored
+   * value (or the first option on a new row), refusing a request that tries to change it. */
+  minRole?: Role;
 };
 export type Resource = {
   key: string;
@@ -264,7 +267,8 @@ export const RESOURCES: Record<string, Resource> = {
         type: 'select',
         options: ['member', 'editor', 'reviewer', 'officer'],
         required: true,
-        help: 'Officer lets a team manage media, posts and events (Media & Marketing). Admins are set under Members only.',
+        minRole: 'admin',
+        help: 'Officer lets a team manage media, posts and events (Media & Marketing). Only admins change this; admins are set under Members only.',
       },
       { name: 'visible', label: 'Visible', type: 'bool' },
     ],

@@ -80,7 +80,8 @@ export const POST: APIRoute = handle(async (ctx) => {
     return done('Updated.');
   }
   // Save. parseFields validates and coerces by field type; on edit the primary key is never rewritten.
-  const row = parseFields(res, b, current);
+  // Fields above the caller's role (a committee's grants_role is admin only) keep their stored value.
+  const row = parseFields(res, b, current, ctx.locals.role);
   if (current) {
     const { data, error } = await sb.from(res.table).update(row).eq(res.pk, id).select('*').single();
     if (error)

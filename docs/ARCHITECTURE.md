@@ -36,7 +36,7 @@ Roles are ranks: an officer can do what a reviewer can. `has_role()` in SQL and 
 
 **Suspension.** Suspending a member on `/admin/members` sets `profiles.suspended`, bans the account in Supabase Auth (no new sign-in and no token refresh, so existing sessions end within the hour) and drops the mail queued for them. The site answers 403 on personal routes, and `my_role()` returns null for a suspended profile (migration 0017), so their token reads nothing beyond their own rows through the Data API either. Reinstating lifts the ban.
 
-**Committees.** An admin puts a member in a committee on `/admin/members`. Each committee has a `grants_role`, and a member's effective role is the higher of their own role and their committee's (`src/middleware.ts`). Media & Marketing grants officer, so that team manages the media library, posts and events without individual role changes. Admin is only ever set per member.
+**Committees.** An admin puts a member in a committee on `/admin/members`. Each committee has a `grants_role`, and a member's effective role is the higher of their own role and their committee's (`src/middleware.ts`). Media & Marketing grants officer, so that team manages the media library, posts and events without individual role changes. Admin is only ever set per member. Officers can edit a committee's name, leads and items on `/admin/committees`, but only an admin sets its `grants_role` (`minRole` on the field in `src/lib/admin/resources.ts`): the form hides it below admin, and the API refuses a change from anyone else.
 
 ## Data model
 
