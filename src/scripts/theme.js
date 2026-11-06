@@ -35,8 +35,14 @@ onPage(() => {
     raf = 0;
     if (!stops.length) return;
     const y = window.scrollY + 36;
-    let cur = stops[0];
+    // The last section that starts above the header line. Near the top, before any has started (the
+    // header pushes them down), it is the innermost of the first ones: the first screen, not <main>.
+    let cur = null;
     for (const s of stops) if (s.top <= y) cur = s;
+    if (!cur) {
+      const first = Math.min(...stops.map((s) => s.top));
+      for (const s of stops) if (s.top === first) cur = s;
+    }
     if (cur === current) return;
     current = cur;
     root.style.setProperty('--bg-live', cur.bg);
