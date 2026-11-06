@@ -51,8 +51,8 @@ const [{ count: newMembers }, { count: members }, { count: pending }, { data: up
           <small style="font-size:14px;color:var(--muted)"> / {quota.dailyLimit}</small>
         </b>
         <span>
-          emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued ·{' '}
-          {quota.failed} failed
+          emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued · {quota.failed}{' '}
+          failed
           {!quota.configured && ' · sending off'}
         </span>
       </div>

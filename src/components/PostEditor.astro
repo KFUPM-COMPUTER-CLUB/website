@@ -6,7 +6,12 @@
  * and editor.js starts read-only. Reviewer notes are shown above the form. */
 import '../styles/editor.css';
 type Urls = { save: string; upload: string; preview: string; submit: string; delete: string };
-const { post, notes = [], locked = false, urls: given } = Astro.props as {
+const {
+  post,
+  notes = [],
+  locked = false,
+  urls: given,
+} = Astro.props as {
   post: any;
   notes?: { comment: string; created_at: string }[];
   locked?: boolean;

@@ -31,15 +31,38 @@ const names = namePartsOf(p);
   <div class="form__row form__row--3">
     <div class="field">
       <label for="first_name">First name</label>
-      <input class="input" id="first_name" name="first_name" required maxlength="40" autocomplete="given-name" value={names.first} />
+      <input
+        class="input"
+        id="first_name"
+        name="first_name"
+        required
+        maxlength="40"
+        autocomplete="given-name"
+        value={names.first}
+      />
     </div>
     <div class="field">
       <label for="middle_name">Middle name (optional)</label>
-      <input class="input" id="middle_name" name="middle_name" maxlength="40" autocomplete="additional-name" value={names.middle} />
+      <input
+        class="input"
+        id="middle_name"
+        name="middle_name"
+        maxlength="40"
+        autocomplete="additional-name"
+        value={names.middle}
+      />
     </div>
     <div class="field">
       <label for="last_name">Last name</label>
-      <input class="input" id="last_name" name="last_name" required maxlength="40" autocomplete="family-name" value={names.last} />
+      <input
+        class="input"
+        id="last_name"
+        name="last_name"
+        required
+        maxlength="40"
+        autocomplete="family-name"
+        value={names.last}
+      />
     </div>
   </div>
   <div class="form__row">
@@ -124,8 +147,8 @@ const names = namePartsOf(p);
     <input type="checkbox" name="show_badges" value="1" checked={p.show_badges} /> Show my badges on my public profile
   </label>
   <label class="check">
-    <input type="checkbox" name="digest_opt_in" value="1" checked={p.digest_opt_in} /> Email me a weekly digest:
-    events in the next two weeks and new posts
+    <input type="checkbox" name="digest_opt_in" value="1" checked={p.digest_opt_in} /> Email me a weekly digest: events
+    in the next two weeks and new posts
   </label>
   <div class="form__actions">
     <button class="btn" type="submit">
