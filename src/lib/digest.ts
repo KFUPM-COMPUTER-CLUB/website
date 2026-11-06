@@ -17,7 +17,8 @@ export const SEND_BUDGET_MS = 40_000;
  * reservation copy sent during the day always has room, however many members take the digest. With
  * the daily limit of 90 that is at most 60 digests a day. */
 export const DIGEST_RESERVE = 30;
-export type SendStop = 'time' | 'reserve';
+/* 'config' is set by drain() in email.ts when a setup error (key, sender, domain) stopped the run. */
+export type SendStop = 'time' | 'reserve' | 'config';
 /* Whether a run may send its next row: null to go ahead, otherwise why it stops. `left` is the smaller
  * of what remains of the day's and the month's budget. Rows come in priority order with digests last,
  * so once a digest is held back everything after it is too. */

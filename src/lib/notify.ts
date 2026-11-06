@@ -47,6 +47,11 @@ export async function dropMail(emails: (string | null | undefined)[]) {
   const m = await email();
   return ((await m?.dropQueuedMail?.(emails)) as number | undefined) ?? 0;
 }
+/* Failed messages back to the queue (/api/admin/email/requeue). Throws, so the admin sees a real error. */
+export async function requeueMail() {
+  const m = await email();
+  return ((await m?.requeueFailed?.()) as number | undefined) ?? 0;
+}
 export async function emailQuota() {
   try {
     const m = await email();

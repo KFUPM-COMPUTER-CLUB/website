@@ -267,6 +267,9 @@ async function count(sb: ReturnType<typeof serviceClient>, where: (q: any) => an
  *  - a row is claimed by bumping attempts just before the send, so two overlapping runs cannot both send it;
  *  - success: status sent, sent_at, written straight after the send; failure: error kept, retried tomorrow,
  *    failed for good after MAX_ATTEMPTS;
+ *  - a setup error (isRunLevel: key, sender, domain, account quota) stops the run at the first row, which
+ *    keeps its attempts, and leaves everything queued (stopped: "config"), so fixing the setup is enough;
+ *    rows that did end up failed go back to the queue with requeueFailed();
  *  - when today's budget is used up, every row still due today rolls to tomorrow.
  * Without a database or Resend the queue is left untouched. */
 async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
@@ -313,6 +316,19 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
           .select('id');
         if (!claimed?.length) continue; // another run took it
         const failure = await deliver(resend, row);
+        if (failure?.runLevel) {
+          // The setup is wrong, not this message: give the claim back and stop. Nothing after it is tried, so
+          // a week of bad configuration cannot turn the whole queue into "failed".
+          await sb
+            .from('email_queue')
+            .update({ attempts: row.attempts || 0, error: failureText(failure) })
+            .eq('id', row.id);
+          out.held = rows.length - i;
+          out.stopped = 'config';
+          out.error = failureText(failure);
+          console.error(`email run stopped: ${failureText(failure)}`);
+          break;
+        }
         if (!failure) {
           const { error: markError } = await sb
             .from('email_queue')
@@ -329,13 +345,13 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
           await sb
             .from('email_queue')
             .update({
-              error: failure,
+              error: failureText(failure),
               status: final ? 'failed' : 'queued',
               ...(final ? {} : { scheduled_for: b.tomorrow }),
             })
             .eq('id', row.id);
           out.failed++;
-          console.error(`email ${row.id} attempt ${attempts}: ${failure}`);
+          console.error(`email ${row.id} attempt ${attempts}: ${failureText(failure)}`);
         }
       }
     }
@@ -354,23 +370,41 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
     return { ...out, error: errorText(e) };
   }
 }
-/* One Resend call. Returns null on success, else a short error text. A rate-limit reply is retried once after a pause. */
-async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<string | null> {
+/* Resend errors that are about the setup, not the message: a missing or revoked key, an unverified domain
+ * or a missing EMAIL_FROM (validation_error, unless it names the `to` field), the account's own quota.
+ * Every row would fail the same way, so they stop the run instead of using up the rows' attempts. */
+const RUN_LEVEL = new Set([
+  'missing_api_key',
+  'invalid_api_key',
+  'restricted_api_key',
+  'validation_error',
+  'daily_quota_exceeded',
+  'monthly_quota_exceeded',
+]);
+type Failure = { name: string; message: string; runLevel: boolean };
+export const isRunLevel = (name: string, message: string) =>
+  RUN_LEVEL.has(name) && !(name === 'validation_error' && /`to`/.test(message));
+const failureText = (f: Failure) => `${f.name}: ${f.message}`.slice(0, 500);
+/* One Resend call. Returns null on success, else what went wrong. A rate-limit reply is retried once after a
+ * pause. The row id is the idempotency key: if Resend accepted a message but the reply was lost (a network
+ * error, or the platform ending the function), the next run's send of that row is dropped by Resend for 24
+ * hours instead of reaching the member twice. */
+async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<Failure | null> {
   try {
-    const { error } = await resend.emails.send({
-      from: emailFrom,
-      to: row.to_email,
-      subject: row.subject,
-      html: row.html,
-    });
+    const { error } = await resend.emails.send(
+      { from: emailFrom, to: row.to_email, subject: row.subject, html: row.html },
+      { idempotencyKey: `email_queue/${row.id}` },
+    );
     if (!error) return null;
     if (error.name === 'rate_limit_exceeded' && !retried) {
       await sleep(1_200);
       return deliver(resend, row, true);
     }
-    return `${error.name}: ${error.message}`.slice(0, 500);
+    const name = String(error.name || 'error');
+    const message = String(error.message || '');
+    return { name, message, runLevel: isRunLevel(name, message) };
   } catch (e) {
-    return errorText(e);
+    return { name: 'error', message: errorText(e), runLevel: false };
   }
 }
 
@@ -410,6 +444,18 @@ export async function quota(): Promise<Quota> {
     console.error('email quota', e);
     return base;
   }
+}
+
+/* Puts every failed message back in the queue for today, with its attempts reset, for /admin after a
+ * setup problem is fixed. Returns how many. Throws on a database error. */
+export async function requeueFailed(): Promise<number> {
+  if (!serviceReady()) return 0;
+  const { count: n, error } = await serviceClient()
+    .from('email_queue')
+    .update({ status: 'queued', attempts: 0, error: null, scheduled_for: riyadhBounds().today }, { count: 'exact' })
+    .eq('status', 'failed');
+  if (error) throw new Error(error.message);
+  return n || 0;
 }
 
 /* A daily write that keeps a free Supabase project from pausing for inactivity (they pause after about a week without traffic). */
