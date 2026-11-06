@@ -64,6 +64,15 @@ export const digestWeek = (now: Date): string => {
   return new Date(sunday).toISOString().slice(0, 10);
 };
 
+/* RFC 8058 one-click unsubscribe for the digest. Mail providers POST "List-Unsubscribe=One-Click" to the
+ * https link in List-Unsubscribe, with no cookies and no Origin header, so the link carries the member id and
+ * signed token itself (/api/digest/unsubscribe checks them). Gmail and Yahoo expect both headers on bulk mail. */
+export const ONE_CLICK_BODY = 'List-Unsubscribe=One-Click';
+export const unsubscribeHeaders = (site: string, userId: string, token: string): Record<string, string> => ({
+  'List-Unsubscribe': `<${site.replace(/\/+$/, '')}/api/digest/unsubscribe?u=${encodeURIComponent(userId)}&t=${encodeURIComponent(token)}>`,
+  'List-Unsubscribe-Post': ONE_CLICK_BODY,
+});
+
 /* The unsubscribe link's token: an HMAC of the member's id, so the link works without signing in and
  * cannot be made for anyone else. It never expires; rotating the secret invalidates every old link. */
 export const unsubscribeToken = (userId: string, secret: string) => hmac(secret, `digest-unsubscribe:${userId}`);
