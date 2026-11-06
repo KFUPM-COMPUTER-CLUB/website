@@ -3,14 +3,17 @@
  * outside form fields, or from any element with data-term-open; closes with Escape, "exit" or its close
  * button, and hands focus back to whatever had it. History lives in sessionStorage; Tab completes
  * command names; Ctrl+L clears. A few commands are not listed by help: they are part of the site
- * challenge (ls -a, cat .flag), so do not tidy them away. Same for the "sudo rm -rf /" easter egg. */
+ * challenge (ls -a, cat .flag), so do not tidy them away. Same for the "sudo rm -rf /" easter egg.
+ * Signed in (the cc_in hint cookie), the first open asks /api/me/whoami who you are: the prompt then
+ * shows your handle instead of guest, and whoami answers with your name, year and role. */
 import { onPage, reduceMotion, listen, bag, siteHref } from './page.js';
 
 const FLAG_B64 = 'Q0N7d2gzcjNfY3VyMTB1c19tMW5kc19idTFsZH0='; // the flag, base64; decoding it is the last step
 const HIST_KEY = 'cc_term_hist',
   HIST_MAX = 50,
   OUT_MAX = 400;
-const PROMPT = 'guest@cckfupm:~$';
+const host = 'cckfupm';
+const promptFor = (handle) => `${handle || 'guest'}@${host}:~$`;
 
 /* Easter egg: the "wipe everything" command fakes a wipe, then closes the tab. The input is matched
  * after collapsing whitespace, so these are the spellings people actually type. */
@@ -28,6 +31,24 @@ const WIPE_LINES = [
   'rm: removing /boot ...',
   'kernel panic - not syncing: attempted to kill init!',
 ];
+const BOOT_LINES = [
+  'Broadcast message: the system is going down for reboot NOW!',
+  '[  OK  ] Stopped cc-term.service',
+  'Restarting…',
+];
+const HALT_LINES = [
+  'Broadcast message: the system is going down for power-off NOW!',
+  '[  OK  ] Stopped cc-term.service',
+  '[  OK  ] Reached target Power-Off.',
+];
+/* The club mark for fastfetch: CC in block letters. */
+const LOGO = [
+  '  ██████   ██████ ',
+  ' ██       ██      ',
+  ' ██       ██      ',
+  ' ██       ██      ',
+  '  ██████   ██████ ',
+];
 
 const COMMANDS = [
   ['help', 'list the commands'],
@@ -37,6 +58,9 @@ const COMMANDS = [
   ['impact', 'prize pools by semester'],
   ['partners', 'who we build with'],
   ['whoami', 'who you are'],
+  ['fastfetch', 'this system, in one screen (also neofetch)'],
+  ['reboot', 'reload the page'],
+  ['shutdown', 'close the site'],
   ['clear', 'clear the screen'],
   ['exit', 'close the terminal'],
 ];
@@ -148,6 +172,35 @@ onPage(() => {
   if (!Array.isArray(hist)) hist = [];
   let hix = hist.length,
     draft = '';
+  const bootedAt = Date.now();
+
+  /* ---- who is signed in ---- */
+  let me = null,
+    asked = false;
+  const promptEls = [...root.querySelectorAll('[data-term-prompt]')];
+  const titleEl = root.querySelector('[data-term-title]');
+  const showUser = () => {
+    const handle = me?.handle || '';
+    for (const el of promptEls) el.textContent = promptFor(handle);
+    if (titleEl) titleEl.textContent = `${handle || 'guest'}@${host} — terminal`;
+  };
+  const whoAmI = async () => {
+    if (asked || !/(^|; )cc_in=1(;|$)/.test(document.cookie)) return;
+    asked = true;
+    try {
+      const res = await fetch('/api/me/whoami', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      const d = res.ok ? await res.json() : null;
+      if (d?.ok && d.handle) {
+        me = d;
+        showUser();
+      }
+    } catch {
+      /* offline or signed out: stay guest */
+    }
+  };
 
   /* ---- output ---- */
   const print = (text, kind = 'out') => {
@@ -204,6 +257,7 @@ onPage(() => {
     if (!welcomed) {
       welcomed = true;
       sys('KFUPM Computer Club terminal. Type help.');
+      void whoAmI();
     }
     fit();
     input.focus({ preventScroll: true });
@@ -272,10 +326,52 @@ onPage(() => {
     print('Friends on campus:');
     print(`  ${friends.join(', ')}`);
   };
-  const cmdWhoami = () => {
-    if (local('cc_solved') === '1')
-      return print('solver. You read the console, the source and the terminal. Welcome to the list.');
+  const cmdWhoami = async () => {
+    await whoAmI();
+    const solved = local('cc_solved') === '1';
+    if (me) {
+      print(`${me.name || me.handle} (@${me.handle})`);
+      print(
+        [
+          me.year && `year: ${me.year}`,
+          me.major && `major: ${me.major}`,
+          `role: ${me.role || 'member'}`,
+          me.committee && `committee: ${me.committee}`,
+        ].filter(Boolean),
+      );
+      if (solved) print('solver. You read the console, the source and the terminal.');
+      return sys(`Your profile: /u/${me.handle} · your dashboard: /me`);
+    }
+    if (solved) return print('solver. You read the console, the source and the terminal. Welcome to the list.');
     print('guest. A curious mind at KFUPM. Any major, any year.');
+  };
+  /* fastfetch / neofetch: the club mark beside a few facts about this "system", all from the page itself. */
+  const uptime = () => {
+    const s = Math.floor((Date.now() - bootedAt) / 1000);
+    return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+  };
+  const cmdFetch = () => {
+    const user = `${me?.handle || 'guest'}@${host}`;
+    const today = todayISO();
+    const upcoming = data.events.filter((e) => (e.endDate || e.date) >= today).length;
+    const { companies = [], friends = [] } = data.partners;
+    const info = [
+      user,
+      '-'.repeat(user.length),
+      `OS: ${data.site.name || 'KFUPM Computer Club'} web`,
+      `Host: ${location.host}`,
+      `Uptime: ${uptime()} (this tab)`,
+      'Shell: cc-term',
+      `Resolution: ${window.innerWidth}x${window.innerHeight}`,
+      `Locale: ${document.documentElement.lang || 'en'}`,
+      `Events: ${upcoming} upcoming, ${data.events.length} in all`,
+      `Partners: ${companies.length + friends.length}`,
+      me ? `Role: ${me.role || 'member'}` : 'Role: guest (sign in for more)',
+    ];
+    const rows = Math.max(LOGO.length, info.length);
+    const lines = [];
+    for (let i = 0; i < rows; i++) lines.push(`${(LOGO[i] || '').padEnd(20)}${info[i] || ''}`);
+    print(lines);
   };
   const cmdLs = (args) => {
     const all = args.some((a) => /^-[a-z]*a[a-z]*$/i.test(a));
@@ -306,29 +402,33 @@ onPage(() => {
     else navTimer = setTimeout(() => go(url), 350);
   };
 
-  /* Print fake rm output line by line, then try to close the tab. Browsers only let a script close tabs
-   * it opened, so if the tab is still here a moment later, blank it instead. */
-  const cmdWipe = () => {
+  /* Print lines one by one, then run `then`. */
+  const playLines = (lines, kind, then) => {
     input.disabled = true;
     let i = 0;
     const step = () => {
-      if (i < WIPE_LINES.length) {
-        err(WIPE_LINES[i++]);
+      if (i < lines.length) {
+        print(lines[i++], kind);
         navTimer = setTimeout(step, reduce ? 0 : 160);
         return;
       }
-      const bye = () => {
-        window.close();
-        navTimer = setTimeout(() => location.replace('about:blank'), 250);
-      };
-      navTimer = setTimeout(bye, reduce ? 0 : 500);
+      navTimer = setTimeout(then, reduce ? 0 : 500);
     };
     step();
   };
+  /* Fake rm output line by line, then a fake 404: the site is "gone". */
+  const cmdWipe = () => playLines(WIPE_LINES, 'err', () => go('/404.html'));
+  const cmdReboot = () => playLines(BOOT_LINES, 'sys', () => location.reload());
+  /* Browsers only let a script close tabs it opened, so if the tab is still here a moment later, blank it. */
+  const cmdShutdown = () =>
+    playLines(HALT_LINES, 'sys', () => {
+      window.close();
+      navTimer = setTimeout(() => location.replace('about:blank'), 250);
+    });
 
   const run = (raw) => {
     const line = raw.trim();
-    print(`${PROMPT} ${line}`, 'cmd');
+    print(`${promptFor(me?.handle)} ${line}`, 'cmd');
     if (!line) return;
     hist = hist
       .filter((h) => h !== line)
@@ -353,7 +453,15 @@ onPage(() => {
       case 'partners':
         return cmdPartners();
       case 'whoami':
-        return cmdWhoami();
+        return void cmdWhoami();
+      case 'fastfetch':
+      case 'neofetch':
+        return cmdFetch();
+      case 'reboot':
+        return cmdReboot();
+      case 'shutdown':
+      case 'poweroff':
+        return cmdShutdown();
       case 'clear':
         return clear();
       case 'exit':
@@ -364,7 +472,7 @@ onPage(() => {
         return cmdCat(args);
       case 'sudo':
         if (WIPE_COMMANDS.has(line.split(/\s+/).join(' '))) return cmdWipe();
-        return err('guest is not in the sudoers file. This incident will be reported.');
+        return err(`${me?.handle || 'guest'} is not in the sudoers file. This incident will be reported.`);
       case '404':
         err('segfault (core dumped)');
         navTimer = setTimeout(() => go('/404.html'), 350);
