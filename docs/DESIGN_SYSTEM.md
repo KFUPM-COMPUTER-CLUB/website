@@ -23,24 +23,23 @@ Dark navy and white, one blue accent, large light headings, one-pixel rules inst
 
 ## Classes
 
-| Class                                                              | Use                                                                          |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `.container`                                                       | Centred content, `--container` wide, `--gutter` padding                      |
-| `.section`, `.section--navy`, `.section--white`, `.section--paper` | Page section with background                                                 |
-| `.eyebrow`                                                         | Small uppercase label with a rule before it                                  |
-| `.h-display`, `.h1`, `.h2`, `.h3`, `.lead`                         | Type scale                                                                   |
-| `.btn`, `.btn--ghost`                                              | Buttons; the arrow inside moves on hover                                     |
-| `.grid`, `.grid--2`, `.grid--3`, `.grid--4`, `.card`               | 1px-line grids, one column below 720px                                       |
-| `.tag`                                                             | Category pill                                                                |
-| `.prose`                                                           | Article body                                                                 |
-| `.visually-hidden`, `.skip-link`                                   | Accessibility helpers                                                        |
-| `.to-top`                                                          | Floating back-to-top button                                                  |
-| `.codebg`, `.tok--*`                                               | Home: the site's own code behind the first screen; GitHub-light code colours |
-| `.play`, `.editor-card`, `.sticker`                                | Home: the playground, an editable snippet beside the sticker it draws        |
-| `.upnext`                                                          | Home: up to three upcoming events as a date list                             |
-| `.highlights`, `.highlight-post`                                   | Home: post of the month beside the term's top members                        |
-| `.tiles--numbers`                                                  | Home: the club numbers in "Build with us"                                    |
-| `.feat`, `.feat__media`, `.feat__panel`                            | Blog: featured card with the cover beside the text, or a date panel          |
+| Class                                                              | Use                                                                                                          |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `.container`                                                       | Centred content, `--container` wide, `--gutter` padding                                                      |
+| `.section`, `.section--navy`, `.section--white`, `.section--paper` | Page section with background                                                                                 |
+| `.eyebrow`                                                         | Small uppercase label with a rule before it                                                                  |
+| `.h-display`, `.h1`, `.h2`, `.h3`, `.lead`                         | Type scale                                                                                                   |
+| `.btn`, `.btn--ghost`                                              | Buttons; the arrow inside moves on hover                                                                     |
+| `.grid`, `.grid--2`, `.grid--3`, `.grid--4`, `.card`               | 1px-line grids, one column below 720px                                                                       |
+| `.tag`                                                             | Category pill                                                                                                |
+| `.prose`                                                           | Article body                                                                                                 |
+| `.visually-hidden`, `.skip-link`                                   | Accessibility helpers                                                                                        |
+| `.to-top`                                                          | Floating back-to-top button                                                                                  |
+| `.herocode`, `.hero__icon`, `.tok--*`                              | Home: the icon's own code behind the first screen (editable, it redraws the icon); GitHub-light code colours |
+| `.upnext`                                                          | Home: up to three upcoming events as a date list                                                             |
+| `.highlights`, `.highlight-post`                                   | Home: post of the month beside the term's top members                                                        |
+| `.tiles--numbers`                                                  | Home: the club numbers in "Build with us"                                                                    |
+| `.feat`, `.feat__media`, `.feat__panel`                            | Blog: featured card with the cover beside the text, or a date panel                                          |
 
 Focus: `:focus-visible` outline in `--accent-2`. Motion is disabled under `prefers-reduced-motion`.
 

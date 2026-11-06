@@ -1,10 +1,9 @@
-/* A small JavaScript tokenizer for the home page's code (#152): the background made of the site's own
- * source (components/CodeBackground.astro, on the server) and the editable snippet in the playground
- * (scripts/playground.js, in the browser). One tokenizer for both, so they share the colours in
- * global.css (.tok--*), which follow GitHub's light theme. It only has to colour code well, not parse it:
+/* A small JavaScript tokenizer for the home page's code (#152): the icon's source behind the first screen,
+ * coloured on the server (components/HeroCode.astro) and again as it is edited (scripts/hero-code.js).
+ * The colours are in global.css (.tok--*) and follow GitHub's light theme. It only has to colour code well, not parse it:
  * strings, template strings, comments, numbers, keywords, literals, property names before a colon,
  * function names before a parenthesis, and everything else as plain text. Plain JavaScript with no
- * imports, so tests/playground.test.ts runs it under node. */
+ * imports, so tests/hero-icon.test.ts runs it under node. */
 
 const KEYWORDS = new Set(
   (
