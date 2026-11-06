@@ -1,7 +1,7 @@
 ---
 /* Site footer: social links, the "made by" credit and legal links. Everything comes from settings
  * through the content layer. isReal() drops the REPLACE placeholders the seed JSON ships with. */
-import contributorsJson from '../data/contributors.json';
+import { topContributor } from '../lib/contributors';
 import { Image } from 'astro:assets';
 import logoSm from '../data/brand/logo-color-sm.png';
 import logoSmDark from '../data/brand/logo-color-ondark-sm.png';
@@ -50,8 +50,8 @@ const icons = {
 const follow = Object.entries(icons)
   .filter(([key]) => key !== 'discord' && key !== 'whatsapp' && isReal(site.links[key]))
   .map(([key, i]) => ({ href: site.links[key], ...i }));
-// The credit names the whole team, not one person: everyone who has contributed (src/data/contributors.json).
-const makers = contributorsJson.contributors.map((github) => ({ name: `@${github}`, github }));
+// The credit is the team's; only the top contributor on GitHub is named, and that follows the commits.
+const top = await topContributor();
 // The credit shows on the home and officers pages only; blog, timeline and questions pages keep the rest of the footer.
 const path = basePath(Astro.url.pathname).replace(/\/+$/, '') || '/';
 const showCredit = !/^\/(blog|timeline|faq)(\/|$)/.test(path);
@@ -81,27 +81,17 @@ const year = new Date().getFullYear();
         </span>
       </a>
 
-      {showCredit && makers.length > 0 && (
+      {showCredit && (
         <div class="made-by">
           <span class="made-by__label">{t(lang, 'footer.madeBy')}</span>
-          <p class="made-by__names">
-            {makers.map((m, i) => (
-              <>
-                {i > 0 && (
-                  <span class="made-by__dot" aria-hidden="true">
-                    ·
-                  </span>
-                )}
-                {m.github ? (
-                  <a href={`https://github.com/${m.github}`} target="_blank" rel="noopener">
-                    {m.name}
-                  </a>
-                ) : (
-                  <b>{m.name}</b>
-                )}
-              </>
-            ))}
-          </p>
+          {top && (
+            <p class="made-by__names">
+              {t(lang, 'footer.topContributor')}{' '}
+              <a href={`https://github.com/${top.login}`} target="_blank" rel="noopener">
+                {top.name}
+              </a>
+            </p>
+          )}
           <a class="made-by__more" href={contributorsUrl} target="_blank" rel="noopener">
             {t(lang, 'footer.allContributors')} <span aria-hidden="true">→</span>
           </a>
