@@ -35,8 +35,10 @@ const fullTitle = `${title} · ${site.name}`;
 // Link previews need absolute URLs. They come from Astro.url, not Astro.site, so a preview deployment
 // points at its own copy of the image. The query string is dropped (/blog?tag=x previews as /blog).
 const pageUrl = new URL(Astro.url.pathname, Astro.url);
-// The Arabic letters of the logo on every page; a separate request, since text= trims every family in a request.
-const logoFont = `https://fonts.googleapis.com/css2?family=Alexandria:wght@500&text=${encodeURIComponent('نادي الحاسب الآلي')}&display=swap`;
+// The Arabic letters shown on English pages (the logo and the language button), in their own request: text=
+// trims every family in a request, and a letter missing from the list falls back and breaks the joining.
+const arabicOnEnglish = 'نادي الحاسب الآلي العربية';
+const logoFont = `https://fonts.googleapis.com/css2?family=Alexandria:wght@500&text=${encodeURIComponent(arabicOnEnglish)}&display=swap`;
 const preview = image?.src ? image : { src: ogCard.src, width: ogCard.width, height: ogCard.height };
 const ogImage = new URL(preview.src, Astro.url);
 // Tell search engines that /xxx and /ar/xxx are the same page in two languages, so the Arabic pages get
