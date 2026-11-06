@@ -996,30 +996,31 @@ body.scrolled .scroll-hint { opacity: 0; }
 .tok--fn { color: #8250DF; }
 .tok--prop { color: #953800; }
 
-/* ── First screen: the icon's own code down both sides, the ICON box over the icon (#152) ── */
+/* ── First screen: the icon's own code fills the screen, the ICON box floats over the centred icon and headline (#152) ── */
 .herocode { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.herocode__pane { --mx: 50%; --my: 40%; position: absolute; top: 0; bottom: 0; width: 34%; margin: 0; padding: calc(var(--header-h) + 20px) 0 40px; overflow: hidden; font: 500 12px/1.75 var(--font-mono); color: #3D4451; white-space: pre; opacity: 0.45; -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)); mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)); }
-.herocode__pane--left { inset-inline-start: var(--gutter); }
-.herocode__pane--right { inset-inline-end: var(--gutter); }
+.herocode__pane { --mx: 50%; --my: 40%; position: absolute; inset: 0; margin: 0; padding: calc(var(--header-h) + 16px) var(--gutter) 16px; overflow: hidden; columns: 46ch auto; column-gap: 40px; column-fill: auto; font: 500 12px/1.75 var(--font-mono); color: #3D4451; opacity: 0.45; -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)); mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)); }
+.herocode__ln { display: block; min-height: 1.75em; overflow: hidden; white-space: pre; break-inside: avoid; }
 .herocode.is-lit .herocode__pane { -webkit-mask-image: radial-gradient(circle 300px at var(--mx) var(--my), #000 0, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.3) 100%); mask-image: radial-gradient(circle 300px at var(--mx) var(--my), #000 0, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.3) 100%); }
 .screen--one .screen__inner { z-index: 1; }
 .screen--one .hl { color: var(--play-hl, var(--blue)); transition: color 0.3s; }
-.iconedit { position: relative; justify-self: center; width: min(34ch, 100%); pointer-events: auto; opacity: 0.6; transition: opacity 0.25s; font: 500 13px/1.75 var(--font-mono); }
+.iconedit { position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%); width: min(26ch, calc(100vw - 2 * var(--gutter))); pointer-events: auto; opacity: 0.6; transition: opacity 0.25s; font: 500 13px/1.75 var(--font-mono); }
 .iconedit:hover, .iconedit:focus-within { opacity: 1; }
-.iconedit__tag { position: absolute; top: -10px; inset-inline-end: 10px; z-index: 1; padding: 2px 6px; background: #2B6CED; color: #fff; font-size: 10px; letter-spacing: 0.08em; }
+.iconedit__tag { position: absolute; top: -10px; inset-inline-end: 10px; z-index: 1; padding: 2px 6px; background: #2B6CED; color: #fff; font-size: 10px; letter-spacing: 0.08em; white-space: nowrap; }
 .iconedit__code { position: relative; height: calc(var(--ln) * 1.75em + 20px); border: 1px solid #2B6CED; background: #FFFFFF; box-shadow: var(--shadow-sm); transition: box-shadow 0.25s; }
 .iconedit:hover .iconedit__code, .iconedit:focus-within .iconedit__code { box-shadow: var(--shadow); }
 .iconedit__hl, .iconedit__input { position: absolute; inset: 0; margin: 0; padding: 10px 14px; border: 0; overflow: hidden; font: inherit; letter-spacing: 0; tab-size: 2; white-space: pre; text-align: start; }
 .iconedit__hl { color: #1F2328; pointer-events: none; }
 .iconedit__input { resize: none; background: transparent; color: transparent; caret-color: #1F2328; outline: none; cursor: text; }
 .iconedit__input::selection { background: rgba(43, 108, 237, 0.22); color: transparent; }
-.iconedit__status { margin: 8px 0 0; color: #57606A; font-size: 11px; letter-spacing: 0.04em; text-transform: none; text-align: center; }
+.iconedit__status { margin: 8px -16ch 0; white-space: nowrap; color: #57606A; font-size: 11px; letter-spacing: 0.04em; text-transform: none; text-align: center; }
 .iconedit__status.is-error { color: #CF222E; }
 .iconedit:focus-within .iconedit__status:not(.is-error) { color: #1A7F37; }
 .hero__icon { display: block; justify-self: center; line-height: 0; animation: markIn 0.9s cubic-bezier(.2,.8,.2,1) both; }
 .hero__icon svg { display: block; max-width: 52vw; height: auto; transition: transform 0.3s; }
-@media (max-width: 1100px) { .herocode__pane { width: 30%; } }
-@media (max-width: 900px) { .herocode__pane { width: calc(50% - var(--gutter)); font-size: 10px; opacity: 0.3; } .iconedit { font-size: 12px; } }
+@media (max-width: 900px) { .herocode__pane { font-size: 10px; opacity: 0.3; column-gap: 24px; } .iconedit { font-size: 12px; } }
+/* Not enough room above the centred icon (short or narrow screens): the box goes back into the column, over the icon. */
+@media (max-height: 960px), (max-width: 600px) { .iconedit { position: relative; bottom: auto; left: auto; transform: none; justify-self: center; } }
+@media (min-height: 961px) and (max-height: 1100px) and (min-width: 601px) { .iconedit { font-size: 12px; } }
 @media (max-width: 600px) { .herocode__pane { opacity: 0.2; } .iconedit { font-size: 16px; } .iconedit__tag { font-size: 9px; } }
 @media (prefers-reduced-motion: reduce) { .screen--one .hl, .hero__icon svg, .iconedit, .iconedit__code { transition: none; } }
 

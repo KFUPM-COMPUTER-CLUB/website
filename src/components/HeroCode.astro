@@ -1,24 +1,29 @@
 ---
 /* The first screen's background (#152): the source of the club icon above the headline
- * (scripts/hero-icon.js), coloured like GitHub's light theme, split down both sides of the screen. It sits
- * faint and comes up where the pointer moves. The ICON settings, the part that draws the icon, are not in
- * it: they are the editable box over the icon (components/IconEditor.astro). Decorative: aria-hidden. */
+ * (scripts/hero-icon.js), coloured like GitHub's light theme, filling the whole screen in columns from
+ * edge to edge and top to bottom. It sits faint and comes up where the pointer moves. The ICON settings,
+ * the part that draws the icon, are not in it: they are the editable box over the icon
+ * (components/IconEditor.astro). Decorative: aria-hidden. */
 import iconSource from '../scripts/hero-icon.js?raw';
-import { highlight } from '../scripts/code-tokens.js';
+import { highlightLines } from '../scripts/code-tokens.js';
 import { iconBlock } from '../scripts/icon-parse.js';
 const all = `// src/scripts/hero-icon.js\n${iconSource.trimEnd()}`.split('\n');
 const block = iconBlock(all.join('\n'));
-const rest = [
-  ...all.slice(0, block.start),
-  '// ICON lives in the box over the icon: edit it there.',
-  ...all.slice(block.start + block.lines),
-];
-const mid = Math.ceil(rest.length / 2);
-const left = highlight(rest.slice(0, mid).join('\n'));
-const right = highlight(rest.slice(mid).join('\n'));
+const once = highlightLines(
+  [
+    ...all.slice(0, block.start),
+    '// ICON lives in the box over the icon: edit it there.',
+    ...all.slice(block.start + block.lines),
+    '',
+  ].join('\n'),
+);
+// Enough copies to fill a large screen; the columns that do not fit are cut off.
+const html = Array.from({ length: 8 }, () => once)
+  .flat()
+  .map((line) => `<span class="herocode__ln">${line}</span>`)
+  .join('');
 ---
 
 <div class="herocode" dir="ltr" aria-hidden="true" data-herocode>
-  <pre class="herocode__pane herocode__pane--left" set:html={left} />
-  <pre class="herocode__pane herocode__pane--right" set:html={right} />
+  <pre class="herocode__pane" set:html={html} />
 </div>

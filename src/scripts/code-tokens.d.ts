@@ -2,3 +2,5 @@
 export type TokenType = 'com' | 'str' | 'num' | 'kw' | 'lit' | 'prop' | 'fn' | 'plain';
 export function tokenize(src: string): [TokenType, string][];
 export function highlight(src: string): string;
+export function highlightLines(src: string): string[];
+export function esc(s: string): string;

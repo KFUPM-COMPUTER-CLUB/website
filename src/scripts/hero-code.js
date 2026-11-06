@@ -1,12 +1,11 @@
 /* The first screen (#152): the faint code down both sides comes up around the pointer
  * (components/HeroCode.astro), and the ICON box over the icon is editable (components/IconEditor.astro).
- * Each edit re-reads the box (icon-parse.js), redraws the icon (hero-icon.js) and sets --play-hl, the colour
+ * Each edit re-reads the box's name/value lines (icon-parse.js), redraws the icon (hero-icon.js) and sets --play-hl, the colour
  * of the headline's highlighted words, to the icon's blue. A broken line is reported by its number and its
  * setting keeps its last good value. */
 import { onPage, listen, bag } from './page.js';
-import { highlight } from './code-tokens.js';
 import { iconSvg, ICON } from './hero-icon.js';
-import { parseIcon } from './icon-parse.js';
+import { parseSettings, settingsHtml } from './icon-parse.js';
 
 const isColor = (v) => typeof CSS !== 'undefined' && CSS.supports('color', v);
 
@@ -51,8 +50,8 @@ onPage(() => {
     const hint = status?.textContent.trim() || '';
     let last = { ...ICON };
     const render = () => {
-      hl.innerHTML = `${highlight(input.value)}\n`;
-      const { settings: s, errors } = parseIcon(input.value, isColor);
+      hl.innerHTML = `${settingsHtml(input.value)}\n`;
+      const { settings: s, errors } = parseSettings(input.value, isColor);
       for (const e of errors) if (e.key && e.key in last) s[e.key] = last[e.key];
       last = { ...s };
       if (icon) icon.innerHTML = iconSvg(s);
