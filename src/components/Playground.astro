@@ -1,0 +1,73 @@
+---
+/* The playground (#152): an editable snippet beside the thing it describes. Changing a value in the code
+ * (colour, size, shape, rotation, text, shadow, spin) redraws the sticker on the right straight away, and
+ * the colour also lights up the highlighted words of the headline on the first screen. The code is never
+ * run: scripts/playground-parse.js reads each `key: value` line and reports a broken one by its line
+ * number while the others still apply. Without JavaScript the snippet still shows, as a coloured block. */
+import { highlight } from '../scripts/code-tokens.js';
+import { DEFAULT_CODE } from '../scripts/playground-parse.js';
+import { t, type Lang } from '../lib/i18n';
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+const presets = [
+  { key: 'home.playSea', set: ['color', "'#0EA5E9'"] },
+  { key: 'home.playBig', set: ['size', '230'] },
+  { key: 'home.playCircle', set: ['shape', "'circle'"] },
+  { key: 'home.playSpin', set: ['spin', 'true'] },
+] as const;
+---
+
+<section class="section play bg-white" data-bg="#FFFFFF" id="playground" data-play>
+  <div class="container">
+    <div class="play__head">
+      <span class="eyebrow">{t(lang, 'home.playEyebrow')}</span>
+      <h2 class="h1">{t(lang, 'home.playTitle')}</h2>
+      <p class="lead lead--muted">{t(lang, 'home.playLead')}</p>
+    </div>
+    <div class="play__grid">
+      <div class="editor-card" dir="ltr">
+        <div class="editor-card__bar">
+          <i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i>
+          <span class="mono">sticker.js</span>
+        </div>
+        <div class="editor-card__code">
+          <pre class="editor-card__hl" aria-hidden="true" data-play-hl set:html={highlight(DEFAULT_CODE) + '\n'} />
+          <textarea
+            class="editor-card__input"
+            spellcheck="false"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            wrap="off"
+            aria-label={t(lang, 'home.playLabel')}
+            aria-describedby="play-status"
+            data-play-input>{DEFAULT_CODE}</textarea
+          >
+        </div>
+        <p class="editor-card__status mono" id="play-status" role="status" data-play-status>
+          ✓ {t(lang, 'home.playOk')}
+        </p>
+      </div>
+      <div class="play__stage">
+        <div class="play__canvas" aria-hidden="true">
+          <div class="sticker" data-play-sticker><span data-play-text>CC</span></div>
+        </div>
+        <p class="play__readout mono" data-play-readout>160px · #2563EB · square</p>
+        <div class="play__presets" role="group" aria-label={t(lang, 'home.playTry')}>
+          <span class="mono">{t(lang, 'home.playTry')}</span>
+          {
+            presets.map((p) => (
+              <button type="button" class="chip" data-play-set={p.set[0]} data-play-value={p.set[1]}>
+                {t(lang, p.key)}
+              </button>
+            ))
+          }
+          <button type="button" class="chip chip--ghost" data-play-reset>{t(lang, 'home.playReset')}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/playground.js';
+</script>

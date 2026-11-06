@@ -1,0 +1,54 @@
+---
+/* The first screen's background (#152): a window of this site's own source code, coloured like GitHub's
+ * light theme, behind the logo and the headline. The file and the lines change on every render (the
+ * page is cached for a minute, so about once a minute), and one line in it is a nudge towards the site
+ * challenge. Decorative only: aria-hidden, no pointer events, and faded out where the headline sits. */
+import { tokenize } from '../scripts/code-tokens.js';
+
+const sources = import.meta.glob(
+  [
+    '../scripts/snake.js',
+    '../scripts/terminal.js',
+    '../scripts/theme.js',
+    '../scripts/playground-parse.js',
+    '../lib/digest.ts',
+    '../lib/next.ts',
+    '../lib/names.ts',
+  ],
+  { query: '?raw', import: 'default', eager: true },
+) as Record<string, string>;
+const files = Object.entries(sources);
+const LINES = 60; // two columns on a laptop, one on a phone (the rest is cut off)
+const HINT = '// psst. curious minds start in the console (F12).';
+
+function pick<T>(list: T[]): T {
+  return list[Math.floor(Math.random() * list.length)];
+}
+const [path, text] = files.length ? pick(files) : ['', ''];
+const all = text.split('\n');
+const start = Math.floor(Math.random() * Math.max(1, all.length - LINES));
+const shown = all.slice(start, start + LINES);
+// The nudge goes in at a random line, indented like its neighbour.
+const at = Math.min(shown.length, 6 + Math.floor(Math.random() * Math.max(1, shown.length - 12)));
+const indent = /^\s*/.exec(shown[at] ?? shown[at - 1] ?? '')?.[0] ?? '';
+shown.splice(at, 0, `${indent}${HINT}`);
+const code = [`// ${path.replace(/^\.\.\//, 'src/')}`, ...shown].join('\n');
+
+/* Tokens split on newlines into lines of [type, text], so each line is its own element (for the fade-in). */
+const lines: [string, string][][] = [[]];
+for (const [type, value] of tokenize(code)) {
+  value.split('\n').forEach((part: string, i: number) => {
+    if (i > 0) lines.push([]);
+    if (part) lines[lines.length - 1].push([type, part]);
+  });
+}
+---
+
+<pre class="codebg" aria-hidden="true">{
+  lines.map((line, i) => (
+    <span class="codebg__line" style={`--i:${i}`}>
+      {line.map(([type, value]) => (type === 'plain' ? value : <span class={`tok tok--${type}`}>{value}</span>))}
+      {'\n'}
+    </span>
+  ))
+}</pre>

@@ -10,10 +10,50 @@ import ShowReel from '../components/ShowReel.astro';
 import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
 import BackToTop from '../components/BackToTop.astro';
-import { getSettings, getMemberCount } from '../lib/content';
-import { t, localePath, type Lang } from '../lib/i18n';
+import CodeBackground from '../components/CodeBackground.astro';
+import Playground from '../components/Playground.astro';
+import UpcomingEvents from '../components/UpcomingEvents.astro';
+import HomeHighlights from '../components/HomeHighlights.astro';
+import {
+  getSettings,
+  getMemberCount,
+  getEvents,
+  getUpcomingEvents,
+  getPastEvents,
+  getPosts,
+  getFeaturedPost,
+  getLeaderboard,
+  termStart,
+} from '../lib/content';
+import { clubNumbers } from '../lib/home';
+import { devOnly, homeSample } from '../lib/dev';
+import { t, localePath, type Lang, type Key } from '../lib/i18n';
 
-const [settings, memberCount] = await Promise.all([getSettings(), getMemberCount()]);
+const [settings, memberCount, events, upcoming, past, posts, featured, leaders] = await Promise.all([
+  getSettings(),
+  getMemberCount(),
+  getEvents(),
+  getUpcomingEvents(),
+  getPastEvents(),
+  getPosts(),
+  getFeaturedPost(),
+  getLeaderboard('term', 'all'),
+]);
+const since = termStart(new Date());
+const live = {
+  upcoming,
+  featured: featured as typeof featured | null,
+  leaders,
+  counts: {
+    members: memberCount,
+    events: past.length,
+    posts: posts.length,
+    workshops: events.filter((e) => e.type === 'Workshop' && e.start >= since).length,
+  },
+};
+// npm run dev only: /?sample fills the sections that need live data (src/lib/dev.ts), to try the design locally.
+const view = devOnly() && Astro.url.searchParams.has('sample') ? await homeSample(events, posts) : live;
+const numbers = clubNumbers(view.counts);
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 const site = settings.site;
 const home = settings.home;
@@ -33,7 +73,7 @@ const stageTabs = [
 <BaseLayout title={lang === 'ar' ? 'الرئيسية' : 'Home'}>
   <!-- Screen 1: logo and headline only -->
   <section class="screen screen--one bg-white" data-bg="#FFFFFF" data-hero>
-    <div class="hero-grid" aria-hidden="true"></div>
+    <CodeBackground />
     <div class="container screen__inner" data-hero-inner>
       <Image class="hero__logo" src={logoColor} alt={site.name} width={1100} densities={[1, 1.5]} loading="eager" />
       <h1 class="h-display hero__title">
@@ -45,6 +85,9 @@ const stageTabs = [
       <i></i>
     </div>
   </section>
+
+  <!-- Playground: edit the code, the sticker (and the headline's colour) follows (#152) -->
+  <Playground />
 
   <!-- Screen 2: CC x KFUPM pinned in the top half; the block under it steps between the photo strip and the moments -->
   <section class="screen screen--two bg-navy" data-bg="#0B1A33" data-stage>
@@ -95,16 +138,27 @@ const stageTabs = [
     line={lang === 'ar' ? t(lang, 'home.momentLine') : home.photoMoment.line}
   />
 
+  <!-- Coming up (#113) and this month's post with the term's top members (#115) -->
+  <UpcomingEvents events={view.upcoming} />
+  <HomeHighlights post={view.featured} leaders={view.leaders} />
+
   <!-- Join -->
   <section class="section join bg-black" data-bg="#0B0B0F" id="join">
     <div class="container join__inner reveal">
       <h2 class="h1">{lang === 'ar' ? t(lang, 'home.buildTitle') : home.buildWithUs.title}</h2>
-      {memberCount !== null && (
-        <p class="lead lead--muted">
-          {memberCount.toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} {t(lang, 'home.membersGrowing')}
-        </p>
-      )}
       <p class="lead lead--muted">{lang === 'ar' ? t(lang, 'home.buildText') : home.buildWithUs.text}</p>
+      {numbers.length > 0 && (
+        <ul class={`tiles tiles--numbers tiles--${numbers.length}`}>
+          {numbers.map((n) => (
+            <li class="tile">
+              <strong data-count={lang === 'ar' ? undefined : String(n.value)}>
+                {n.value.toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+              </strong>
+              <span class="tile__label">{t(lang, `home.num.${n.key}` as Key)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       <div class="hero__actions">
         <a class="btn" data-magnet href={joinHref} {...ext(joinHref)}>
           {t(lang, 'home.becomeMember')} <span aria-hidden="true">→</span>

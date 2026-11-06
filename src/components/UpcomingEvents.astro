@@ -1,0 +1,56 @@
+---
+/* "Coming up" on the home page (#113, design B): up to three upcoming events as a compact date list, no
+ * photos, each linking to its card on /timeline, where the reservation is. Hidden when nothing is upcoming. */
+import type { EventItem } from '../lib/types';
+import { fmtRiyadh } from '../lib/content';
+import { t, dateLocale, localePath, trContent, type Lang } from '../lib/i18n';
+const { events } = Astro.props as { events: EventItem[] };
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+const locale = dateLocale(lang);
+const list = events.slice(0, 3);
+---
+
+{
+  list.length > 0 && (
+    <section class="section upnext bg-black" data-bg="#0B0B0F" id="coming-up">
+      <div class="container upnext__grid">
+        <div class="upnext__head reveal">
+          <span class="eyebrow">{t(lang, 'home.upEyebrow')}</span>
+          <h2 class="h2">{t(lang, 'home.upTitle')}</h2>
+          <a class="btn btn--ghost" href={localePath(lang, '/timeline')}>
+            {t(lang, 'home.upAll')} <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <ol class="upnext__list">
+          {list.map((e) => (
+            <li class="reveal">
+              <a class="upnext__row" href={localePath(lang, `/timeline#ev-${e.slug}`)}>
+                <time class="upnext__date" datetime={e.start.toISOString()}>
+                  <b>{fmtRiyadh(e.start, { day: 'numeric' }, locale)}</b>
+                  <span>{fmtRiyadh(e.start, { month: 'short' }, locale)}</span>
+                </time>
+                <span class="upnext__body">
+                  <span class="upnext__title" dir="auto">
+                    {trContent(lang, e.title)}
+                  </span>
+                  <span class="upnext__meta mono">
+                    {[
+                      fmtRiyadh(e.start, { weekday: 'short' }, locale),
+                      e.allDay ? '' : fmtRiyadh(e.start, { hour: 'numeric', minute: '2-digit' }, locale),
+                      e.location,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </span>
+                <span class="upnext__go mono">
+                  {e.registrationOpen ? t(lang, 'home.upReserve') : t(lang, 'home.upView')} <span aria-hidden="true">→</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
