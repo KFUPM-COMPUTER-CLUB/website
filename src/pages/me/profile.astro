@@ -149,7 +149,7 @@ const providers: string[] = (user?.identities || []).map((i: any) => i.provider)
   <div class="card" style="margin-top:16px">
     <h2 class="h3">Delete my account</h2>
     <p class="hint">
-      Removes your profile, drafts, posts and reservations. Published posts are removed too. This cannot be undone.
+      Removes your profile, posts (published ones too), drafts, photos and reservations. This cannot be undone.
     </p>
     <form data-astro-reload class="inline-form" method="post" action="/api/me/delete">
       <input class="input" name="confirm" placeholder='type "delete"' style="max-width:200px" required />

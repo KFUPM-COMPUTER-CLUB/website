@@ -244,13 +244,22 @@ export async function publishPostMedia(postId: string) {
 export async function deletePostMedia(postId: string) {
   const sb = serviceClient();
   const { data: rows } = await sb.from('media').select('*').eq('post_id', postId);
-  for (const m of rows || []) {
-    const paths = Object.values(m.sizes as Record<string, string>)
+  await removeStoredFiles(rows || []);
+  await sb.from('media').delete().eq('post_id', postId);
+}
+/* The Storage objects behind media rows: every size, plus the 2400px "original" of a public image. */
+export async function removeStoredFiles(rows: { sizes: unknown; bucket?: string; kind?: string; path?: string }[]) {
+  const sb = serviceClient();
+  for (const m of rows) {
+    const paths = Object.values((m.sizes || {}) as Record<string, string>)
       .map((v) =>
         v.startsWith('http') ? v.split('/storage/v1/object/public/')[1]?.replace(/^(media|files)\//, '') : v,
       )
       .filter(Boolean) as string[];
-    await sb.storage.from(m.bucket === 'drafts' ? 'drafts' : m.kind === 'pdf' ? 'files' : 'media').remove(paths);
+    if (m.bucket !== 'drafts' && m.path?.startsWith('media/')) paths.push(m.path.slice('media/'.length));
+    if (paths.length)
+      await sb.storage
+        .from(m.bucket === 'drafts' ? 'drafts' : m.kind === 'pdf' ? 'files' : 'media')
+        .remove([...new Set(paths)]);
   }
-  await sb.from('media').delete().eq('post_id', postId);
 }
