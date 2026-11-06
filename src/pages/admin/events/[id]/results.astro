@@ -48,7 +48,7 @@ const open = hasResults(ev.type);
     </a>
   </p>
   <p class="hint">
-    Give a place, an award (like "Best design"), or both, then name a member by their handle, a team, or both. An award without a place earns no points unless you type some. A member earns the points once for this event (the best placing
+    Name a member by their handle, a team, or both. A member earns the points once for this event (the best placing
     counts); a team alone earns none. Leave points empty for the default ({placePoints(1)} for 1st, {placePoints(2)}
     for 2nd, {placePoints(3)} for 3rd, {placePoints(4)} after) or type 0 for none. Do not also award these on the points
     page. Results show on the timeline once the event is past.
@@ -212,7 +212,7 @@ const open = hasResults(ev.type);
           <input class="input" id="new-place" name="place" type="number" min="1" max="99" value={next} />
         </div>
         <div class="field">
-          <label for="new-award">Award (optional, like "Best design")</label>
+          <label for="new-award">Award (no points unless typed)</label>
           <input class="input" id="new-award" name="award" maxlength="60" placeholder="Best idea" />
         </div>
         <div class="field">

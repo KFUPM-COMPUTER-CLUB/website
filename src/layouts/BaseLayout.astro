@@ -35,6 +35,8 @@ const fullTitle = `${title} · ${site.name}`;
 // Link previews need absolute URLs. They come from Astro.url, not Astro.site, so a preview deployment
 // points at its own copy of the image. The query string is dropped (/blog?tag=x previews as /blog).
 const pageUrl = new URL(Astro.url.pathname, Astro.url);
+// The Arabic letters of the logo on every page; a separate request, since text= trims every family in a request.
+const logoFont = `https://fonts.googleapis.com/css2?family=Alexandria:wght@500&text=${encodeURIComponent('نادي الحاسب الآلي')}&display=swap`;
 const preview = image?.src ? image : { src: ogCard.src, width: ogCard.width, height: ogCard.height };
 const ogImage = new URL(preview.src, Astro.url);
 // Tell search engines that /xxx and /ar/xxx are the same page in two languages, so the Arabic pages get
@@ -96,14 +98,7 @@ const alternates =
       rel="stylesheet"
       href={`https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,200..900&family=Hubot+Sans:wght@300..700&family=JetBrains+Mono:wght@400..700${Astro.currentLocale === 'ar' ? '&family=Alexandria:wght@300..800' : ''}&display=swap`}
     />
-    {
-      Astro.currentLocale !== 'ar' && (
-        <link
-          rel="stylesheet"
-          href={`https://fonts.googleapis.com/css2?family=Alexandria:wght@500&text=${encodeURIComponent('نادي الحاسب الآلي')}&display=swap`}
-        />
-      )
-    }
+    <link rel="stylesheet" href={logoFont} />
   </head>
   <body>
     <div class="scroll-progress" aria-hidden="true">
