@@ -1,6 +1,9 @@
 # Deployment to Vercel from GitHub Actions.
 #   Pull request  -> preview deployment, with the URL posted as a comment on the pull request
-#   Push to main  -> production deployment
+#   Push to main  -> production deployment. When the push changes supabase/migrations (or the migrate
+#                    script or workflow), the migrate job runs first and the deploy waits for it, so new
+#                    code never goes live against a database without its new columns; a failed migrate
+#                    stops the deploy. A push without migrations deploys straight away.
 #
 # Requires one repository secret: VERCEL_TOKEN (Settings -> Secrets and variables -> Actions).
 # If package.json or the secret is missing, the job skips with a notice instead of failing.
@@ -16,9 +19,10 @@ permissions:
   contents: read
   pull-requests: write
 
+# A newer preview replaces an older one; production runs are never cancelled, so a migrate is never cut off.
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -26,7 +30,44 @@ env:
   VERCEL_TELEMETRY_DISABLED: 1
 
 jobs:
+  # Did this push to main touch the database? Compares the push's first and last commit; when that is not
+  # possible (a new branch, a force push) it says yes, since migrate only applies what is new anyway.
+  changes:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      migrations: ${{ steps.diff.outputs.migrations }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Look for migration changes
+        id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if ! files=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" 2>/dev/null); then
+            echo "::notice::Could not compare with the previous commit; running migrate to be safe."
+            echo "migrations=true" >> "$GITHUB_OUTPUT"
+          elif echo "$files" | grep -qE '^(supabase/migrations/|scripts/migrate\.sh$|\.github/workflows/migrate\.yml$)'; then
+            echo "migrations=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "migrations=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  migrate:
+    needs: changes
+    if: needs.changes.outputs.migrations == 'true'
+    uses: ./.github/workflows/migrate.yml
+    secrets: inherit
+
   deploy:
+    # Waits for migrate when it runs; goes ahead when it was skipped (no migrations, or a pull request).
+    needs: [changes, migrate]
+    if: >-
+      always() && !cancelled() &&
+      (needs.changes.result == 'success' || needs.changes.result == 'skipped') &&
+      (needs.migrate.result == 'success' || needs.migrate.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

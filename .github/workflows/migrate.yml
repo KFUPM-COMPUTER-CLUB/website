@@ -1,5 +1,7 @@
-# Applies new database migrations to the Supabase project on every merge to main, and by hand from
-# the Actions tab. See scripts/migrate.sh for what "applies" means.
+# Applies new database migrations to the Supabase project. deploy.yml calls it on a merge to main that
+# changes supabase/migrations, scripts/migrate.sh or this file, and the production deploy waits for it
+# (a failed migrate stops the deploy). It also runs by hand from the Actions tab. See scripts/migrate.sh
+# for what "applies" means.
 #
 # Requires one repository secret: SUPABASE_DB_URL, the "Session pooler" connection string from
 # Supabase -> Connect (Settings -> Secrets and variables -> Actions). If the secret is missing the
@@ -10,24 +12,20 @@
 name: migrate
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'supabase/migrations/**'
-      - 'scripts/migrate.sh'
-      - '.github/workflows/migrate.yml'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: migrate
-  cancel-in-progress: false
-
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    # One run at a time, never cancelled half way: a migration that stops part-way is rolled back and
+    # retried, but there is no reason to make it.
+    concurrency:
+      group: migrate
+      cancel-in-progress: false
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
     steps:
