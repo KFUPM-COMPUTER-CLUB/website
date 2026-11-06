@@ -34,21 +34,18 @@ const indent = /^\s*/.exec(shown[at] ?? shown[at - 1] ?? '')?.[0] ?? '';
 shown.splice(at, 0, `${indent}${HINT}`);
 const code = [`// ${path.replace(/^\.\.\//, 'src/')}`, ...shown].join('\n');
 
-/* Tokens split on newlines into lines of [type, text], so each line is its own element (for the fade-in). */
-const lines: [string, string][][] = [[]];
+/* One <span> per line (for the fade-in), built as escaped HTML: tokens are split on newlines, so a block
+ * comment over several lines still colours each of them. */
+const esc = (v: string) => v.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string);
+const lines: string[] = [''];
 for (const [type, value] of tokenize(code)) {
   value.split('\n').forEach((part: string, i: number) => {
-    if (i > 0) lines.push([]);
-    if (part) lines[lines.length - 1].push([type, part]);
+    if (i > 0) lines.push('');
+    if (part)
+      lines[lines.length - 1] += type === 'plain' ? esc(part) : `<span class="tok tok--${type}">${esc(part)}</span>`;
   });
 }
+const html = lines.map((l, i) => `<span class="codebg__line" style="--i:${i}">${l}\n</span>`).join('');
 ---
 
-<pre class="codebg" aria-hidden="true">{
-  lines.map((line, i) => (
-    <span class="codebg__line" style={`--i:${i}`}>
-      {line.map(([type, value]) => (type === 'plain' ? value : <span class={`tok tok--${type}`}>{value}</span>))}
-      {'\n'}
-    </span>
-  ))
-}</pre>
+<pre class="codebg" aria-hidden="true" set:html={html} />
