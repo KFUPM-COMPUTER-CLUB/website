@@ -53,6 +53,9 @@
     "typescript-eslint": "^8.72.0"
   },
   "overrides": {
-    "path-to-regexp@6": "^6.3.0"
+    "path-to-regexp@6": "^6.3.0",
+    "@vercel/cli-config": {
+      "zod": "^4.6.6"
+    }
   }
 }
