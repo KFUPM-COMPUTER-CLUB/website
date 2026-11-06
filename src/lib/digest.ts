@@ -49,11 +49,17 @@ export const postsSince = <T extends Pick<PostSummary, 'date'>>(posts: T[], sinc
     .filter((p) => p.date.getTime() > since.getTime() && p.date.getTime() <= now.getTime())
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
-/* The Sunday that starts the Riyadh week `now` falls in (the Saudi week runs Sunday to Saturday), as
- * YYYY-MM-DD. It is the primary key of digest_runs, so one week gets one digest. */
+/* The weekly cron fires on Saturday at 21:00 in Riyadh. A run belongs to the latest Saturday slot that has
+ * started, counted from 18:00 so a cron that fires a little early still lands in its own week. */
+const SLOT_MS = (6 * 24 + 18) * 3_600_000; // Saturday 18:00, measured from Sunday 00:00
+/* The week a digest run belongs to, as YYYY-MM-DD: the Sunday that starts the Riyadh week (Sunday to
+ * Saturday) of the latest Saturday slot at or before `now`. It is the primary key of digest_runs, so one
+ * week gets one digest. A run by hand after a failed Saturday, on Sunday to Friday, therefore claims the
+ * week whose slot just passed, and the next Saturday's cron still has its own week to claim. */
 export const digestWeek = (now: Date): string => {
   const local = new Date(now.getTime() + RIYADH_OFFSET_MS); // Riyadh wall clock, read with the UTC getters
-  const sunday = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - local.getUTCDay());
+  let sunday = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - local.getUTCDay());
+  if (local.getTime() - sunday < SLOT_MS) sunday -= 7 * DAY_MS; // this week's slot has not come yet
   return new Date(sunday).toISOString().slice(0, 10);
 };
 

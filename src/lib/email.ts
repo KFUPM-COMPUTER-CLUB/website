@@ -555,8 +555,10 @@ async function digestMembers(sb: ReturnType<typeof serviceClient>): Promise<Dige
   }
 }
 
-/* Called by /api/cron/weekly with the published events and posts from content.ts. One run per Riyadh
- * week: the run first claims the week in digest_runs, so a retry or a second call queues nothing.
+/* Called by /api/cron/weekly with the published events and posts from content.ts. One run per Saturday
+ * slot: the run first claims the week of the latest slot in digest_runs (digestWeek in digest.ts), so a
+ * retry or a second call queues nothing, and a run by hand after a failed Saturday does not take the next
+ * Saturday's week.
  * Nothing is queued either when there are no events in the next two weeks and no posts since the last
  * digest. Otherwise it queues one message per opted-in member at the lowest priority and sends none
  * itself: the daily cron delivers them after everything more urgent, and what does not fit in a day's
