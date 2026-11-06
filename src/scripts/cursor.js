@@ -1,5 +1,5 @@
 /* Flowing lines that trail the pointer. Twenty springy strands, each a chain of nodes that
- * follows the one before it, drawn as smooth curves in the club blue with a slow hue drift.
+ * follows the one before it, drawn as smooth curves in the headline's blue.
  * Home page first screen only. Desktop pointers only; off under reduced motion; paused while the tab is hidden. */
 import { onPage, reduceMotion, finePointer, listen, bag } from './page.js';
 
@@ -14,9 +14,14 @@ onPage(() => {
   c.setAttribute('aria-hidden', 'true');
   document.body.appendChild(c);
   const ctx = c.getContext('2d');
+  // Drawn at the screen's pixel density (up to 2x) so the strands stay sharp.
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
   const fit = () => {
-    c.width = innerWidth;
-    c.height = innerHeight;
+    c.width = Math.round(innerWidth * dpr);
+    c.height = Math.round(innerHeight * dpr);
+    c.style.width = `${innerWidth}px`;
+    c.style.height = `${innerHeight}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
   fit();
   off.add(listen(window, 'resize', fit));
@@ -25,13 +30,6 @@ onPage(() => {
   let started = false,
     hidden = false,
     dead = false;
-  const hue = {
-    phase: Math.random() * Math.PI * 2,
-    update() {
-      this.phase += 0.0015;
-      return 218 + Math.sin(this.phase) * 12;
-    },
-  };
 
   class Line {
     constructor(spring) {
@@ -77,7 +75,6 @@ onPage(() => {
     }
   }
   const lines = Array.from({ length: S.trails }, (_, i) => new Line(0.45 + (i / S.trails) * 0.025));
-  const isLight = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t') || '0') < 0.5;
 
   off.add(
     listen(
@@ -109,7 +106,6 @@ onPage(() => {
   // The loop only runs while the first screen is on screen; the canvas hides while it is stopped.
   let inView = true,
     heroH = hero.offsetHeight;
-  const light = isLight();
   off.add(listen(window, 'resize', () => (heroH = hero.offsetHeight)));
   const seen = new IntersectionObserver(([e]) => {
     const was = inView;
@@ -120,16 +116,26 @@ onPage(() => {
   seen.observe(hero);
   off.add(() => seen.disconnect());
 
+  const toRgb = (v) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(v.trim());
+    return m ? [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)) : [59, 130, 246];
+  };
+  let blue = [59, 130, 246],
+    frame = 0;
+  const readBlue = () => {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--play-hl');
+    blue = v ? toRgb(v) : [59, 130, 246];
+  };
+
   const tick = () => {
     if (hidden || dead || !inView) return;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
     const vis = Math.min(1, Math.max(0, 1 - window.scrollY / (heroH * 0.7)));
+    if (frame++ % 60 === 0) readBlue();
     if (started && vis > 0) {
-      const h = Math.round(hue.update());
-      ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
-      ctx.strokeStyle = light ? `hsla(${h}, 85%, 48%, ${0.22 * vis})` : `hsla(${h}, 90%, 62%, ${0.2 * vis})`;
-      ctx.lineWidth = 1;
+      // The blue of "build the future" (it follows the icon box's blue), light and see-through.
+      ctx.strokeStyle = `rgba(${blue.join(', ')}, ${0.26 * vis})`;
+      ctx.lineWidth = 1.15;
       for (const l of lines) {
         l.update();
         l.draw();
