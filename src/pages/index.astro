@@ -10,6 +10,7 @@ import Stories from '../components/Stories.astro';
 import PhotoMoment from '../components/PhotoMoment.astro';
 import BackToTop from '../components/BackToTop.astro';
 import HeroCode from '../components/HeroCode.astro';
+import IconEditor from '../components/IconEditor.astro';
 import { iconSvg } from '../scripts/hero-icon.js';
 import UpcomingEvents from '../components/UpcomingEvents.astro';
 import HomeHighlights from '../components/HomeHighlights.astro';
@@ -74,6 +75,7 @@ const stageTabs = [
   <section class="screen screen--one bg-white" data-bg="#FFFFFF" data-hero>
     <HeroCode />
     <div class="container screen__inner" data-hero-inner>
+      <IconEditor />
       <div class="hero__icon" role="img" aria-label={site.name} data-hero-icon set:html={iconSvg()} />
       <h1 class="h-display hero__title">
         {heroHead} <span class="hl">{heroTail}</span>
@@ -86,7 +88,7 @@ const stageTabs = [
   </section>
 
   <!-- Screen 2: CC x KFUPM pinned in the top half; the block under it steps between the photo strip and the moments -->
-  <section class="screen screen--two bg-navy" data-bg="#0B1A33" data-stage>
+  <section class="screen screen--two bg-white" data-bg="#FFFFFF" data-stage>
     <Collage />
     <div class="stage__anchor" aria-hidden="true"></div>
     <div class="stage">
@@ -139,7 +141,7 @@ const stageTabs = [
   <HomeHighlights post={view.featured} leaders={view.leaders} />
 
   <!-- Join -->
-  <section class="section join bg-black" data-bg="#0B0B0F" id="join">
+  <section class="section join bg-white" data-bg="#FFFFFF" id="join">
     <div class="container join__inner reveal">
       <h2 class="h1">{lang === 'ar' ? t(lang, 'home.buildTitle') : home.buildWithUs.title}</h2>
       <p class="lead lead--muted">{lang === 'ar' ? t(lang, 'home.buildText') : home.buildWithUs.text}</p>
