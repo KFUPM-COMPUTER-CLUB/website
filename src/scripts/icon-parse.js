@@ -4,6 +4,7 @@
  * setting's last good value). Lines outside the block are the drawing code and are left alone. Plain
  * JavaScript with no imports from the page, so tests/hero-icon.test.ts runs it under node. */
 import { ICON, RULES } from './hero-icon.js';
+import { highlight } from './code-tokens.js';
 
 const strip = (line) => {
   let q = '';
@@ -59,4 +60,17 @@ export function parseIcon(code, isColor = hex) {
       settings[key] = x;
     });
   return { settings, errors };
+}
+
+/* Where the ICON block sits in the code (0-based first line, number of lines, from the line that opens it to
+ * the one that closes it) and its lines as coloured HTML, for the box that marks it on the first screen.
+ * { start: 0, lines: 0, html: '' } when there is no block. */
+export function iconBlock(code) {
+  const all = String(code ?? '').split('\n');
+  const start = all.findIndex((l) => /^\s*(export\s+)?(const|let|var)\s+ICON\s*=\s*\{\s*$/.test(strip(l)));
+  if (start < 0) return { start: 0, lines: 0, html: '' };
+  let end = start + 1;
+  while (end < all.length && !/^\s*\}\s*;?\s*$/.test(strip(all[end]))) end++;
+  end = Math.min(end, all.length - 1);
+  return { start, lines: end - start + 1, html: highlight(all.slice(start, end + 1).join('\n')) };
 }

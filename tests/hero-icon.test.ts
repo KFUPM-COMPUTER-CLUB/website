@@ -60,3 +60,16 @@ test('icon: limits, unknown keys, quotes; the drawing code below the block is le
     [2, 3, 4, 5],
   );
 });
+
+test('icon: the box marks exactly the ICON block, and follows it when lines are added', async () => {
+  const { iconBlock } = await import('../src/scripts/icon-parse.js');
+  const code = `// header\n${source}`;
+  const lines = code.split('\n');
+  const b = iconBlock(code);
+  assert.match(lines[b.start], /export const ICON = \{/);
+  assert.match(lines[b.start + b.lines - 1], /^\};$/);
+  assert.match(b.html, /tok--prop">blue</);
+  const longer = code.replace("  line: '#FFFFFF',", "  line: '#FFFFFF',\n  // a note");
+  assert.equal(iconBlock(longer).lines, b.lines + 1);
+  assert.deepEqual(iconBlock('nothing here'), { start: 0, lines: 0, html: '' });
+});

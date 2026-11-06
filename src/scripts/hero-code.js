@@ -6,7 +6,7 @@
 import { onPage, listen, bag } from './page.js';
 import { highlight } from './code-tokens.js';
 import { iconSvg, ICON } from './hero-icon.js';
-import { parseIcon } from './icon-parse.js';
+import { iconBlock, parseIcon } from './icon-parse.js';
 
 const isColor = (v) => typeof CSS !== 'undefined' && CSS.supports('color', v);
 
@@ -17,6 +17,8 @@ onPage(() => {
   const hl = root?.querySelector('[data-herocode-hl]');
   const status = root?.querySelector('[data-herocode-status]');
   const icon = document.querySelector('[data-hero-icon]');
+  const box = root?.querySelector('[data-herocode-box]');
+  const boxCode = root?.querySelector('[data-herocode-boxcode]');
   if (!root || !hero || !input || !hl) return;
   const off = bag();
   const hint = status?.textContent.trim() || '';
@@ -25,6 +27,14 @@ onPage(() => {
 
   const render = () => {
     hl.innerHTML = `${highlight(input.value)}\n`;
+    // The box follows the ICON block as lines are added or removed inside it.
+    const b = iconBlock(input.value);
+    if (box && boxCode) {
+      box.hidden = !b.lines;
+      box.style.setProperty('--l0', String(b.start));
+      box.style.setProperty('--ln', String(b.lines));
+      boxCode.innerHTML = b.html;
+    }
     const { settings: s, errors } = parseIcon(input.value, isColor);
     for (const e of errors) if (e.key && e.key in last) s[e.key] = last[e.key];
     last = { ...s };
@@ -43,10 +53,16 @@ onPage(() => {
       root.style.setProperty('--mx', `${e.clientX - r.left}px`);
       root.style.setProperty('--my', `${e.clientY - r.top}px`);
       root.classList.add('is-lit');
+      // The textarea is on top, so the box's hover is worked out from the pointer.
+      if (box) {
+        const k = box.getBoundingClientRect();
+        const hot = e.clientX >= k.left && e.clientX <= k.right && e.clientY >= k.top && e.clientY <= k.bottom;
+        root.classList.toggle('is-box-hot', hot);
+      }
     });
   };
   off.add(listen(hero, 'pointermove', move, { passive: true }));
-  off.add(listen(hero, 'pointerleave', () => root.classList.remove('is-lit')));
+  off.add(listen(hero, 'pointerleave', () => root.classList.remove('is-lit', 'is-box-hot')));
   off.add(listen(input, 'focus', () => root.classList.add('is-editing')));
   off.add(
     listen(input, 'blur', () => {
@@ -58,6 +74,7 @@ onPage(() => {
     listen(input, 'input', () => {
       render();
       hl.scrollTop = input.scrollTop;
+      if (box) box.style.transform = `translateY(${-input.scrollTop}px)`;
     }),
   );
   off.add(

@@ -65,6 +65,7 @@
   "home.partner": "Partner with us",
   "home.iconCode": "The code that draws the club icon, editable",
   "home.iconHint": "This is the code behind the icon. Click it and change blue.",
+  "home.iconTag": "edit me · draws the icon",
   "home.upEyebrow": "Coming up",
   "home.upTitle": "Next at the club",
   "home.upAll": "All events",
