@@ -15,7 +15,7 @@ const site = {
 };
 import CopyEmail from './CopyEmail.astro';
 
-import { t, localePath, type Lang } from '../lib/i18n';
+import { t, basePath, localePath, type Lang } from '../lib/i18n';
 const lang = (Astro.currentLocale ?? 'en') as Lang;
 
 const isReal = (value: unknown) => typeof value === 'string' && value.length > 0 && !value.includes('REPLACE');
@@ -51,7 +51,7 @@ const follow = Object.entries(icons)
   .map(([key, i]) => ({ href: site.links[key], ...i }));
 const makers = site.madeBy ?? [];
 // The credit shows on the home and officers pages only; blog, timeline and questions pages keep the rest of the footer.
-const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const path = basePath(Astro.url.pathname).replace(/\/+$/, '') || '/';
 const showCredit = !/^\/(blog|timeline|faq)(\/|$)/.test(path);
 const contributorsUrl = site.contributorsUrl || 'https://github.com/KFUPM-COMPUTER-CLUB/website';
 const year = new Date().getFullYear();
