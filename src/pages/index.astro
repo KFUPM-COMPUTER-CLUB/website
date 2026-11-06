@@ -12,6 +12,7 @@ import BackToTop from '../components/BackToTop.astro';
 import HeroCode from '../components/HeroCode.astro';
 import IconEditor from '../components/IconEditor.astro';
 import { iconSvg } from '../scripts/hero-icon.js';
+import { esc } from '../scripts/code-tokens.js';
 import UpcomingEvents from '../components/UpcomingEvents.astro';
 import HomeHighlights from '../components/HomeHighlights.astro';
 import {
@@ -62,8 +63,10 @@ const ext = (href: string) => (href.startsWith('http') ? { target: '_blank', rel
 // The last two words of the hero line are highlighted.
 const heroLine = lang === 'ar' ? t(lang, 'home.hero') : home.heroLine;
 const words = heroLine.trim().split(/\s+/);
-const heroHead = words.slice(0, -2).join(' ');
-const heroTail = words.slice(-2).join(' ');
+// Each word is its own span so the line can rise in word by word.
+const wordSpans = (list: string[], from: number) =>
+  list.map((w, i) => `<span class="w" style="--i:${from + i}">${esc(w)}</span>`).join(' ');
+const heroHtml = `${wordSpans(words.slice(0, -2), 0)} <span class="hl">${wordSpans(words.slice(-2), Math.max(0, words.length - 2))}</span>`;
 const stageTabs = [
   { label: t(lang, 'home.moments'), key: 'home.moments' as const },
   { label: t(lang, 'home.inPictures'), key: 'home.inPictures' as const },
@@ -77,9 +80,7 @@ const stageTabs = [
     <div class="container screen__inner" data-hero-inner>
       <IconEditor />
       <div class="hero__icon" role="img" aria-label={site.name} data-hero-icon set:html={iconSvg()} />
-      <h1 class="h-display hero__title">
-        {heroHead} <span class="hl">{heroTail}</span>
-      </h1>
+      <h1 class="h-display hero__title" set:html={heroHtml} />
     </div>
     <div class="scroll-hint" aria-hidden="true">
       <span class="mono">{t(lang, 'home.scroll')}</span>
