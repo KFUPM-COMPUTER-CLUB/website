@@ -171,7 +171,9 @@ export function whatsappList(groups: Group[], site = siteUrl): string {
     ? `<ul style="margin:0 0 16px;padding-left:20px">${items.join('')}</ul>`
     : `<p>The group links are on your <a href="${escapeHtml(site)}/me" style="color:#2563EB">member page</a>.</p>`;
 }
-const greet = (p: ProfileLike) => (p?.name || '').trim() || (p?.handle || '').trim() || 'there';
+/* "Hi Adib": the first name when the profile has one (0018_name_parts.sql), else the full name or handle. */
+const greet = (p: ProfileLike) =>
+  (p?.first_name || '').trim() || (p?.name || '').trim() || (p?.handle || '').trim() || 'there';
 const isEmail = (v: unknown): v is string => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 500);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -267,6 +269,9 @@ async function count(sb: ReturnType<typeof serviceClient>, where: (q: any) => an
  *  - a row is claimed by bumping attempts just before the send, so two overlapping runs cannot both send it;
  *  - success: status sent, sent_at, written straight after the send; failure: error kept, retried tomorrow,
  *    failed for good after MAX_ATTEMPTS;
+ *  - a setup error (isRunLevel: key, sender, domain, account quota) stops the run at the first row, which
+ *    keeps its attempts, and leaves everything queued (stopped: "config"), so fixing the setup is enough;
+ *    rows that did end up failed go back to the queue with requeueFailed();
  *  - when today's budget is used up, every row still due today rolls to tomorrow.
  * Without a database or Resend the queue is left untouched. */
 async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
@@ -313,6 +318,19 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
           .select('id');
         if (!claimed?.length) continue; // another run took it
         const failure = await deliver(resend, row);
+        if (failure?.runLevel) {
+          // The setup is wrong, not this message: give the claim back and stop. Nothing after it is tried, so
+          // a week of bad configuration cannot turn the whole queue into "failed".
+          await sb
+            .from('email_queue')
+            .update({ attempts: row.attempts || 0, error: failureText(failure) })
+            .eq('id', row.id);
+          out.held = rows.length - i;
+          out.stopped = 'config';
+          out.error = failureText(failure);
+          console.error(`email run stopped: ${failureText(failure)}`);
+          break;
+        }
         if (!failure) {
           const { error: markError } = await sb
             .from('email_queue')
@@ -329,13 +347,13 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
           await sb
             .from('email_queue')
             .update({
-              error: failure,
+              error: failureText(failure),
               status: final ? 'failed' : 'queued',
               ...(final ? {} : { scheduled_for: b.tomorrow }),
             })
             .eq('id', row.id);
           out.failed++;
-          console.error(`email ${row.id} attempt ${attempts}: ${failure}`);
+          console.error(`email ${row.id} attempt ${attempts}: ${failureText(failure)}`);
         }
       }
     }
@@ -354,23 +372,41 @@ async function drain(max: number): Promise<SendResult & { sentIds: string[] }> {
     return { ...out, error: errorText(e) };
   }
 }
-/* One Resend call. Returns null on success, else a short error text. A rate-limit reply is retried once after a pause. */
-async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<string | null> {
+/* Resend errors that are about the setup, not the message: a missing or revoked key, an unverified domain
+ * or a missing EMAIL_FROM (validation_error, unless it names the `to` field), the account's own quota.
+ * Every row would fail the same way, so they stop the run instead of using up the rows' attempts. */
+const RUN_LEVEL = new Set([
+  'missing_api_key',
+  'invalid_api_key',
+  'restricted_api_key',
+  'validation_error',
+  'daily_quota_exceeded',
+  'monthly_quota_exceeded',
+]);
+type Failure = { name: string; message: string; runLevel: boolean };
+export const isRunLevel = (name: string, message: string) =>
+  RUN_LEVEL.has(name) && !(name === 'validation_error' && /`to`/.test(message));
+const failureText = (f: Failure) => `${f.name}: ${f.message}`.slice(0, 500);
+/* One Resend call. Returns null on success, else what went wrong. A rate-limit reply is retried once after a
+ * pause. The row id is the idempotency key: if Resend accepted a message but the reply was lost (a network
+ * error, or the platform ending the function), the next run's send of that row is dropped by Resend for 24
+ * hours instead of reaching the member twice. */
+async function deliver(resend: Resend, row: QueueRow, retried = false): Promise<Failure | null> {
   try {
-    const { error } = await resend.emails.send({
-      from: emailFrom,
-      to: row.to_email,
-      subject: row.subject,
-      html: row.html,
-    });
+    const { error } = await resend.emails.send(
+      { from: emailFrom, to: row.to_email, subject: row.subject, html: row.html },
+      { idempotencyKey: `email_queue/${row.id}` },
+    );
     if (!error) return null;
     if (error.name === 'rate_limit_exceeded' && !retried) {
       await sleep(1_200);
       return deliver(resend, row, true);
     }
-    return `${error.name}: ${error.message}`.slice(0, 500);
+    const name = String(error.name || 'error');
+    const message = String(error.message || '');
+    return { name, message, runLevel: isRunLevel(name, message) };
   } catch (e) {
-    return errorText(e);
+    return { name: 'error', message: errorText(e), runLevel: false };
   }
 }
 
@@ -412,6 +448,18 @@ export async function quota(): Promise<Quota> {
   }
 }
 
+/* Puts every failed message back in the queue for today, with its attempts reset, for /admin after a
+ * setup problem is fixed. Returns how many. Throws on a database error. */
+export async function requeueFailed(): Promise<number> {
+  if (!serviceReady()) return 0;
+  const { count: n, error } = await serviceClient()
+    .from('email_queue')
+    .update({ status: 'queued', attempts: 0, error: null, scheduled_for: riyadhBounds().today }, { count: 'exact' })
+    .eq('status', 'failed');
+  if (error) throw new Error(error.message);
+  return n || 0;
+}
+
 /* A daily write that keeps a free Supabase project from pausing for inactivity (they pause after about a week without traffic). */
 export async function pingKeepAlive(): Promise<boolean> {
   if (!serviceReady()) return false;
@@ -427,7 +475,10 @@ export async function pingKeepAlive(): Promise<boolean> {
 
 /* ── The three messages the site sends ───────────────────────────────────── */
 
-type ProfileLike = { email?: string | null; name?: string | null; handle?: string | null } | null | undefined;
+type ProfileLike =
+  | { email?: string | null; name?: string | null; first_name?: string | null; handle?: string | null }
+  | null
+  | undefined;
 type PostLike = { title?: string | null; author_name?: string | null; authorName?: string | null } | null | undefined;
 type EventLike =
   | {
@@ -555,8 +606,10 @@ async function digestMembers(sb: ReturnType<typeof serviceClient>): Promise<Dige
   }
 }
 
-/* Called by /api/cron/weekly with the published events and posts from content.ts. One run per Riyadh
- * week: the run first claims the week in digest_runs, so a retry or a second call queues nothing.
+/* Called by /api/cron/weekly with the published events and posts from content.ts. One run per Saturday
+ * slot: the run first claims the week of the latest slot in digest_runs (digestWeek in digest.ts), so a
+ * retry or a second call queues nothing, and a run by hand after a failed Saturday does not take the next
+ * Saturday's week.
  * Nothing is queued either when there are no events in the next two weeks and no posts since the last
  * digest. Otherwise it queues one message per opted-in member at the lowest priority and sends none
  * itself: the daily cron delivers them after everything more urgent, and what does not fit in a day's
@@ -636,18 +689,29 @@ export async function queueDigest(events: DigestEvent[], posts: DigestPost[], no
   }
 }
 
-/* Turning the digest off (the unsubscribe link or the box on /me/profile) also drops the member's
- * digest that is queued but not sent, or it could still arrive after the page said it is off. Queue
- * rows carry the address, not the member, so pass every address the digest may have been queued to.
- * Throws on a database error so the caller does not report success. */
-export async function dropQueuedDigest(emails: (string | null | undefined)[]): Promise<void> {
+/* Drops unsent mail for a member. Queue rows carry the address, not the member, so pass every address
+ * mail may have been queued to (the profile email, the KFUPM email, the sign-in email). Without `kinds`
+ * every kind goes; `failed` rows are dropped too unless onlyQueued, since they still hold the name and
+ * address. Throws on a database error so the caller does not report success.
+ *   - Deleting or suspending an account drops everything still waiting for that member, or a digest,
+ *     welcome or reservation copy could go out after the account is gone (/api/me/delete, /admin/members).
+ *   - Turning the digest off (the unsubscribe link or the box on /me/profile) drops the queued digest. */
+export async function dropQueuedMail(
+  emails: (string | null | undefined)[],
+  { kinds, onlyQueued = false }: { kinds?: EmailKind[]; onlyQueued?: boolean } = {},
+): Promise<number> {
   const to = [...new Set(emails.filter(isEmail).map((e) => e.trim()))];
-  if (!serviceReady() || !to.length) return;
-  const { error } = await serviceClient()
+  if (!serviceReady() || !to.length) return 0;
+  let q = serviceClient()
     .from('email_queue')
-    .delete()
-    .eq('kind', 'digest')
-    .eq('status', 'queued')
+    .delete({ count: 'exact' })
+    .in('status', onlyQueued ? ['queued'] : ['queued', 'failed'])
     .in('to_email', to);
+  if (kinds?.length) q = q.in('kind', kinds);
+  const { count: n, error } = await q;
   if (error) throw new Error(error.message);
+  return n || 0;
 }
+export const dropQueuedDigest = async (emails: (string | null | undefined)[]): Promise<void> => {
+  await dropQueuedMail(emails, { kinds: ['digest'], onlyQueued: true });
+};

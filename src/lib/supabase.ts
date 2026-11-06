@@ -25,14 +25,20 @@ export const serviceClient = () => {
 /* Per-request client bound to the visitor's cookies, so auth.uid() is set in the database and the
  * read policies see the member (sign-in, /me, /admin, API routes). @supabase/ssr keeps the PKCE
  * verifier and refreshed tokens in cookies; setAll writes them back on the response, which is why
- * this needs the AstroCookies object and cannot be a shared singleton. */
+ * this needs the AstroCookies object and cannot be a shared singleton.
+ * The auth cookies hold the access and refresh tokens, and nothing in the browser reads them (there is no
+ * client-side Supabase client), so they are HttpOnly: a script on the page cannot lift the session. They
+ * are Secure on https (plain http stays usable for npm run dev) and SameSite=Lax, which still lets the
+ * OAuth redirect back from GitHub or Google carry the PKCE verifier. @supabase/ssr defaults to neither. */
 export function sessionClient(request: Request, cookies: AstroCookies) {
+  const secure = new URL(request.url).protocol === 'https:';
   return createServerClient(supabaseUrl, supabaseAnon, {
     cookies: {
       getAll: () =>
         parseCookieHeader(request.headers.get('cookie') ?? '').map((c) => ({ name: c.name, value: c.value ?? '' })),
       setAll: (list) => {
-        for (const { name, value, options } of list) cookies.set(name, value, { ...options, path: '/' });
+        for (const { name, value, options } of list)
+          cookies.set(name, value, { ...options, path: '/', httpOnly: true, secure, sameSite: 'lax' });
       },
     },
   });

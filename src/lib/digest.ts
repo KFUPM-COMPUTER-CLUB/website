@@ -17,7 +17,8 @@ export const SEND_BUDGET_MS = 40_000;
  * reservation copy sent during the day always has room, however many members take the digest. With
  * the daily limit of 90 that is at most 60 digests a day. */
 export const DIGEST_RESERVE = 30;
-export type SendStop = 'time' | 'reserve';
+/* 'config' is set by drain() in email.ts when a setup error (key, sender, domain) stopped the run. */
+export type SendStop = 'time' | 'reserve' | 'config';
 /* Whether a run may send its next row: null to go ahead, otherwise why it stops. `left` is the smaller
  * of what remains of the day's and the month's budget. Rows come in priority order with digests last,
  * so once a digest is held back everything after it is too. */
@@ -49,11 +50,17 @@ export const postsSince = <T extends Pick<PostSummary, 'date'>>(posts: T[], sinc
     .filter((p) => p.date.getTime() > since.getTime() && p.date.getTime() <= now.getTime())
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
-/* The Sunday that starts the Riyadh week `now` falls in (the Saudi week runs Sunday to Saturday), as
- * YYYY-MM-DD. It is the primary key of digest_runs, so one week gets one digest. */
+/* The weekly cron fires on Saturday at 21:00 in Riyadh. A run belongs to the latest Saturday slot that has
+ * started, counted from 18:00 so a cron that fires a little early still lands in its own week. */
+const SLOT_MS = (6 * 24 + 18) * 3_600_000; // Saturday 18:00, measured from Sunday 00:00
+/* The week a digest run belongs to, as YYYY-MM-DD: the Sunday that starts the Riyadh week (Sunday to
+ * Saturday) of the latest Saturday slot at or before `now`. It is the primary key of digest_runs, so one
+ * week gets one digest. A run by hand after a failed Saturday, on Sunday to Friday, therefore claims the
+ * week whose slot just passed, and the next Saturday's cron still has its own week to claim. */
 export const digestWeek = (now: Date): string => {
   const local = new Date(now.getTime() + RIYADH_OFFSET_MS); // Riyadh wall clock, read with the UTC getters
-  const sunday = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - local.getUTCDay());
+  let sunday = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - local.getUTCDay());
+  if (local.getTime() - sunday < SLOT_MS) sunday -= 7 * DAY_MS; // this week's slot has not come yet
   return new Date(sunday).toISOString().slice(0, 10);
 };
 

@@ -11,7 +11,8 @@
 .check { display: flex; align-items: center; gap: 10px; font-size: 15px; }
 .check input { width: 18px; height: 18px; accent-color: var(--blue-deep); }
 .form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 640px) { .form__row { grid-template-columns: 1fr; } }
+.form__row--3 { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 640px) { .form__row, .form__row--3 { grid-template-columns: 1fr; } }
 .form__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .form__error, .flash--error { padding: 12px 14px; border: 1px solid #F87171; color: #FCA5A5; background: rgba(248, 113, 113, 0.08); }
 .flash--ok { padding: 12px 14px; border: 1px solid var(--blue); background: var(--blue-soft); }

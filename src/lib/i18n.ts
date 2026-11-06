@@ -15,6 +15,11 @@ const dictionaries: Record<Lang, Partial<Record<Key, string>>> = { en, ar };
 export const t = (lang: Lang, key: Key): string => dictionaries[lang][key] ?? en[key];
 export const localePath = (lang: Lang, path: string): string =>
   lang === 'ar' ? `/ar${path === '/' ? '' : path}` : path;
+/* The page's path without the /ar prefix, the same for both languages. On Vercel an Arabic page's
+ * Astro.url.pathname keeps /ar (the fallback rewrite serves the English route under it), while the dev
+ * server may already show it without; this handles both, so localePath(other, basePath(...)) is always the
+ * same page in the other language. */
+export const basePath = (pathname: string): string => pathname.replace(/^\/ar(?=\/|$)/, '') || '/';
 /* The locale for formatting dates. Arabic month names on the Gregorian calendar: plain "ar-SA" would
  * switch to the Hijri calendar. */
 export const dateLocale = (lang: Lang | string | undefined): string => (lang === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB');

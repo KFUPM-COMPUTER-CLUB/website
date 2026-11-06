@@ -53,13 +53,29 @@ test('posts since: the previous run, or a week back before the first one', () =>
   assert.equal(digestSince('not a date', now).toISOString(), '2026-10-17T18:00:00.000Z');
 });
 
-test('week key: the Sunday that starts the Riyadh week', () => {
+test('week key: the Sunday that starts the week of the latest Saturday slot', () => {
   assert.equal(digestWeek(now), '2026-10-18');
-  // A cron that slips past midnight in Riyadh belongs to the next week.
-  assert.equal(digestWeek(new Date('2026-10-24T21:30:00.000Z')), '2026-10-25');
+  // A cron that slips past midnight in Riyadh still belongs to the Saturday it was for.
+  assert.equal(digestWeek(new Date('2026-10-24T21:30:00.000Z')), '2026-10-18');
   // Across a month end: Saturday 31 October, 23:00 in Riyadh.
   assert.equal(digestWeek(new Date('2026-10-31T20:00:00.000Z')), '2026-10-25');
-  assert.equal(digestWeek(new Date('2026-11-01T06:00:00.000Z')), '2026-11-01');
+  assert.equal(digestWeek(new Date('2026-11-01T06:00:00.000Z')), '2026-10-25');
+  // A cron a little early (Saturday 20:59 in Riyadh) is still that Saturday's run.
+  assert.equal(digestWeek(new Date('2026-10-24T17:59:00.000Z')), '2026-10-18');
+});
+
+test('week key: a run by hand on Sunday to Friday claims the week whose slot passed (#143)', () => {
+  // Saturday 24 October failed; the lead runs it by hand on Sunday 25 at 10:00 in Riyadh.
+  const sunday = new Date('2026-10-25T07:00:00.000Z');
+  assert.equal(digestWeek(sunday), '2026-10-18');
+  // The same on Friday 30 October, 22:00 in Riyadh.
+  assert.equal(digestWeek(new Date('2026-10-30T19:00:00.000Z')), '2026-10-18');
+  // Saturday 31 October's cron gets its own week, so it is not skipped.
+  const nextCron = new Date('2026-10-31T18:00:00.000Z');
+  assert.equal(digestWeek(nextCron), '2026-10-25');
+  assert.notEqual(digestWeek(nextCron), digestWeek(sunday));
+  // Earlier on that Saturday, before the slot, a run by hand still covers the previous week.
+  assert.equal(digestWeek(new Date('2026-10-31T09:00:00.000Z')), '2026-10-18');
 });
 
 test('unsubscribe token: works for its own member only', async () => {

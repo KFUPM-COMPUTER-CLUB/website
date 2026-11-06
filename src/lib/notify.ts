@@ -2,7 +2,8 @@
  * module out of a route's bundle until a message is actually sent, and the try/catch means a
  * failed email never fails the request (onboarding, registration, review) that triggered it.
  * Callers: the onboarding route, the event registration route, the post review route, the profile
- * route (a digest turned off), and the admin dashboard for the quota. */
+ * route (a digest turned off), account deletion and suspension (queued mail dropped), and the admin
+ * dashboard for the quota. */
 const mods = import.meta.glob('./email.ts');
 const email = async () => {
   const load = mods['./email.ts'];
@@ -39,6 +40,17 @@ export async function dropDigest(emails: (string | null | undefined)[]) {
   } catch (e) {
     console.error('drop digest', e);
   }
+}
+/* Unlike the rest, this one throws: deleting or suspending an account must not go ahead while mail for the
+ * member is still queued. */
+export async function dropMail(emails: (string | null | undefined)[]) {
+  const m = await email();
+  return ((await m?.dropQueuedMail?.(emails)) as number | undefined) ?? 0;
+}
+/* Failed messages back to the queue (/api/admin/email/requeue). Throws, so the admin sees a real error. */
+export async function requeueMail() {
+  const m = await email();
+  return ((await m?.requeueFailed?.()) as number | undefined) ?? 0;
 }
 export async function emailQuota() {
   try {

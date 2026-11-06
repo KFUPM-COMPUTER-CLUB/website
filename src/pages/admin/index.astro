@@ -6,6 +6,8 @@ import AdminLayout from '../../components/AdminLayout.astro';
 import { serviceClient } from '../../lib/supabase';
 import { emailQuota } from '../../lib/notify';
 import { fmtRiyadh } from '../../lib/content';
+import { atLeast } from '../../lib/types';
+const isAdmin = atLeast(Astro.locals.role, 'admin');
 const sb = serviceClient();
 const week = new Date(Date.now() - 7 * 864e5).toISOString();
 const [{ count: newMembers }, { count: members }, { count: pending }, { data: upcoming }, { count: regs }, quota] =
@@ -49,7 +51,8 @@ const [{ count: newMembers }, { count: members }, { count: pending }, { data: up
           <small style="font-size:14px;color:var(--muted)"> / {quota.dailyLimit}</small>
         </b>
         <span>
-          emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued
+          emails today · {quota.sentMonth} / {quota.monthlyLimit} this month · {quota.queued} queued · {quota.failed}{' '}
+          failed
           {!quota.configured && ' · sending off'}
         </span>
       </div>
@@ -60,6 +63,21 @@ const [{ count: newMembers }, { count: members }, { count: pending }, { data: up
       </div>
     )}
   </div>
+  {quota && quota.failed > 0 && (
+    <div class="flash--error" style="margin-top:16px">
+      <p>
+        {quota.failed} email{quota.failed === 1 ? '' : 's'} failed for good after three tries. When the cause was the
+        setup (a missing EMAIL_FROM, a revoked key, an unverified domain), fix it first; see docs/OPERATIONS.md.
+      </p>
+      {isAdmin && (
+        <form data-astro-reload method="post" action="/api/admin/email/requeue" style="margin-top:8px">
+          <button class="btn btn--small" type="submit">
+            Send failed emails again
+          </button>
+        </form>
+      )}
+    </div>
+  )}
   {quota && (quota.warnDaily || quota.warnMonthly) && (
     <p class="flash--error" style="margin-top:16px">
       Email is at 80% of its {quota.warnDaily ? 'daily' : 'monthly'} limit. The rest of the queue rolls to the next day

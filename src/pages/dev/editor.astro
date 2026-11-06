@@ -1,0 +1,27 @@
+---
+/* /dev/editor: the post editor with the sample post (src/lib/dev.ts); ?status=submitted shows it locked, as
+ * an author sees it under review. 404 outside npm run dev. */
+import MeLayout from '../../components/MeLayout.astro';
+import PostEditor from '../../components/PostEditor.astro';
+import { devOnly, devStore } from '../../lib/dev';
+if (!devOnly()) return new Response(null, { status: 404 });
+const status = Astro.url.searchParams.get('status') || devStore().post.status;
+const post = { ...devStore().post, status };
+const locked = !['draft', 'changes_requested'].includes(status);
+const notes = locked ? [{ comment: 'A sample reviewer note.', created_at: '2026-11-01T12:00:00.000Z' }] : [];
+---
+
+<MeLayout title={`${post.title} (test page)`}>
+  <PostEditor
+    post={post}
+    notes={notes}
+    locked={locked}
+    urls={{
+      save: '/dev/api/post',
+      upload: '/dev/api/upload',
+      preview: '/dev/preview',
+      submit: '/dev/api/submit',
+      delete: '/dev/api/post',
+    }}
+  />
+</MeLayout>

@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { handle, requireRole, readBody, ApiError, str, isUuid, wantsHtml, ok, audit } from '../../../../lib/api';
 import { serviceClient } from '../../../../lib/supabase';
 import { bust } from '../../../../lib/content';
+import { removeMemberContent } from '../../../../lib/account';
+import { dropMail } from '../../../../lib/notify';
 
 export const prerender = false;
 const ROLES = ['member', 'editor', 'reviewer', 'officer', 'admin'];
@@ -51,8 +53,9 @@ export const GET: APIRoute = handle(async (ctx) => {
 
 /* _action = role | committee | suspend | delete. An admin cannot suspend, delete or demote themselves, so the
  * club can never lock itself out; the first admins come from ADMIN_EMAILS anyway (see middleware).
- * Delete goes through Supabase Auth: removing the auth user cascades to the profile and from there
- * to roles and registrations. The audit entry is written first because the profile is gone after. */
+ * Delete removes the member's posts, drafts, photos and solver rows (lib/account.ts), then goes through
+ * Supabase Auth: removing the auth user cascades to the profile and from there to roles and
+ * registrations. The audit entry is written first because the profile is gone after. */
 export const POST: APIRoute = handle(async (ctx) => {
   const admin = requireRole(ctx, 'admin');
   const b = await readBody(ctx.request);
@@ -64,6 +67,8 @@ export const POST: APIRoute = handle(async (ctx) => {
   const { data: p } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
   if (!p) throw new ApiError('Not found.', 404);
   const back = `/admin/members?q=${encodeURIComponent(str(b.q, 60))}`;
+  // Every address mail may have been queued to: profile, KFUPM and sign-in email.
+  const addresses = async () => [p.email, p.kfupm_email, (await sb.auth.admin.getUserById(id)).data.user?.email];
   const done = (m: string) => {
     bust();
     return wantsHtml(ctx.request) ? ctx.redirect(`${back}&ok=${encodeURIComponent(m)}`, 303) : ok();
@@ -101,12 +106,28 @@ export const POST: APIRoute = handle(async (ctx) => {
       return done(c ? `${p.name || p.email} is in ${c.name}.` : `${p.name || p.email} is in no committee.`);
     }
     case 'suspend': {
+      // The flag makes the site answer 403 and my_role() return null (0017_suspended_roles.sql). The ban
+      // ends the member's sessions in Supabase Auth: it refuses to sign them in or refresh their token, so
+      // an access token they already hold dies with its hour. Reinstating lifts the ban.
+      const { error: banError } = await sb.auth.admin.updateUserById(id, {
+        ban_duration: p.suspended ? 'none' : '876000h',
+      });
+      if (banError) throw new ApiError(`Could not update the sign-in: ${banError.message}`, 500);
+      // A suspended member gets nothing more from the queue (a digest, a welcome, a reservation copy).
+      if (!p.suspended) await dropMail(await addresses());
       await sb.from('profiles').update({ suspended: !p.suspended }).eq('id', id);
       await audit(admin.id, 'update', 'profiles', id, { suspended: p.suspended }, { suspended: !p.suspended });
       return done(p.suspended ? 'Account reinstated.' : 'Account suspended.');
     }
     case 'delete': {
       await audit(admin.id, 'delete', 'profiles', id, { id, name: p.name, email: p.email }, null);
+      // The same as the member deleting their own account: their posts, drafts, photos and solver rows go too.
+      try {
+        await removeMemberContent(id);
+        await dropMail(await addresses());
+      } catch (e) {
+        throw new ApiError(`Could not delete the account: ${(e as Error).message}`, 500);
+      }
       const { error } = await sb.auth.admin.deleteUser(id);
       if (error) throw new ApiError(error.message, 500);
       return done('Account deleted.');

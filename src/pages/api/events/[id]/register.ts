@@ -23,7 +23,8 @@ export const prerender = false;
  * The order of the checks matters: onboarded (officers need a name and phone for the door list),
  * rate limit, then the event must exist and be published, and only for a new reservation must
  * registration be open and a spot remain. A member who already holds a spot may post again to
- * change the email copy without counting against capacity. The count and the insert are two
+ * change the email copy without counting against capacity; the copy itself goes out once per
+ * reservation (new, or the box turned on). The count and the insert are two
  * queries, so two people can take the last spot in the same second; for club-sized events that is
  * accepted rather than locking. The upsert on (event_id, user_id) makes a double click harmless.
  * Reservations are private: a public profile lists an event only when show_on_profile is set,
@@ -61,23 +62,27 @@ export const POST: APIRoute = handle(async (ctx) => {
       : ok({ registered: false });
   }
   if (!ev.registration_open) throw new ApiError('Registration is closed for this event.', 409);
-  if (ev.capacity) {
+  // The member's current reservation, if any: it decides both the capacity check and whether a copy goes out.
+  const { data: mine } = await sb
+    .from('registrations')
+    .select('id,email_copy')
+    .eq('event_id', ev.id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (ev.capacity && !mine) {
     const { count } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('event_id', ev.id);
-    const { data: mine } = await sb
-      .from('registrations')
-      .select('id')
-      .eq('event_id', ev.id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (!mine && (count || 0) >= ev.capacity) throw new ApiError('This event is full.', 409);
+    if ((count || 0) >= ev.capacity) throw new ApiError('This event is full.', 409);
   }
   const email_copy = bool(b.email_copy);
+  // One copy per reservation: when it is new, or when the copy box goes from off to on. A double click or a
+  // repeat submit sends nothing more, so a loop of posts cannot spend the day's email budget.
+  const sendCopy = email_copy && (!mine || !mine.email_copy);
   const { error } = await sb
     .from('registrations')
     .upsert({ event_id: ev.id, user_id: user.id, email_copy }, { onConflict: 'event_id,user_id' });
   if (error) throw new ApiError(error.message, 500);
   // The copy carries calendar links. It goes through the email queue, so it may wait for the daily run.
-  if (email_copy) {
+  if (sendCopy) {
     const item = await getEvent(ev.slug);
     if (item) {
       // The published address, not ctx.url.origin: a reservation made on a preview still sends a real email.

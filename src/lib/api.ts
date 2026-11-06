@@ -114,16 +114,8 @@ export async function readBody(request: Request): Promise<Record<string, any>> {
 export const wantsHtml = (request: Request) =>
   !(request.headers.get('content-type') || '').includes('application/json') &&
   (request.headers.get('accept') || '').includes('text/html');
-/* Only same-site paths: resolved against a dummy origin so tricks like //host or /\\host cannot escape. */
-export const safeNext = (v: unknown, fallback = '/me') => {
-  if (typeof v !== 'string' || !v.startsWith('/')) return fallback;
-  try {
-    const u = new URL(v, 'https://x.invalid');
-    return u.origin === 'https://x.invalid' ? u.pathname + u.search + u.hash : fallback;
-  } catch {
-    return fallback;
-  }
-};
+/* Only same-site paths; the rules and their tests live in next.ts. */
+export { safeNext } from './next';
 
 /* Wraps a handler: ApiError becomes a JSON error (or a redirect with ?error= for form posts). */
 export const handle = (fn: (ctx: APIContext) => Promise<Response>) => async (ctx: APIContext) => {

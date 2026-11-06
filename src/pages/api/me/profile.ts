@@ -17,6 +17,7 @@ import { serviceClient } from '../../../lib/supabase';
 import { storeImage } from '../../../lib/upload';
 import { dropDigest } from '../../../lib/notify';
 import { HANDLE_RE } from '../../../lib/types';
+import { nameColumns, readNameParts, splitName } from '../../../lib/names';
 
 export const prerender = false;
 /* Edits the signed-in member's own profile (ownership is the session's user id; no role needed).
@@ -29,9 +30,17 @@ export const POST: APIRoute = handle(async (ctx) => {
   await guardRate(ctx.request, 'profile', 20, 600);
   const b = await readBody(ctx.request);
   const patch: Record<string, unknown> = {};
-  if ('name' in b) {
-    patch.name = str(b.name, 80);
-    if (!patch.name) throw new ApiError('Your name is required.');
+  // The form sends the name in parts and the full name is built from them; a JSON client may still send one
+  // full name, which is split the same way. A missing part column is dropped by the PGRST204 retry below.
+  if ('first_name' in b || 'name' in b) {
+    try {
+      Object.assign(
+        patch,
+        nameColumns('first_name' in b ? readNameParts(b) : splitName(str(b.name, 80)), 'first_name' in b),
+      );
+    } catch (e) {
+      throw new ApiError((e as Error).message);
+    }
   }
   if ('handle' in b) {
     const h = str(b.handle, 24).toLowerCase();
