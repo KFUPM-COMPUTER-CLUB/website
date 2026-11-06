@@ -1,8 +1,8 @@
 /* Theme engine and reveal-on-scroll.
  * Each [data-bg] section paints itself (its bg-* class sets the colours its text and cards use). --t and
  * --bg-live on the root follow whichever section sits under the header bar, so the header matches it.
- * Section tops are measured on load and when a section changes size, never during a scroll; the scroll
- * handler runs at most once a frame and writes only when the section under the header changes (#127).
+ * An IntersectionObserver on a line under the header finds that section, so scrolling runs no script, and the
+ * root is written only when the section changes (#127).
  * Elements with .reveal fade in the first time they come near the screen. */
 import { onPage, listen, bag } from './page.js';
 
@@ -20,47 +20,46 @@ onPage(() => {
   const root = document.documentElement;
   root.classList.add('js');
 
-  const stops = [...document.querySelectorAll('[data-bg]')].map((el) => ({
-    el,
-    bg: el.dataset.bg,
-    t: lum(hex(el.dataset.bg)) < 0.5 ? '1' : '0',
-    top: 0,
-  }));
+  // The header line is a 1px band 36px from the top of the screen. An IntersectionObserver reports which
+  // sections cross it, so the browser does the work: no scroll handler and no measuring, and the answer is
+  // right on the first paint and after any layout change. The innermost section on the line wins (the first
+  // screen inside <main>, a panel inside a section).
+  const stops = [...document.querySelectorAll('[data-bg]')];
+  const onLine = new Set();
   let current = null,
-    raf = 0;
-  const measure = () => {
-    for (const s of stops) s.top = s.el.getBoundingClientRect().top + window.scrollY;
-  };
+    line = null;
   const paint = () => {
-    raf = 0;
-    if (!stops.length) return;
-    const y = window.scrollY + 36;
-    // The last section that starts above the header line. Near the top, before any has started (the
-    // header pushes them down), it is the innermost of the first ones: the first screen, not <main>.
     let cur = null;
-    for (const s of stops) if (s.top <= y) cur = s;
-    if (!cur) {
-      const first = Math.min(...stops.map((s) => s.top));
-      for (const s of stops) if (s.top === first) cur = s;
-    }
-    if (cur === current) return;
+    for (const el of stops) if (onLine.has(el)) cur = el;
+    if (!cur || cur === current) return;
     current = cur;
-    root.style.setProperty('--bg-live', cur.bg);
-    root.style.setProperty('--t', cur.t);
+    const bg = cur.dataset.bg;
+    root.style.setProperty('--bg-live', bg);
+    root.style.setProperty('--t', lum(hex(bg)) < 0.5 ? '1' : '0');
   };
-  const queue = () => {
-    if (!raf) raf = requestAnimationFrame(paint);
+  const watch = () => {
+    line?.disconnect();
+    onLine.clear();
+    line = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) onLine.add(e.target);
+          else onLine.delete(e.target);
+        }
+        paint();
+      },
+      { rootMargin: `-36px 0px -${Math.max(0, window.innerHeight - 37)}px 0px` },
+    );
+    stops.forEach((el) => line.observe(el));
   };
-  measure();
-  paint();
-  off.add(listen(window, 'scroll', queue, { passive: true }));
-  // Sections that change size (images loading, content-visibility rendering a section) move the ones below.
-  const ro = new ResizeObserver(() => {
-    measure();
-    current = null;
-    queue();
-  });
-  stops.forEach((s) => ro.observe(s.el));
+  watch();
+  let resizeTimer = 0;
+  off.add(
+    listen(window, 'resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(watch, 150);
+    }),
+  );
 
   const io = new IntersectionObserver(
     (entries) => {
@@ -76,8 +75,8 @@ onPage(() => {
 
   return () => {
     off.flush();
-    cancelAnimationFrame(raf);
-    ro.disconnect();
+    clearTimeout(resizeTimer);
+    line?.disconnect();
     io.disconnect();
   };
 });
