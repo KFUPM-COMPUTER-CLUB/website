@@ -832,8 +832,8 @@ body.scrolled .scroll-hint { opacity: 0; }
 .stage__panel--strip h2 { color: #0B0B0F; }
 .stage__panel--strip .link-arrow { color: #2563EB; }
 .stage__panel--strip .strip__item a { border-color: rgba(11, 11, 15, 0.12); background: #F4F4F5; }
-/* Navy to black now passes through a white band */
-.screen--two { padding-bottom: 260px; }
+/* The pictures step ends on white and cuts straight into the photo reel: no navy band and no fade between them. */
+.screen--two { padding-bottom: 0; }
 .screen--two .fade--to-black { height: 260px; background: linear-gradient(to bottom, #FFFFFF 0%, #FFFFFF 40%, #0B0B0F 100%); }
 .logo-tree__pair--square img { border-radius: 0; width: auto; height: 44px; object-fit: contain; }
 /* Footer credit, organised */
