@@ -9,3 +9,4 @@ Everyone who has contributed to this repository, in order of first contribution.
 | Ali Abdullah Alobaid        | [@NullAliCompiles](https://github.com/NullAliCompiles) |
 | Turki Abdulmohsen Almutairi | [@TruuV9](https://github.com/TruuV9)                   |
 | Mohammad Qoqazeh            | [@SylvesterM7mD](https://github.com/SylvesterM7mD)     |
+| dxnnystyles                 | [@dxnnystyles](https://github.com/dxnnystyles)         |
