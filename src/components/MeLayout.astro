@@ -6,13 +6,7 @@ import Subnav from './Subnav.astro';
 import '../styles/app.css';
 import { atLeast } from '../lib/types';
 const { title, lead } = Astro.props as { title: string; lead?: string };
-// const items = [
-  //   { href: '/me', label: 'Overview' },
-  //   { href: '/me/profile', label: 'Profile' },
-  //   { href: '/me/posts', label: 'My posts' },
-  //   { href: '/me/registrations', label: 'Events' },
-  // ];
-const isStaff = atLeast(Astro.locals.role, 'officer');
+const isStaff = atLeast(Astro.locals.role, 'editor');
 const items = [
   { href: '/me', label: 'Overview' },
   { href: '/me/profile', label: 'Profile' },
