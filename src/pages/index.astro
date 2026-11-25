@@ -15,6 +15,7 @@ import { iconSvg } from '../scripts/hero-icon.js';
 import { esc } from '../scripts/code-tokens.js';
 import UpcomingEvents from '../components/UpcomingEvents.astro';
 import HomeHighlights from '../components/HomeHighlights.astro';
+import { atLeast } from '../lib/types';
 import {
   getSettings,
   getMemberCount,
@@ -71,6 +72,8 @@ const stageTabs = [
   { label: t(lang, 'home.moments'), key: 'home.moments' as const },
   { label: t(lang, 'home.inPictures'), key: 'home.inPictures' as const },
 ];
+
+
 ---
 
 <BaseLayout title={lang === 'ar' ? 'الرئيسية' : 'Home'}>
@@ -181,3 +184,10 @@ const stageTabs = [
 <script>
   import '../scripts/home.js';
 </script>
+
+{atLeast(Astro.locals.role, 'officer') && (
+  <div class="stat">
+    <b style="font-size:20px">Admin</b>
+    <span><a href="/admin">Open dashboard →</a></span>
+  </div>
+)}
